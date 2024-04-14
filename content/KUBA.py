@@ -9,8 +9,8 @@ from IPython.display import display
 from IPython.display import clear_output
 from shapely.geometry import Point
 
-gettext.bindtextdomain('KUBA', 'translations')
-gettext.textdomain('KUBA')
+gettext.bindtextdomain('kuba', 'translations')
+gettext.textdomain('kuba')
 _ = gettext.gettext
 
 # our constants
