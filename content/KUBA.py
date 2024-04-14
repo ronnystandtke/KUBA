@@ -301,3 +301,4 @@ class KUBA:
                 progressBar.description = 'Brücken werden geladen: ' + str(progressBar.value) + '/' + str(progressBar.max)
 
         clear_output()
+        display(self.map)
