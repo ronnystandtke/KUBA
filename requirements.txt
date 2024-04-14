@@ -47,6 +47,9 @@ bqplot
 # additional requirements for KUBA
 folium
 geopandas
+jupyterlab-language-pack-de-DE
+jupyterlab-language-pack-fr-FR
+jupyterlab-language-pack-it-IT
 mapclassify
 matplotlib
 openpyxl
