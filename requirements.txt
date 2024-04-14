@@ -56,3 +56,4 @@ mapclassify
 matplotlib
 openpyxl
 pandas
+python-language-server
