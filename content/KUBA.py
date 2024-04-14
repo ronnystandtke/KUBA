@@ -30,6 +30,7 @@ class KUBA:
 
     bridges = None
     earthquakeZones = None
+    map = None
 
     def __init__(self):
         # read file with data
@@ -220,7 +221,7 @@ class KUBA:
     def start(self):
 
         # map = folium.Map(location=[47.15826, 7.27716], tiles="OpenStreetMap", zoom_start=9)
-        map = self.earthquakeZones.explore("ZONE", cmap="OrRd")
+        self.map = self.earthquakeZones.explore("ZONE", cmap="OrRd")
 
         # Leaflet always works in EPSG:4326
         # therefore we have to convert the CRS here
@@ -275,28 +276,28 @@ class KUBA:
                 else:
                     zoneName = zone.iloc[0]
 
-                map.add_child(
+                self.map.add_child(
                     folium.Marker(
                         location=[point.xy[1][0], point.xy[0][0]],
-                        popup='<b>Name</b>: ' + str(osmBridges['Name'][i] + '<br>' +
-                        '<b>Jahr der Norm</b>: ' + ("unbekannt" if normYear == None else str(normYear)) + '<br>' +
-                        '<b>Fehlerkorrekturfaktor</b>: ' + str(normFactor) + '<br>' +
-                        '<b>Alter</b>: ' + ("unbekannt" if age == None else str(age)) + '<br>' +
-                        '<b>Zustandsfaktor</b>: ' + str(conditionFactor) + '<br>' +
-                        '<b>Spannweite</b>: ' + str(span) + ' m<br>' +
-                        '<b>Statikfaktor</b>: ' + str(spanFactor) + '<br>' +
-                        '<b>Typ</b>: ' + typeText + '<br>' +
-                        '<b>Typfaktor</b>: ' + str(typeFactor) + '<br>' +
-                        '<b>Baustoff</b>: ' + ('unbekannt' if not isinstance(materialText, str) else materialText) + '<br>' +
-                        '<b>Baustoff-Faktor</b>: ' + str(materialFactor) + '<br>' +
-                        '<b>Robustheitsfaktor</b>: ' + str(robustnessFactor) + '<br>' +
-                        '<b>Erdbebenzone</b>: ' + zoneName + '<br>'),
-                        # icon=folium.Icon(color="%s" % type_color)
-                        icon=folium.Icon(color="lightblue")
+                        popup=
+                            '<b>Name</b>: ' + str(osmBridges['Name'][i] + '<br>' +
+                            '<b>Jahr der Norm</b>: ' + ("unbekannt" if normYear is None else str(normYear)) + '<br>' +
+                            '<b>Fehlerkorrekturfaktor</b>: ' + str(normFactor) + '<br>' +
+                            '<b>Alter</b>: ' + ("unbekannt" if age is None else str(age)) + '<br>' +
+                            '<b>Zustandsfaktor</b>: ' + str(conditionFactor) + '<br>' +
+                            '<b>Spannweite</b>: ' + str(span) + ' m<br>' +
+                            '<b>Statikfaktor</b>: ' + str(spanFactor) + '<br>' +
+                            '<b>Typ</b>: ' + typeText + '<br>' +
+                            '<b>Typfaktor</b>: ' + str(typeFactor) + '<br>' +
+                            '<b>Baustoff</b>: ' + ('unbekannt' if not isinstance(materialText, str) else materialText) + '<br>' +
+                            '<b>Baustoff-Faktor</b>: ' + str(materialFactor) + '<br>' +
+                            '<b>Robustheitsfaktor</b>: ' + str(robustnessFactor) + '<br>' +
+                            '<b>Erdbebenzone</b>: ' + zoneName + '<br>'),
+                            # icon=folium.Icon(color="%s" % type_color)
+                            icon=folium.Icon(color="lightblue")
                     )
                 )
                 progressBar.value += 1
                 progressBar.description = 'Brücken werden geladen: ' + str(progressBar.value) + '/' + str(progressBar.max)
 
         clear_output()
-        map
