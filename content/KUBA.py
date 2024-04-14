@@ -1,8 +1,7 @@
-# TODO: i18n, L10n
-
 # imports
 import folium
 import geopandas as gpd
+import gettext
 import math
 import pandas as pd
 import ipywidgets as widgets
@@ -11,6 +10,9 @@ from IPython.display import display
 from IPython.display import clear_output
 from shapely.geometry import Point
 
+gettext.bindtextdomain('KUBA', 'translations')
+gettext.textdomain('KUBA')
+_ = gettext.gettext
 
 # our constants
 NUMBER_LABEL = '\xa0Nummer'
@@ -28,12 +30,18 @@ CURRENT_YEAR = datetime.now().year
 
 class KUBA:
 
+    statusText = None
     bridges = None
     earthquakeZones = None
     map = None
 
     def __init__(self):
+        self.statusText = widgets.Text(
+            value='', layout=widgets.Layout(width='600px'), disabled=True)
+        display(self.statusText)
+
         # read file with data
+        self.statusText.value = _('Converting points to GeoDataFrames, please wait...')
         df = pd.read_excel(open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
                            sheet_name='Alle Brücken mit Zusatzinfos')
 
@@ -41,16 +49,17 @@ class KUBA:
         # print(df.columns.values)
 
         # convert to GeoDataFrame
+        self.statusText.value = _('Converting points to GeoDataFrames, please wait...')
         points = []
         for i in df.index:
             x = df[X_LABEL][i]
             y = df[Y_LABEL][i]
             points.append(Point(x, y))
         self.bridges = gpd.GeoDataFrame(df, geometry=points, crs='EPSG:2056')
+
+        self.statusText.value = _('Loading earthquake zones, please wait...')
         self.earthquakeZones = gpd.read_file(
             "zip://data/erdbebenzonen.zip!Erdbebenzonen")
-
-        # risk calculations
 
     def getNormYear(self, normText):
         if isinstance(normText, str):
@@ -221,10 +230,12 @@ class KUBA:
     def start(self):
 
         # map = folium.Map(location=[47.15826, 7.27716], tiles="OpenStreetMap", zoom_start=9)
+        self.statusText.value = _('Creating map, please wait...')
         self.map = self.earthquakeZones.explore("ZONE", cmap="OrRd")
 
         # Leaflet always works in EPSG:4326
         # therefore we have to convert the CRS here
+        self.statusText.value = _('Converting CRS, please wait...')
         osmBridges = self.bridges.to_crs('EPSG:4326')
 
         # create a progress bar
@@ -232,7 +243,7 @@ class KUBA:
             value=0,
             min=0,
             max=self.bridges.index.stop,
-            description='Brücken werden geladen:',
+            description=_('Bridges are being loaded') + ': ' + str(0) + '/' + str(self.bridges.index.stop),
             description_width=200,
             # bar_style can be 'success', 'info', 'warning', 'danger' or ''
             bar_style='success',
@@ -248,6 +259,9 @@ class KUBA:
             point = osmBridges['geometry'][i]
             # there ARE empty coordinates in the table! :-(
             if not point.is_empty:
+
+                progressBar.value += 1
+                progressBar.description = _('Bridges are being loaded') + ': ' + str(progressBar.value) + '/' + str(progressBar.max)
 
                 normYear = self.getNormYear(osmBridges[NORM_YEAR_LABEL][i])
                 normFactor = self.getNormFactor(normYear)
@@ -272,7 +286,7 @@ class KUBA:
 
                 zone = self.earthquakeZones[self.earthquakeZones.contains(self.bridges['geometry'][i])]['ZONE']
                 if zone.empty:
-                    zoneName = "keine"
+                    zoneName = _("none")
                 else:
                     zoneName = zone.iloc[0]
 
@@ -280,25 +294,23 @@ class KUBA:
                     folium.Marker(
                         location=[point.xy[1][0], point.xy[0][0]],
                         popup=
-                            '<b>Name</b>: ' + str(osmBridges['Name'][i] + '<br>' +
-                            '<b>Jahr der Norm</b>: ' + ("unbekannt" if normYear is None else str(normYear)) + '<br>' +
-                            '<b>Fehlerkorrekturfaktor</b>: ' + str(normFactor) + '<br>' +
-                            '<b>Alter</b>: ' + ("unbekannt" if age is None else str(age)) + '<br>' +
-                            '<b>Zustandsfaktor</b>: ' + str(conditionFactor) + '<br>' +
-                            '<b>Spannweite</b>: ' + str(span) + ' m<br>' +
-                            '<b>Statikfaktor</b>: ' + str(spanFactor) + '<br>' +
-                            '<b>Typ</b>: ' + typeText + '<br>' +
-                            '<b>Typfaktor</b>: ' + str(typeFactor) + '<br>' +
-                            '<b>Baustoff</b>: ' + ('unbekannt' if not isinstance(materialText, str) else materialText) + '<br>' +
-                            '<b>Baustoff-Faktor</b>: ' + str(materialFactor) + '<br>' +
-                            '<b>Robustheitsfaktor</b>: ' + str(robustnessFactor) + '<br>' +
-                            '<b>Erdbebenzone</b>: ' + zoneName + '<br>'),
+                            '<b>' + _('Name') + '</b>: ' + str(osmBridges['Name'][i] + '<br>' +
+                            '<b>' + _('Year of the norm') + '</b>: ' + (_('unknown') if normYear is None else str(normYear)) + '<br>' +
+                            '<b>' + _('Error correction factor') + '</b>: ' + str(normFactor) + '<br>' +
+                            '<b>' + _('Age') + '</b>: ' + (_('unknown') if age is None else str(age)) + '<br>' +
+                            '<b>' + _('Condition factor') + '</b>: ' + str(conditionFactor) + '<br>' +
+                            '<b>' + _('Span') + '</b>: ' + str(span) + ' m<br>' +
+                            '<b>' + _('Static factor') + '</b>: ' + str(spanFactor) + '<br>' +
+                            '<b>' + _('Type') + '</b>: ' + typeText + '<br>' +
+                            '<b>' + _('Type factor') + '</b>: ' + str(typeFactor) + '<br>' +
+                            '<b>' + _('Building material') + '</b>: ' + (_('unknown') if not isinstance(materialText, str) else materialText) + '<br>' +
+                            '<b>' + _('Building material factor') + '</b>: ' + str(materialFactor) + '<br>' +
+                            '<b>' + _('Robustness factor') + '</b>: ' + str(robustnessFactor) + '<br>' +
+                            '<b>' + _('Earthquake zone') + '</b>: ' + zoneName + '<br>'),
                             # icon=folium.Icon(color="%s" % type_color)
                             icon=folium.Icon(color="lightblue")
                     )
                 )
-                progressBar.value += 1
-                progressBar.description = 'Brücken werden geladen: ' + str(progressBar.value) + '/' + str(progressBar.max)
 
         clear_output()
         display(self.map)
