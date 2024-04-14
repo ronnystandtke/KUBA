@@ -2,8 +2,9 @@
 
 ## ✨ Try it in your browser ✨
 
-[![lite-badge](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://ronnystandtke.github.io/kuba/lab?path=KUBA.ipynb)
-➡️ **https://ronnystandtke.github.io/kuba/lab?path=KUBA.ipynb**
+[![lite-badge](https://jupyterlite.rtfd.io/en/latest/_static/badge.svg)](https://ronnystandtke.github.io/KUBA/lab?path=KUBA.ipynb)
+
+➡️ **https://ronnystandtke.github.io/KUBA/lab?path=KUBA.ipynb**
 
 ## Requirements
 
