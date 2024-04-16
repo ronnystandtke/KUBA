@@ -1,9 +1,11 @@
+import branca
 import folium
 import geopandas as gpd
 import gettext
 import math
 import pandas as pd
 import ipywidgets as widgets
+import traceback
 from datetime import datetime
 from IPython.display import display
 from IPython.display import clear_output
@@ -105,13 +107,16 @@ class KUBA:
         self.bridgesSlider = widgets.IntSlider(
             description=_('Number of bridges'),
             value=20,
+            min=1,
             max=self.bridges.index.stop,
             style=initialWidthStyle,
             layout=sliderLayout
         )
 
-        self.bridgesIntText = widgets.IntText(
+        self.bridgesIntText = widgets.BoundedIntText(
             description=_('Number of bridges'),
+            min=1,
+            max=self.bridges.index.stop,
             style=initialWidthStyle
         )
         widgets.link((self.bridgesSlider, 'value'), (self.bridgesIntText, 'value'))
@@ -142,51 +147,58 @@ class KUBA:
         display(self.loadButton)
         display(self.output)
 
+    @output.capture()
     def getNormYear(self, normText):
-        if isinstance(normText, str):
-            segments = normText.split(',')
-            if len(segments) > 1:
-                year = segments[0]
-                if '/' in year:
-                    # some years are formatted like this: "1913/15"
-                    return int(year.split('/')[0])
+        try:
+            if isinstance(normText, str):
+                segments = normText.split(',')
+                if len(segments) > 1:
+                    year = segments[0]
+                    if '/' in year:
+                        # some years are formatted like this: "1913/15"
+                        return int(year.split('/')[0])
+                    else:
+                        return int(year)
                 else:
-                    return int(year)
+                    # text without year prefix
+                    return None
             else:
-                # text without year prefix
+                # empty text
                 return None
-        else:
-            # empty text
-            return None
+        except Exception:
+            with self.output:
+                print(traceback.format_exc())
 
     @output.capture()
     def getHumanErrorFactor(self, normYear, yearOfConstruction):
         # factor K_1 ("Faktor für menschliche Fehler")
-
-        # if the year of the norm generation is unknown
-        # we use the year of construction
-        # if normYear is None:
-        if normYear is None:
-            if yearOfConstruction is None:
-                # TODO: is this correct if both years are unknown?
-                return 90
+        try:
+            # if the year of the norm generation is unknown
+            # we use the year of construction
+            if normYear is None:
+                if yearOfConstruction is None:
+                    # TODO: is this correct if both years are unknown?
+                    return 90
+                else:
+                    relevantYear = yearOfConstruction
             else:
-                relevantYear = yearOfConstruction
-        else:
-            relevantYear = normYear
+                relevantYear = normYear
 
-        if (relevantYear is None) or (relevantYear < 1967):
-            return 90
-        elif relevantYear < 1973:
-            return 60
-        elif relevantYear < 1979:
-            return 40
-        elif relevantYear < 1985:
-            return 20
-        elif relevantYear < 2003:
-            return 10
-        else:
-            return 5
+            if (relevantYear is None) or (relevantYear < 1967):
+                return 90
+            elif relevantYear < 1973:
+                return 60
+            elif relevantYear < 1979:
+                return 40
+            elif relevantYear < 1985:
+                return 20
+            elif relevantYear < 2003:
+                return 10
+            else:
+                return 5
+        except Exception:
+            with self.output:
+                print(traceback.format_exc())
 
     def getStaticalDeterminacyFactor(self, type):
         # factor K_3 ("statische Bestimmtheit")
@@ -417,100 +429,105 @@ class KUBA:
     @output.capture()
     def loadBridges(self):
 
-        self.bridgesSlider.disabled = True
-        self.bridgesIntText.disabled = True
-        self.loadButton.disabled = True
+        try:
+            self.bridgesSlider.disabled = True
+            self.bridgesIntText.disabled = True
+            self.loadButton.disabled = True
 
-        self.progressBar.max = self.bridgesSlider.value
-        self.progressBar.description = _('Bridges are being loaded') + ': ' + str(self.progressBar.value) + '/' + str(self.progressBar.max)
+            self.progressBar.value = 0
+            self.progressBar.max = self.bridgesSlider.value
+            self.progressBar.description = _('Bridges are being loaded') + ': ' + str(self.progressBar.value) + '/' + str(self.progressBar.max)
 
-        self.output.clear_output(wait=True)
-        with self.output:
-            display(self.progressBar)
+            self.output.clear_output(wait=True)
+            with self.output:
+                display(self.progressBar)
 
-        # create a fresh map (we can't remove existing markers from the map)
-        # map = folium.Map(location=[47.15826, 7.27716], tiles="OpenStreetMap", zoom_start=9)
-        self.map = self.earthquakeZones.explore("ZONE", cmap="OrRd")
+            # create a fresh map (we can't remove existing markers from the map)
+            # map = folium.Map(location=[47.15826, 7.27716], tiles="OpenStreetMap", zoom_start=9)
+            self.map = self.earthquakeZones.explore("ZONE", cmap="OrRd")
 
-        for i in range(0, self.bridgesSlider.value):
-            point = self.osmBridges['geometry'][i]
-            # there ARE empty coordinates in the table! :-(
-            if not point.is_empty:
+            for i in range(0, self.bridgesSlider.value):
+                point = self.osmBridges['geometry'][i]
+                # there ARE empty coordinates in the table! :-(
+                if not point.is_empty:
 
-                self.progressBar.value += 1
-                self.progressBar.description = _('Bridges are being loaded') + ': ' + str(self.progressBar.value) + '/' + str(self.progressBar.max)
+                    self.progressBar.value += 1
+                    self.progressBar.description = _('Bridges are being loaded') + ': ' + str(self.progressBar.value) + '/' + str(self.progressBar.max)
 
-                # K_1
-                normYear = self.getNormYear(self.osmBridges[NORM_YEAR_LABEL][i])
-                yearOfConstruction = int(self.osmBridges[YEAR_OF_CONSTRUCTION_LABEL][i])
-                humanErrorFactor = self.getHumanErrorFactor(normYear, yearOfConstruction)
+                    # K_1
+                    normYear = self.getNormYear(self.osmBridges[NORM_YEAR_LABEL][i])
+                    yearOfConstruction = self.osmBridges[YEAR_OF_CONSTRUCTION_LABEL][i]
+                    if not math.isnan(yearOfConstruction):
+                        yearOfConstruction = int(yearOfConstruction)
+                    humanErrorFactor = self.getHumanErrorFactor(normYear, yearOfConstruction)
 
-                # K_3
-                typeCode = self.osmBridges[TYPE_CODE_LABEL][i]
-                typeText = self.osmBridges[TYPE_TEXT_LABEL][i]
-                staticalDeterminacyFactor = self.getStaticalDeterminacyFactor(typeCode)
+                    # K_3
+                    typeCode = self.osmBridges[TYPE_CODE_LABEL][i]
+                    typeText = self.osmBridges[TYPE_TEXT_LABEL][i]
+                    staticalDeterminacyFactor = self.getStaticalDeterminacyFactor(typeCode)
 
-                # P_f * K_4
-                conditionClass = self.osmBridges[CONDITION_CLASS_LABEL][i]
-                age = self.getAge(yearOfConstruction)
-                conditionFactor = self.getConditionFactor(conditionClass, age)
+                    # P_f * K_4
+                    conditionClass = self.osmBridges[CONDITION_CLASS_LABEL][i]
+                    age = self.getAge(yearOfConstruction)
+                    conditionFactor = self.getConditionFactor(conditionClass, age)
 
-                # K_7
-                span = self.getSpan(self.osmBridges[SPAN_LABEL][i])
-                staticCalculationFactor = self.getStaticCalculationFactor(span)
+                    # K_7
+                    span = self.getSpan(self.osmBridges[SPAN_LABEL][i])
+                    staticCalculationFactor = self.getStaticCalculationFactor(span)
 
-                # K_8
-                bridgeTypeFactor = self.getBridgeTypeFactor(typeCode)
+                    # K_8
+                    bridgeTypeFactor = self.getBridgeTypeFactor(typeCode)
 
-                # K_9
-                materialCode = self.getMaterialCode(
-                    self.osmBridges[MATERIAL_CODE_LABEL][i])
-                materialText = self.osmBridges[MATERIAL_TEXT_LABEL][i]
-                materialFactor = self.getMaterialFactor(materialCode)
+                    # K_9
+                    materialCode = self.getMaterialCode(
+                        self.osmBridges[MATERIAL_CODE_LABEL][i])
+                    materialText = self.osmBridges[MATERIAL_TEXT_LABEL][i]
+                    materialFactor = self.getMaterialFactor(materialCode)
 
-                # K_11
-                robustnessFactor = self.getRobustnessFactor(yearOfConstruction)
+                    # K_11
+                    robustnessFactor = self.getRobustnessFactor(yearOfConstruction)
 
-                zone = self.earthquakeZones[self.earthquakeZones.contains(self.bridges['geometry'][i])]['ZONE']
-                if zone.empty:
-                    zoneName = _("none")
-                else:
-                    zoneName = zone.iloc[0]
+                    zone = self.earthquakeZones[self.earthquakeZones.contains(self.bridges['geometry'][i])]['ZONE']
+                    if zone.empty:
+                        zoneName = _("none")
+                    else:
+                        zoneName = zone.iloc[0]
 
-                if age is None:
-                    ageText = _('unknown')
-                else:
-                    ageText = gettext.ngettext('{0} year', '{0} years', age)
-                    ageText = ageText.format(age)
+                    if age is None:
+                        ageText = _('unknown')
+                    else:
+                        ageText = gettext.ngettext('{0} year', '{0} years', age)
+                        ageText = ageText.format(age)
 
-                self.map.add_child(
-                    folium.Marker(
-                        location=[point.xy[1][0], point.xy[0][0]],
-                        popup=
-                            '<b>' + _('Name') + '</b>: ' + str(self.osmBridges['Name'][i] + '<br>' +
-                            '<b>' + _('Year of the norm') + '</b>: ' + (_('unknown') if normYear is None else str(normYear)) + '<br>' +
-                            '<b>' + _('Year of construction') + '</b>: ' + (_('unknown') if yearOfConstruction is None else str(yearOfConstruction)) + '<br>' +
-                            '<b><i>K<sub>1</sub>: ' + _('Human error factor') + '</b>: ' + str(humanErrorFactor) + '</i><br>' +
-                            '<b>' + _('Type') + '</b>: ' + typeText + '<br>' +
-                            '<b><i>K<sub>3</sub>: ' + _('Statical determinacy factor') + '</b>: ' + str(staticalDeterminacyFactor) + '</i><br>' +
-                            '<b>' + _('Age') + '</b>: ' + ageText + '<br>' +
-                            '<b><i>P<sub>f</sub>&times;K<sub>4</sub>: ' + _('Condition factor') + '</b>: ' + str(conditionFactor) + '</i><br>' +
-                            '<b>' + _('Span') + '</b>: ' + str(span) + ' m<br>' +
-                            '<b><i>K<sub>7</sub>: ' + _('Static calculation factor') + '</b>: ' + str(staticCalculationFactor) + '</i><br>' +
-                            '<b><i>K<sub>8</sub>: ' + _('Bridge type factor') + '</b>: ' + str(bridgeTypeFactor) + '</i><br>' +
-                            '<b>' + _('Building material') + '</b>: ' + (_('unknown') if not isinstance(materialText, str) else materialText) + '<br>' +
-                            '<b><i>K<sub>9</sub>: ' + _('Building material factor') + '</b>: ' + str(materialFactor) + '</i><br>' +
-                            '<b><i>K<sub>11</sub>: ' + _('Robustness factor') + '</b>: ' + str(robustnessFactor) + '</i><br>' +
-                            '<b>' + _('Earthquake zone') + '</b>: ' + zoneName + '<br>'),
-                            # icon=folium.Icon(color="%s" % type_color)
-                            icon=folium.Icon(color="lightblue")
-                    )
-                )
+                    html = str('<b>' + _('Name') + '</b>: ' + str(self.osmBridges['Name'][i]) + '<br>' +
+                        '<b>' + _('Year of the norm') + '</b>: ' + (_('unknown') if normYear is None else str(normYear)) + '<br>' +
+                        '<b>' + _('Year of construction') + '</b>: ' + (_('unknown') if yearOfConstruction is None else str(yearOfConstruction)) + '<br>' +
+                        '<b><i>K<sub>1</sub>: ' + _('Human error factor') + '</b>: ' + str(humanErrorFactor) + '</i><br>' +
+                        '<b>' + _('Type') + '</b>: ' + typeText + '<br>' +
+                        '<b><i>K<sub>3</sub>: ' + _('Statical determinacy factor') + '</b>: ' + str(staticalDeterminacyFactor) + '</i><br>' +
+                        '<b>' + _('Age') + '</b>: ' + ageText + '<br>' +
+                        '<b><i>P<sub>f</sub>&times;K<sub>4</sub>: ' + _('Condition factor') + '</b>: ' + str(conditionFactor) + '</i><br>' +
+                        '<b>' + _('Span') + '</b>: ' + str(span) + ' m<br>' +
+                        '<b><i>K<sub>7</sub>: ' + _('Static calculation factor') + '</b>: ' + str(staticCalculationFactor) + '</i><br>' +
+                        '<b><i>K<sub>8</sub>: ' + _('Bridge type factor') + '</b>: ' + str(bridgeTypeFactor) + '</i><br>' +
+                        '<b>' + _('Building material') + '</b>: ' + (_('unknown') if not isinstance(materialText, str) else materialText) + '<br>' +
+                        '<b><i>K<sub>9</sub>: ' + _('Building material factor') + '</b>: ' + str(materialFactor) + '</i><br>' +
+                        '<b><i>K<sub>11</sub>: ' + _('Robustness factor') + '</b>: ' + str(robustnessFactor) + '</i><br>' +
+                        '<b>' + _('Earthquake zone') + '</b>: ' + zoneName + '<br>')
+                    iframe = branca.element.IFrame(html=html, width=450, height=400)
+                    popup = folium.Popup(iframe)
+                    icon = folium.Icon(color="lightblue")
+                    marker = folium.Marker(location=[point.xy[1][0], point.xy[0][0]], popup=popup, icon=icon)
+                    self.map.add_child(marker)
 
-        self.output.clear_output(wait=True)
-        with self.output:
-            display(self.map)
+            self.output.clear_output(wait=True)
+            with self.output:
+                display(self.map)
 
-        self.bridgesSlider.disabled = False
-        self.bridgesIntText.disabled = False
-        self.loadButton.disabled = False
+            self.bridgesSlider.disabled = False
+            self.bridgesIntText.disabled = False
+            self.loadButton.disabled = False
+
+        except Exception:
+            with self.output:
+                print(traceback.format_exc())
