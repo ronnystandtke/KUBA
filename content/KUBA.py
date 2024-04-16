@@ -14,6 +14,7 @@ gettext.textdomain('kuba')
 _ = gettext.gettext
 
 # our constants
+ALL_BUILDINGS_NUMBER_LABEL = 'Nummer'
 NUMBER_LABEL = '\xa0Nummer'
 X_LABEL = 'Landeskoordinaten\xa0E\xa0[m]'
 Y_LABEL = 'Landeskoordinaten\xa0N\xa0[m]'
@@ -24,10 +25,14 @@ TYPE_CODE_LABEL = 'Typ\xa0Hierarchie-Code'
 TYPE_TEXT_LABEL = 'Typ\xa0Text'
 MATERIAL_CODE_LABEL = 'Bauart\xa0Code'
 MATERIAL_TEXT_LABEL = 'Bauart\xa0Text'
+CONDITION_CLASS_LABEL = 'Zustands- Klasse'
+FUNCTION_TEXT_LABEL = 'Funktion\xa0Text'
 CURRENT_YEAR = datetime.now().year
 
 
 class KUBA:
+
+    output = widgets.Output()
 
     bridges = None
     osmBridges = None
@@ -41,20 +46,50 @@ class KUBA:
 
         # read file with data
         statusText.value = _('Loading building data, please wait...')
-        df = pd.read_excel(open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
-                           sheet_name='Alle Brücken mit Zusatzinfos')
+
+        # dfAllBuildings = pd.read_excel(open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
+        #                    sheet_name='Alle Bauwerke mit Zusatzinfo')
+
+        dfBridges = pd.read_excel(
+            open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
+            sheet_name='Alle Brücken mit Zusatzinfos')
+
+        # dfBuildings = pd.read_excel(open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
+        #                    sheet_name='Bauwerke mitErdbebenüberprüfung')
+
+        # check how many bridges we find in the other sheets
+        # bridgeInAllBuildings = 0
+        # bridgeNotInAllBuildings = 0
+        # bridgeInBuildings = 0
+        # bridgeNotInBuildings = 0
+        # for bridgeNumber in dfBridges[NUMBER_LABEL]:
+
+        #     if bridgeNumber in dfAllBuildings[ALL_BUILDINGS_NUMBER_LABEL].values:
+        #         bridgeInAllBuildings += 1
+        #     else:
+        #         bridgeNotInAllBuildings += 1
+
+        #     if bridgeNumber in dfBuildings[NUMBER_LABEL].values:
+        #         bridgeInBuildings += 1
+        #     else:
+        #         bridgeNotInBuildings += 1
+
+        # print("number of bridges found in sheet 'Alle Bauwerke mit Zusatzinfo':", bridgeInAllBuildings)
+        # print("number of bridges NOT found in sheet 'Alle Bauwerke mit Zusatzinfo':", bridgeNotInAllBuildings)
+        # print("number of bridges found in sheet 'Bauwerke mitErdbebenüberprüfung':", bridgeInBuildings)
+        # print("number of bridges NOT found in sheet 'Bauwerke mitErdbebenüberprüfung':", bridgeNotInBuildings)
 
         # code to get the correct labels
-        # print(df.columns.values)
+        # print(dfBuildings.columns.values)
 
         # convert to GeoDataFrame
         statusText.value = _('Converting points to GeoDataFrames, please wait...')
         points = []
-        for i in df.index:
-            x = df[X_LABEL][i]
-            y = df[Y_LABEL][i]
+        for i in dfBridges.index:
+            x = dfBridges[X_LABEL][i]
+            y = dfBridges[Y_LABEL][i]
             points.append(Point(x, y))
-        self.bridges = gpd.GeoDataFrame(df, geometry=points, crs='EPSG:2056')
+        self.bridges = gpd.GeoDataFrame(dfBridges, geometry=points, crs='EPSG:2056')
 
         statusText.value = _('Loading earthquake zones, please wait...')
         self.earthquakeZones = gpd.read_file(
@@ -101,8 +136,6 @@ class KUBA:
             layout=widgets.Layout(width='auto')
         )
 
-        self.output = widgets.Output()
-
         clear_output()
         display(self.bridgesSlider)
         display(self.bridgesIntText)
@@ -126,22 +159,46 @@ class KUBA:
             # empty text
             return None
 
-    def getNormFactor(self, year):
-        if year is None:
-            # TODO: value for unknown year?
+    @output.capture()
+    def getHumanErrorFactor(self, normYear, yearOfConstruction):
+        # factor K_1 ("Faktor für menschliche Fehler")
+
+        # if the year of the norm generation is unknown
+        # we use the year of construction
+        # if normYear is None:
+        if normYear is None:
+            if yearOfConstruction is None:
+                # TODO: is this correct if both years are unknown?
+                return 90
+            else:
+                relevantYear = yearOfConstruction
+        else:
+            relevantYear = normYear
+
+        if (relevantYear is None) or (relevantYear < 1967):
             return 90
-        elif year < 1967:
-            return 90
-        elif year < 1973:
+        elif relevantYear < 1973:
             return 60
-        elif year < 1979:
+        elif relevantYear < 1979:
             return 40
-        elif year < 1985:
+        elif relevantYear < 1985:
             return 20
-        elif year < 2003:
+        elif relevantYear < 2003:
             return 10
         else:
             return 5
+
+    def getStaticalDeterminacyFactor(self, type):
+        # factor K_3 ("statische Bestimmtheit")
+        if type == 1111:
+            # Brücke mit Einfeldträger
+            return 1
+        elif type == 1112:
+            # Brücke mit Durchlaufträger
+            return 0.014
+        else:
+            # TODO: what about all other types?
+            return None
 
     def getAge(self, yearOfConstruction):
         # TODO:
@@ -151,38 +208,54 @@ class KUBA:
         else:
             return CURRENT_YEAR - int(yearOfConstruction)
 
-    def getConditionFactor(self, age):
+    def getConditionFactor(self, conditionClass, age):
+        # factor P_f * K_4 ("Zustandsklasse")
+
+        if conditionClass is None:
+            # TODO: correct value for unknown condition classes?
+            h1 = 3e-5
+        elif conditionClass < 3:
+            h1 = 1e-6
+        elif conditionClass < 4:
+            h1 = 3e-6
+        elif conditionClass < 5:
+            h1 = 1e-5
+        else:
+            h1 = 3e-5
+
         if age is None:
             # TODO: value for unknown ages?
-            return 1.019e-4 * 90.31
-        elif age < 1:
-            return 1.128e-6
-        elif age < 2:
-            return 2.112e-6 * 1.87
-        elif age < 5:
-            return 5.067e-6 * 4.49
-        elif age < 10:
-            return 9.712e-6 * 8.61
-        elif age < 15:
-            return 1.612e-5 * 14.29
-        elif age < 20:
-            return 2.066e-5 * 18.31
-        elif age < 30:
-            return 3.148e-5 * 27.91
-        elif age < 40:
-            return 4.025e-5 * 35.68
-        elif age < 50:
-            return 5.102e-5 * 45.22
-        elif age < 60:
-            return 6.079e-5 * 53.89
-        elif age < 70:
-            return 7.235e-5 * 64.13
-        elif age < 80:
-            return 8.117e-5 * 71.95
-        elif age < 90:
-            return 9.095e-5 * 80.62
+            h2 = 1.019e-4 * 90.31
+        elif age <= 1:
+            h2 = 1.128e-6
+        elif age <= 2:
+            h2 = 2.112e-6 * 1.87
+        elif age <= 5:
+            h2 = 5.067e-6 * 4.49
+        elif age <= 10:
+            h2 = 9.712e-6 * 8.61
+        elif age <= 15:
+            h2 = 1.612e-5 * 14.29
+        elif age <= 20:
+            h2 = 2.066e-5 * 18.31
+        elif age <= 30:
+            h2 = 3.148e-5 * 27.91
+        elif age <= 40:
+            h2 = 4.025e-5 * 35.68
+        elif age <= 50:
+            h2 = 5.102e-5 * 45.22
+        elif age <= 60:
+            h2 = 6.079e-5 * 53.89
+        elif age <= 70:
+            h2 = 7.235e-5 * 64.13
+        elif age <= 80:
+            h2 = 8.117e-5 * 71.95
+        elif age <= 90:
+            h2 = 9.095e-5 * 80.62
         else:
-            return 1.019e-4 * 90.31
+            h2 = 1.019e-4 * 90.31
+
+        return 0.7 * h1 + 0.3 * h2
 
     def getSpan(self, spanText):
         # TODO: there are bridges without span data!
@@ -191,38 +264,78 @@ class KUBA:
         else:
             return float(spanText)
 
-    def getSpanFactor(self, span):
-        # TODO: Erhöhungsfaktor Tragfähigkeit?
+    def getStaticCalculationFactor(self, span):
+        # factor K_7 ("Statische Berechnung")
+
         if span is None:
             # TODO: value for unknown spans?
-            return 0.0238
+            h1 = 0.0238
         elif span < 6:
-            return 0.0023
+            h1 = 0.0023
         elif span < 12:
-            return 0.0047
+            h1 = 0.0047
         elif span < 18:
-            return 0.0291
+            h1 = 0.0291
         else:
-            return 0.0238
+            h1 = 0.0238
 
-    def getTypeFactor(self, type):
-        # TODO: check matching between document and table
+        return 0.9 + 0.1 + h1
+
+    def getBridgeTypeFactor(self, type):
+        # factor K_8 ("Brückentyp")
+
         if type == 1193:
-            # table: "Plattenbrücke"
-            # document: "Plattenbalken"
-            return 1
-        elif type == 1124:
             # table:
-            # "Brücke mit versteiftem Stabbogen / Langerscher Balken"
+            # 1193: "Plattenbrücke"
+            # document:
+            # "Plattenbalken"
+            return 1
+
+        elif (type == 1111) or (type == 1112) or (type == 1113):
+            # table:
+            # 1111: "Brücke mit Einfeldträger"
+            # 1112: "Brücke mit Durchlaufträger"
+            # 1113: "Brücke mit Gerberträger"
             # document:
             # "Balkenbrücke"
             return 0.6
+
+        elif (type == 1123) or (type == 1124) or (type == 11) or (type == 1125) or (type == 112):
+            # table:
+            # 1123: "Brücke mit Bogentragwerk"
+            # 1124: "Brücke mit versteiftem Stabbogen / Langerscher Balken"
+            # 11: "Brücke, Viadukt"
+            # 1125: "Gewölbekonstruktion"
+            # 112: "Rahmen-, Bogenbrücken"
+            # document:
+            # "Bogen"
+            return 1.6
+
+        elif (type == 1192) or (type == 1131) or (type == 191) or (type == 1133) or (type == 119):
+            # table:
+            # 1192: "Brücke auf Wanne"
+            # 1131: "Schrägseilbrücke"
+            # 191: "Brückenanlage"
+            # 1133: "Spannbandbrücke"
+            # 119: "Spezielle Brücke"
+            # document:
+            # "Andere"
+            return 5
+
+        elif (type == 1121) or (type == 1122):
+            # table:
+            # 1121: "Brücke mit Rahmentragwerk"
+            # 1122: "Brücke mit Sprengwerk"
+            # document:
+            # "Rahmen"
+            return 0.4
+
         elif type == 1132:
             # both: "Hängebrücke"
             return 17.5
+
         else:
-            # TODO: default value (not needed yet, as all bridges in the
-            # current data set have a type)
+            # TODO: default value?
             return 1
 
     def getMaterialCode(self, codeText):
@@ -233,24 +346,50 @@ class KUBA:
             return float(codeText)
 
     def getMaterialFactor(self, materialCode):
-        # TODO: complete mappings?
-        if materialCode == 1121:
-            # table: "Betonkonstruktion"
-            # document: "Beton"
+        # factor K_9 ("Baustoff")
+
+        if (materialCode == 1123) or (materialCode == 1125) or (materialCode == 1121) or (materialCode == 1124):
+            # table:
+            # 1123: "Stahlbetonkonstruktion"
+            # 1125: "Spannbetonkonstruktion"
+            # 1121: "Betonkonstruktion"
+            # 1124: "Verkleidete Stahlbetonkonstruktion"
+            # document:
+            # "Beton"
             return 1
+
         elif materialCode == 1141:
-            # table: "Stahlkonstruktion"
-            # document: "Stahl"
+            # table:
+            # 1141: "Stahlkonstruktion"
+            # document:
+            # "Stahl"
             return 5.67
-        elif materialCode == 117 or materialCode == 1111:
-            # table: "Holzkonstruktion" (117)
-            # table: "Mauerwerk" (1111)
-            # document: "Holz/Mauerwerk"
+
+        elif (materialCode == 1112) or (materialCode == 117) or (materialCode == 1111):
+            # table:
+            # 1112: "Ausbetoniertes Mauerwerk"
+            # 117: "Holzkonstruktion"
+            # 1111: "Mauerwerk"
+            # document:
+            # "Holz/Mauerwerk"
             return 6.67
-        elif materialCode == 1152:
-            # table: "Verbundkonstruktion"
-            # document: "Verbund"
+
+        elif (materialCode == 1152) or (materialCode == 1153):
+            # table:
+            # 1152: "Verbundkonstruktion"
+            # 1153: "Verbundkonstruktion mit Vorspannung"
+            # document:
+            # "Verbund"
             return 1
+
+        elif (materialCode == 1162) or (materialCode == 1133):
+            # table:
+            # 1162: "Vorgespannte Seilkonstruktion"
+            # 1133: "Wellblechkonstruktion"
+            # document:
+            # "Sonstiges"
+            return 6.67
+
         else:
             # TODO: default value?
             return 1
@@ -275,6 +414,7 @@ class KUBA:
             else:
                 return 1
 
+    @output.capture()
     def loadBridges(self):
 
         self.bridgesSlider.disabled = True
@@ -300,25 +440,35 @@ class KUBA:
                 self.progressBar.value += 1
                 self.progressBar.description = _('Bridges are being loaded') + ': ' + str(self.progressBar.value) + '/' + str(self.progressBar.max)
 
+                # K_1
                 normYear = self.getNormYear(self.osmBridges[NORM_YEAR_LABEL][i])
-                normFactor = self.getNormFactor(normYear)
+                yearOfConstruction = int(self.osmBridges[YEAR_OF_CONSTRUCTION_LABEL][i])
+                humanErrorFactor = self.getHumanErrorFactor(normYear, yearOfConstruction)
 
-                yearOfConstruction = self.osmBridges[YEAR_OF_CONSTRUCTION_LABEL][i]
-                age = self.getAge(yearOfConstruction)
-                conditionFactor = self.getConditionFactor(age)
-
-                span = self.getSpan(self.osmBridges[SPAN_LABEL][i])
-                spanFactor = self.getSpanFactor(span)
-
+                # K_3
                 typeCode = self.osmBridges[TYPE_CODE_LABEL][i]
                 typeText = self.osmBridges[TYPE_TEXT_LABEL][i]
-                typeFactor = self.getTypeFactor(typeCode)
+                staticalDeterminacyFactor = self.getStaticalDeterminacyFactor(typeCode)
 
+                # P_f * K_4
+                conditionClass = self.osmBridges[CONDITION_CLASS_LABEL][i]
+                age = self.getAge(yearOfConstruction)
+                conditionFactor = self.getConditionFactor(conditionClass, age)
+
+                # K_7
+                span = self.getSpan(self.osmBridges[SPAN_LABEL][i])
+                staticCalculationFactor = self.getStaticCalculationFactor(span)
+
+                # K_8
+                bridgeTypeFactor = self.getBridgeTypeFactor(typeCode)
+
+                # K_9
                 materialCode = self.getMaterialCode(
                     self.osmBridges[MATERIAL_CODE_LABEL][i])
                 materialText = self.osmBridges[MATERIAL_TEXT_LABEL][i]
                 materialFactor = self.getMaterialFactor(materialCode)
 
+                # K_11
                 robustnessFactor = self.getRobustnessFactor(yearOfConstruction)
 
                 zone = self.earthquakeZones[self.earthquakeZones.contains(self.bridges['geometry'][i])]['ZONE']
@@ -327,22 +477,30 @@ class KUBA:
                 else:
                     zoneName = zone.iloc[0]
 
+                if age is None:
+                    ageText = _('unknown')
+                else:
+                    ageText = gettext.ngettext('{0} year', '{0} years', age)
+                    ageText = ageText.format(age)
+
                 self.map.add_child(
                     folium.Marker(
                         location=[point.xy[1][0], point.xy[0][0]],
                         popup=
                             '<b>' + _('Name') + '</b>: ' + str(self.osmBridges['Name'][i] + '<br>' +
                             '<b>' + _('Year of the norm') + '</b>: ' + (_('unknown') if normYear is None else str(normYear)) + '<br>' +
-                            '<b>' + _('Error correction factor') + '</b>: ' + str(normFactor) + '<br>' +
-                            '<b>' + _('Age') + '</b>: ' + (_('unknown') if age is None else str(age)) + '<br>' +
-                            '<b>' + _('Condition factor') + '</b>: ' + str(conditionFactor) + '<br>' +
-                            '<b>' + _('Span') + '</b>: ' + str(span) + ' m<br>' +
-                            '<b>' + _('Static factor') + '</b>: ' + str(spanFactor) + '<br>' +
+                            '<b>' + _('Year of construction') + '</b>: ' + (_('unknown') if yearOfConstruction is None else str(yearOfConstruction)) + '<br>' +
+                            '<b><i>K<sub>1</sub>: ' + _('Human error factor') + '</b>: ' + str(humanErrorFactor) + '</i><br>' +
                             '<b>' + _('Type') + '</b>: ' + typeText + '<br>' +
-                            '<b>' + _('Type factor') + '</b>: ' + str(typeFactor) + '<br>' +
+                            '<b><i>K<sub>3</sub>: ' + _('Statical determinacy factor') + '</b>: ' + str(staticalDeterminacyFactor) + '</i><br>' +
+                            '<b>' + _('Age') + '</b>: ' + ageText + '<br>' +
+                            '<b><i>P<sub>f</sub>&times;K<sub>4</sub>: ' + _('Condition factor') + '</b>: ' + str(conditionFactor) + '</i><br>' +
+                            '<b>' + _('Span') + '</b>: ' + str(span) + ' m<br>' +
+                            '<b><i>K<sub>7</sub>: ' + _('Static calculation factor') + '</b>: ' + str(staticCalculationFactor) + '</i><br>' +
+                            '<b><i>K<sub>8</sub>: ' + _('Bridge type factor') + '</b>: ' + str(bridgeTypeFactor) + '</i><br>' +
                             '<b>' + _('Building material') + '</b>: ' + (_('unknown') if not isinstance(materialText, str) else materialText) + '<br>' +
-                            '<b>' + _('Building material factor') + '</b>: ' + str(materialFactor) + '<br>' +
-                            '<b>' + _('Robustness factor') + '</b>: ' + str(robustnessFactor) + '<br>' +
+                            '<b><i>K<sub>9</sub>: ' + _('Building material factor') + '</b>: ' + str(materialFactor) + '</i><br>' +
+                            '<b><i>K<sub>11</sub>: ' + _('Robustness factor') + '</b>: ' + str(robustnessFactor) + '</i><br>' +
                             '<b>' + _('Earthquake zone') + '</b>: ' + zoneName + '<br>'),
                             # icon=folium.Icon(color="%s" % type_color)
                             icon=folium.Icon(color="lightblue")
