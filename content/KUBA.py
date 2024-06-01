@@ -1,15 +1,20 @@
-import branca
-import folium
 import geopandas as gpd
 import gettext
+import json
 import math
 import pandas as pd
 import ipywidgets as widgets
 import traceback
+from branca.colormap import linear
 from datetime import datetime
-from IPython.display import display
+from ipyleaflet import (basemaps, Choropleth, LayersControl, LegendControl,
+                        Map, Marker, MarkerCluster)
 from IPython.display import clear_output
+from IPython.display import display
+from itables import init_notebook_mode
 from shapely.geometry import Point
+
+init_notebook_mode(all_interactive=True)
 
 gettext.bindtextdomain('kuba', 'translations')
 gettext.textdomain('kuba')
@@ -85,13 +90,15 @@ class KUBA:
         # print(dfBuildings.columns.values)
 
         # convert to GeoDataFrame
-        statusText.value = _('Converting points to GeoDataFrames, please wait...')
+        statusText.value = _(
+            'Converting points to GeoDataFrames, please wait...')
         points = []
         for i in dfBridges.index:
             x = dfBridges[X_LABEL][i]
             y = dfBridges[Y_LABEL][i]
             points.append(Point(x, y))
-        self.bridges = gpd.GeoDataFrame(dfBridges, geometry=points, crs='EPSG:2056')
+        self.bridges = gpd.GeoDataFrame(
+            dfBridges, geometry=points, crs='EPSG:2056')
 
         statusText.value = _('Loading earthquake zones, please wait...')
         self.earthquakeZones = gpd.read_file(
@@ -101,6 +108,44 @@ class KUBA:
         # therefore we have to convert the CRS here
         statusText.value = _('Converting CRS, please wait...')
         self.osmBridges = self.bridges.to_crs('EPSG:4326')
+        self.earthquakeZones.to_crs(crs="EPSG:4326", inplace=True)
+
+        statusText.value = _('Creating base map, please wait...')
+        self.map = Map(
+            basemap=basemaps.OpenStreetMap.Mapnik,
+            center=(46.988, 8.17),
+            scroll_wheel_zoom=True,
+            zoom=8)
+        self.map.layout.height = '800px'
+
+        choro_data = {
+            '0': 0,
+            '1': 1,
+            '2': 2,
+            '3': 3,
+            '4': 4
+        }
+
+        choropleth = Choropleth(
+            geo_data=json.loads(self.earthquakeZones.to_json()),
+            choro_data=choro_data,
+            colormap=linear.YlOrRd_04,
+            border_color='black',
+            style={'fillOpacity': 0.5, 'dashArray': '5, 5'},
+            name='Erdbebenzonen')
+        self.map.add(choropleth)
+
+        legend = LegendControl(
+            {"Z1a": choropleth.colormap(0),
+             "Z1b": choropleth.colormap(0.25),
+             "Z2": choropleth.colormap(0.5),
+             "Z3a": choropleth.colormap(0.75),
+             "Z3b": choropleth.colormap(1)},
+            title="Erdbebenzonen",
+            position="topright")
+        self.map.add(legend)
+
+        self.map.add(LayersControl())
 
         initialWidthStyle = {'description_width': 'initial'}
         sliderLayout = widgets.Layout(width='95%')
@@ -119,7 +164,8 @@ class KUBA:
             max=self.bridges.index.stop,
             style=initialWidthStyle
         )
-        widgets.link((self.bridgesSlider, 'value'), (self.bridgesIntText, 'value'))
+        widgets.link(
+            (self.bridgesSlider, 'value'), (self.bridgesIntText, 'value'))
 
         buttonLayout = widgets.Layout(width='auto')
         self.loadButton = widgets.Button(
@@ -132,7 +178,9 @@ class KUBA:
             value=0,
             min=0,
             max=self.bridges.index.stop,
-            description=_('Bridges are being loaded') + ': ' + str(0) + '/' + str(self.bridges.index.stop),
+            description=(
+                _('Bridges are being loaded') +
+                ': ' + str(0) + '/' + str(self.bridges.index.stop)),
             description_width=200,
             # bar_style can be 'success', 'info', 'warning', 'danger' or ''
             bar_style='success',
@@ -312,7 +360,11 @@ class KUBA:
             # "Balkenbrücke"
             return 0.6
 
-        elif (type == 1123) or (type == 1124) or (type == 11) or (type == 1125) or (type == 112):
+        elif ((type == 1123) or
+              (type == 1124) or
+              (type == 11) or
+              (type == 1125) or
+              (type == 112)):
             # table:
             # 1123: "Brücke mit Bogentragwerk"
             # 1124: "Brücke mit versteiftem Stabbogen / Langerscher Balken"
@@ -323,7 +375,11 @@ class KUBA:
             # "Bogen"
             return 1.6
 
-        elif (type == 1192) or (type == 1131) or (type == 191) or (type == 1133) or (type == 119):
+        elif ((type == 1192) or
+              (type == 1131) or
+              (type == 191) or
+              (type == 1133) or
+              (type == 119)):
             # table:
             # 1192: "Brücke auf Wanne"
             # 1131: "Schrägseilbrücke"
@@ -360,7 +416,11 @@ class KUBA:
     def getMaterialFactor(self, materialCode):
         # factor K_9 ("Baustoff")
 
-        if (materialCode == 1123) or (materialCode == 1125) or (materialCode == 1121) or (materialCode == 1124):
+        if (
+                (materialCode == 1123) or
+                (materialCode == 1125) or
+                (materialCode == 1121) or
+                (materialCode == 1124)):
             # table:
             # 1123: "Stahlbetonkonstruktion"
             # 1125: "Spannbetonkonstruktion"
@@ -377,7 +437,9 @@ class KUBA:
             # "Stahl"
             return 5.67
 
-        elif (materialCode == 1112) or (materialCode == 117) or (materialCode == 1111):
+        elif ((materialCode == 1112) or
+              (materialCode == 117) or
+              (materialCode == 1111)):
             # table:
             # 1112: "Ausbetoniertes Mauerwerk"
             # 117: "Holzkonstruktion"
@@ -436,44 +498,71 @@ class KUBA:
 
             self.progressBar.value = 0
             self.progressBar.max = self.bridgesSlider.value
-            self.progressBar.description = _('Bridges are being loaded') + ': ' + str(self.progressBar.value) + '/' + str(self.progressBar.max)
+            self.progressBar.description = (
+                _('Bridges are being loaded') + ': ' +
+                str(self.progressBar.value) + '/' + str(self.progressBar.max))
 
             self.output.clear_output(wait=True)
             with self.output:
                 display(self.progressBar)
 
-            # create a fresh map (we can't remove existing markers from the map)
-            # map = folium.Map(location=[47.15826, 7.27716], tiles="OpenStreetMap", zoom_start=9)
-            self.map = self.earthquakeZones.explore("ZONE", cmap="OrRd")
-
+            markers = ()
+            dataFrame = pd.DataFrame({
+                _('Name'): [],
+                _('Year of the norm'): [],
+                _('Year of construction'): [],
+                _('Human error factor'): [],
+                _('Type'): [],
+                _('Statical determinacy factor'): [],
+                _('Age'): [],
+                _('Condition factor'): [],
+                _('Span'): [],
+                _('Static calculation factor'): [],
+                _('Bridge type factor'): [],
+                _('Building material'): [],
+                _('Building material factor'): [],
+                _('Robustness factor'): [],
+                _('Earthquake zone'): [],
+                _('Risk'): []})
             for i in range(0, self.bridgesSlider.value):
                 point = self.osmBridges['geometry'][i]
                 # there ARE empty coordinates in the table! :-(
                 if not point.is_empty:
 
                     self.progressBar.value += 1
-                    self.progressBar.description = _('Bridges are being loaded') + ': ' + str(self.progressBar.value) + '/' + str(self.progressBar.max)
+                    self.progressBar.description = (
+                        _('Bridges are being loaded') + ': ' +
+                        str(self.progressBar.value) + '/' +
+                        str(self.progressBar.max))
+
+                    bridgeName = str(self.osmBridges['Name'][i])
 
                     # K_1
-                    normYear = self.getNormYear(self.osmBridges[NORM_YEAR_LABEL][i])
-                    yearOfConstruction = self.osmBridges[YEAR_OF_CONSTRUCTION_LABEL][i]
+                    normYear = self.getNormYear(
+                        self.osmBridges[NORM_YEAR_LABEL][i])
+                    yearOfConstruction = (
+                        self.osmBridges[YEAR_OF_CONSTRUCTION_LABEL][i])
                     if not math.isnan(yearOfConstruction):
                         yearOfConstruction = int(yearOfConstruction)
-                    humanErrorFactor = self.getHumanErrorFactor(normYear, yearOfConstruction)
+                    humanErrorFactor = self.getHumanErrorFactor(
+                        normYear, yearOfConstruction)
 
                     # K_3
                     typeCode = self.osmBridges[TYPE_CODE_LABEL][i]
                     typeText = self.osmBridges[TYPE_TEXT_LABEL][i]
-                    staticalDeterminacyFactor = self.getStaticalDeterminacyFactor(typeCode)
+                    staticalDeterminacyFactor = (
+                        self.getStaticalDeterminacyFactor(typeCode))
 
                     # P_f * K_4
                     conditionClass = self.osmBridges[CONDITION_CLASS_LABEL][i]
                     age = self.getAge(yearOfConstruction)
-                    conditionFactor = self.getConditionFactor(conditionClass, age)
+                    conditionFactor = self.getConditionFactor(
+                        conditionClass, age)
 
                     # K_7
                     span = self.getSpan(self.osmBridges[SPAN_LABEL][i])
-                    staticCalculationFactor = self.getStaticCalculationFactor(span)
+                    staticCalculationFactor = self.getStaticCalculationFactor(
+                        span)
 
                     # K_8
                     bridgeTypeFactor = self.getBridgeTypeFactor(typeCode)
@@ -485,9 +574,29 @@ class KUBA:
                     materialFactor = self.getMaterialFactor(materialCode)
 
                     # K_11
-                    robustnessFactor = self.getRobustnessFactor(yearOfConstruction)
+                    robustnessFactor = self.getRobustnessFactor(
+                        yearOfConstruction)
 
-                    zone = self.earthquakeZones[self.earthquakeZones.contains(self.bridges['geometry'][i])]['ZONE']
+                    risk = (
+                        (1 if humanErrorFactor is None
+                         else humanErrorFactor) *
+                        (1 if staticalDeterminacyFactor is None
+                         else humanErrorFactor) *
+                        (1 if conditionFactor is None
+                         else conditionFactor) *
+                        (1 if staticCalculationFactor is None
+                         else staticCalculationFactor) *
+                        (1 if bridgeTypeFactor is None
+                         else bridgeTypeFactor) *
+                        (1 if materialFactor is None
+                         else materialFactor) *
+                        (1 if robustnessFactor is None
+                         else robustnessFactor)
+                        )
+
+                    zone = self.earthquakeZones[
+                        self.earthquakeZones.contains(
+                            self.osmBridges['geometry'][i])]['ZONE']
                     if zone.empty:
                         zoneName = _("none")
                     else:
@@ -496,33 +605,97 @@ class KUBA:
                     if age is None:
                         ageText = _('unknown')
                     else:
-                        ageText = gettext.ngettext('{0} year', '{0} years', age)
+                        ageText = gettext.ngettext(
+                            '{0} year', '{0} years', age)
                         ageText = ageText.format(age)
 
-                    html = str('<b>' + _('Name') + '</b>: ' + str(self.osmBridges['Name'][i]) + '<br>' +
-                        '<b>' + _('Year of the norm') + '</b>: ' + (_('unknown') if normYear is None else str(normYear)) + '<br>' +
-                        '<b>' + _('Year of construction') + '</b>: ' + (_('unknown') if yearOfConstruction is None else str(yearOfConstruction)) + '<br>' +
-                        '<b><i>K<sub>1</sub>: ' + _('Human error factor') + '</b>: ' + str(humanErrorFactor) + '</i><br>' +
+                    normYearString = (
+                        _('unknown') if normYear is None
+                        else str(normYear))
+                    yearOfConstructionString = (
+                        _('unknown') if yearOfConstruction is None
+                        else str(yearOfConstruction))
+                    buildingMaterialString = (
+                        _('unknown') if not isinstance(materialText, str)
+                        else materialText)
+
+                    message = widgets.HTML()
+                    message.value = (
+                        '<b>' + _('Name') + '</b>: ' + bridgeName + '<br>' +
+                        '<b>' + _('Year of the norm') + '</b>: ' +
+                        normYearString + '<br>' +
+                        '<b>' + _('Year of construction') + '</b>: ' +
+                        yearOfConstructionString + '<br>' +
+                        '<b><i>K<sub>1</sub>: ' + _('Human error factor') +
+                        '</b>: ' + str(humanErrorFactor) + '</i><br>' +
                         '<b>' + _('Type') + '</b>: ' + typeText + '<br>' +
-                        '<b><i>K<sub>3</sub>: ' + _('Statical determinacy factor') + '</b>: ' + str(staticalDeterminacyFactor) + '</i><br>' +
+                        '<b><i>K<sub>3</sub>: ' +
+                        _('Statical determinacy factor') + '</b>: ' +
+                        str(staticalDeterminacyFactor) + '</i><br>' +
                         '<b>' + _('Age') + '</b>: ' + ageText + '<br>' +
-                        '<b><i>P<sub>f</sub>&times;K<sub>4</sub>: ' + _('Condition factor') + '</b>: ' + str(conditionFactor) + '</i><br>' +
+                        '<b><i>P<sub>f</sub>&times;K<sub>4</sub>: ' +
+                        _('Condition factor') + '</b>: ' +
+                        str(conditionFactor) + '</i><br>' +
                         '<b>' + _('Span') + '</b>: ' + str(span) + ' m<br>' +
-                        '<b><i>K<sub>7</sub>: ' + _('Static calculation factor') + '</b>: ' + str(staticCalculationFactor) + '</i><br>' +
-                        '<b><i>K<sub>8</sub>: ' + _('Bridge type factor') + '</b>: ' + str(bridgeTypeFactor) + '</i><br>' +
-                        '<b>' + _('Building material') + '</b>: ' + (_('unknown') if not isinstance(materialText, str) else materialText) + '<br>' +
-                        '<b><i>K<sub>9</sub>: ' + _('Building material factor') + '</b>: ' + str(materialFactor) + '</i><br>' +
-                        '<b><i>K<sub>11</sub>: ' + _('Robustness factor') + '</b>: ' + str(robustnessFactor) + '</i><br>' +
-                        '<b>' + _('Earthquake zone') + '</b>: ' + zoneName + '<br>')
-                    iframe = branca.element.IFrame(html=html, width=450, height=400)
-                    popup = folium.Popup(iframe)
-                    icon = folium.Icon(color="lightblue")
-                    marker = folium.Marker(location=[point.xy[1][0], point.xy[0][0]], popup=popup, icon=icon)
-                    self.map.add_child(marker)
+                        '<b><i>K<sub>7</sub>: ' +
+                        _('Static calculation factor') + '</b>: ' +
+                        str(staticCalculationFactor) + '</i><br>' +
+                        '<b><i>K<sub>8</sub>: ' + _('Bridge type factor') +
+                        '</b>: ' + str(bridgeTypeFactor) + '</i><br>' +
+                        '<b>' + _('Building material') + '</b>: ' +
+                        buildingMaterialString + '<br>' +
+                        '<b><i>K<sub>9</sub>: ' +
+                        _('Building material factor') + '</b>: ' +
+                        str(materialFactor) + '</i><br>' +
+                        '<b><i>K<sub>11</sub>: ' + _('Robustness factor') +
+                        '</b>: ' + str(robustnessFactor) + '</i><br>' +
+                        '<b>' + _('Earthquake zone') + '</b>: ' + zoneName +
+                        '<br>' +
+                        '<b>' + _('Risk') + '</b>: ' + str(risk) + '<br>')
+
+                    # iframe = branca.element.IFrame(
+                    #     html=html, width=450, height=450)
+                    # popup = folium.Popup(iframe)
+                    # icon = folium.Icon(color="lightblue")
+                    # marker = folium.Marker(
+                    #     location=[point.xy[1][0], point.xy[0][0]],
+                    #     popup=popup,
+                    #     icon=icon)
+                    # self.map.add_child(marker)
+
+                    marker = Marker(location=[point.xy[1][0], point.xy[0][0]])
+                    marker.popup = message
+                    markers = markers + (marker,)
+
+                    newDataFrame = pd.DataFrame({
+                        _('Name'): [bridgeName],
+                        _('Year of the norm'): [normYearString],
+                        _('Year of construction'): [yearOfConstructionString],
+                        _('Human error factor'): [humanErrorFactor],
+                        _('Type'): [typeText],
+                        _('Statical determinacy factor'): [
+                            staticalDeterminacyFactor],
+                        _('Age'): [ageText],
+                        _('Condition factor'): [conditionFactor],
+                        _('Span'): [span],
+                        _('Static calculation factor'): [
+                            staticCalculationFactor],
+                        _('Bridge type factor'): [bridgeTypeFactor],
+                        _('Building material'): [buildingMaterialString],
+                        _('Building material factor'): [materialFactor],
+                        _('Robustness factor'): [robustnessFactor],
+                        _('Earthquake zone'): [zoneName],
+                        _('Risk'): [risk]})
+
+                    dataFrame = pd.concat(
+                        [dataFrame, newDataFrame], ignore_index=True)
+
+            self.map.add(MarkerCluster(markers=markers, name=_("Bridges")))
 
             self.output.clear_output(wait=True)
             with self.output:
                 display(self.map)
+                display(dataFrame)
 
             self.bridgesSlider.disabled = False
             self.bridgesIntText.disabled = False
