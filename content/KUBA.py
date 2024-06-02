@@ -11,7 +11,7 @@ from ipyleaflet import (basemaps, Choropleth, CircleMarker, LayersControl,
                         LegendControl, Map, MarkerCluster)
 from IPython.display import clear_output
 from IPython.display import display
-from itables import init_notebook_mode
+from itables import init_notebook_mode, show
 from shapely.geometry import Point
 
 init_notebook_mode(all_interactive=True)
@@ -507,7 +507,7 @@ class KUBA:
                 display(self.progressBar)
 
             markers = ()
-            dataFrame = pd.DataFrame({
+            self.dataFrame = pd.DataFrame({
                 _('Name'): [],
                 _('Year of the norm'): [],
                 _('Year of construction'): [],
@@ -696,13 +696,13 @@ class KUBA:
                         _('Earthquake zone'): [zoneName],
                         _('Risk'): [risk]})
 
-                    dataFrame = pd.concat(
-                        [dataFrame, newDataFrame], ignore_index=True)
+                    self.dataFrame = pd.concat(
+                        [self.dataFrame, newDataFrame], ignore_index=True)
 
             # apply risk color map to all markers
-            riskColormap = riskColormap.scale(0, dataFrame[_('Risk')].max())
+            riskColormap = riskColormap.scale(0, self.dataFrame[_('Risk')].max())
             for i in range(0, len(markers)):
-                risk = dataFrame[_('Risk')][i]
+                risk = self.dataFrame[_('Risk')][i]
                 riskColor = riskColormap(risk)
                 marker = markers[i]
                 marker.color = riskColor
@@ -713,7 +713,12 @@ class KUBA:
             self.output.clear_output(wait=True)
             with self.output:
                 display(self.map)
-                display(dataFrame)
+                show(self.dataFrame,
+                     buttons=[
+                         "pageLength",
+                         {"extend": "csvHtml5", "title": _("Bridges")}],
+                     column_filters="footer",
+                     layout={"top": "searchBuilder"})
 
             self.bridgesSlider.disabled = False
             self.bridgesIntText.disabled = False
