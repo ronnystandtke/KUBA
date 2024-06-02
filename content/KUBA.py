@@ -45,6 +45,7 @@ class KUBA:
     osmBridges = None
     earthquakeZones = None
     map = None
+    markerCluster = None
 
     def __init__(self):
         statusText = widgets.Text(
@@ -656,23 +657,10 @@ class KUBA:
                         '<br>' +
                         '<b>' + _('Risk') + '</b>: ' + str(risk) + '<br>')
 
-                    # iframe = branca.element.IFrame(
-                    #     html=html, width=450, height=450)
-                    # popup = folium.Popup(iframe)
-                    # icon = folium.Icon(color="lightblue")
-                    # marker = folium.Marker(
-                    #     location=[point.xy[1][0], point.xy[0][0]],
-                    #     popup=popup,
-                    #     icon=icon)
-                    # self.map.add_child(marker)
-
                     circle_marker = CircleMarker()
                     circle_marker.location = [point.xy[1][0], point.xy[0][0]]
                     circle_marker.radius = 10
                     circle_marker.popup = message
-
-                    # marker = Marker(location=[point.xy[1][0], point.xy[0][0]])
-                    # marker.popup = message
 
                     markers = markers + (circle_marker,)
 
@@ -700,7 +688,8 @@ class KUBA:
                         [self.dataFrame, newDataFrame], ignore_index=True)
 
             # apply risk color map to all markers
-            riskColormap = riskColormap.scale(0, self.dataFrame[_('Risk')].max())
+            riskColormap = riskColormap.scale(
+                0, self.dataFrame[_('Risk')].max())
             for i in range(0, len(markers)):
                 risk = self.dataFrame[_('Risk')][i]
                 riskColor = riskColormap(risk)
@@ -708,7 +697,12 @@ class KUBA:
                 marker.color = riskColor
                 marker.fill_color = riskColor
 
-            self.map.add(MarkerCluster(markers=markers, name=_("Bridges")))
+            # update markerCluster
+            if self.markerCluster is not None:
+                self.map.remove(self.markerCluster)
+            self.markerCluster = MarkerCluster(
+                markers=markers, name=_("Bridges"))
+            self.map.add(self.markerCluster)
 
             self.output.clear_output(wait=True)
             with self.output:
