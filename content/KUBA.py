@@ -526,7 +526,6 @@ class KUBA:
                 _('Risk'): []})
 
             riskColormap = linear.YlOrRd_04
-            riskColormap = riskColormap.scale(0, 40)
 
             for i in range(0, self.bridgesSlider.value):
                 point = self.osmBridges['geometry'][i]
@@ -667,12 +666,9 @@ class KUBA:
                     #     icon=icon)
                     # self.map.add_child(marker)
 
-                    riskColor = riskColormap(risk)
                     circle_marker = CircleMarker()
                     circle_marker.location = [point.xy[1][0], point.xy[0][0]]
                     circle_marker.radius = 10
-                    circle_marker.color = riskColor
-                    circle_marker.fill_color = riskColor
                     circle_marker.popup = message
 
                     # marker = Marker(location=[point.xy[1][0], point.xy[0][0]])
@@ -702,6 +698,15 @@ class KUBA:
 
                     dataFrame = pd.concat(
                         [dataFrame, newDataFrame], ignore_index=True)
+
+            # apply risk color map to all markers
+            riskColormap = riskColormap.scale(0, dataFrame[_('Risk')].max())
+            for i in range(0, len(markers)):
+                risk = dataFrame[_('Risk')][i]
+                riskColor = riskColormap(risk)
+                marker = markers[i]
+                marker.color = riskColor
+                marker.fill_color = riskColor
 
             self.map.add(MarkerCluster(markers=markers, name=_("Bridges")))
 
