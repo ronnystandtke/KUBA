@@ -7,8 +7,8 @@ import ipywidgets as widgets
 import traceback
 from branca.colormap import linear
 from datetime import datetime
-from ipyleaflet import (basemaps, Choropleth, LayersControl, LegendControl,
-                        Map, Marker, MarkerCluster)
+from ipyleaflet import (basemaps, Choropleth, CircleMarker, LayersControl,
+                        LegendControl, Map, MarkerCluster)
 from IPython.display import clear_output
 from IPython.display import display
 from itables import init_notebook_mode
@@ -524,6 +524,10 @@ class KUBA:
                 _('Robustness factor'): [],
                 _('Earthquake zone'): [],
                 _('Risk'): []})
+
+            riskColormap = linear.YlOrRd_04
+            riskColormap = riskColormap.scale(0, 40)
+
             for i in range(0, self.bridgesSlider.value):
                 point = self.osmBridges['geometry'][i]
                 # there ARE empty coordinates in the table! :-(
@@ -663,9 +667,18 @@ class KUBA:
                     #     icon=icon)
                     # self.map.add_child(marker)
 
-                    marker = Marker(location=[point.xy[1][0], point.xy[0][0]])
-                    marker.popup = message
-                    markers = markers + (marker,)
+                    riskColor = riskColormap(risk)
+                    circle_marker = CircleMarker()
+                    circle_marker.location = [point.xy[1][0], point.xy[0][0]]
+                    circle_marker.radius = 10
+                    circle_marker.color = riskColor
+                    circle_marker.fill_color = riskColor
+                    circle_marker.popup = message
+
+                    # marker = Marker(location=[point.xy[1][0], point.xy[0][0]])
+                    # marker.popup = message
+
+                    markers = markers + (circle_marker,)
 
                     newDataFrame = pd.DataFrame({
                         _('Name'): [bridgeName],
