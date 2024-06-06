@@ -7,8 +7,9 @@ import ipywidgets as widgets
 import traceback
 from branca.colormap import linear
 from datetime import datetime
-from ipyleaflet import (basemaps, Choropleth, CircleMarker, LayersControl,
-                        LegendControl, Map, MarkerCluster)
+from ipyleaflet import (basemaps, Choropleth, CircleMarker, LayerGroup,
+                        LayersControl, LegendControl, Map, MarkerCluster,
+                        WidgetControl)
 from IPython.display import clear_output
 from IPython.display import display
 from itables import init_notebook_mode, show
@@ -46,6 +47,7 @@ class KUBA:
     earthquakeZones = None
     map = None
     markerCluster = None
+    markerGroup = None
 
     def __init__(self):
         statusText = widgets.Text(
@@ -145,6 +147,12 @@ class KUBA:
             title="Erdbebenzonen",
             position="topright")
         self.map.add(legend)
+
+        self.clusterButton = widgets.ToggleButton(
+            description=_("Cluster bridges"))
+        widgetControl = WidgetControl(
+            widget=self.clusterButton, position='topleft')
+        self.map.add_control(widgetControl)
 
         self.map.add(LayersControl())
 
@@ -489,6 +497,14 @@ class KUBA:
             else:
                 return 1
 
+    def toggleMarkerLayers(self):
+        if self.clusterButton.value:
+            self.map.remove_layer(self.markerGroup)
+            self.map.add_layer(self.markerCluster)
+        else:
+            self.map.remove_layer(self.markerCluster)
+            self.map.add_layer(self.markerGroup)
+
     @output.capture()
     def loadBridges(self):
 
@@ -701,8 +717,15 @@ class KUBA:
             if self.markerCluster is not None:
                 self.map.remove(self.markerCluster)
             self.markerCluster = MarkerCluster(
-                markers=markers, name=_("Bridges"))
-            self.map.add(self.markerCluster)
+                markers=markers, name=_("Clustered Bridges"))
+            # self.map.add(self.markerCluster)
+
+            # update marker layer
+            if self.markerGroup is not None:
+                self.map.remove(self.markerGroup)
+            self.markerGroup = LayerGroup(
+                layers=markers, name=_("Individual Bridges"))
+            self.map.add(self.markerGroup)
 
             self.output.clear_output(wait=True)
             with self.output:

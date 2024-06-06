@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-02 01:34+0200\n"
+"POT-Creation-Date: 2024-06-06 22:45+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,122 +18,134 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: ../KUBA.py:55
+#: ../KUBA.py:58
 msgid "Loading building data, please wait..."
 msgstr ""
 
-#: ../KUBA.py:94
+#: ../KUBA.py:97
 msgid "Converting points to GeoDataFrames, please wait..."
 msgstr ""
 
-#: ../KUBA.py:103
+#: ../KUBA.py:106
 msgid "Loading earthquake zones, please wait..."
 msgstr ""
 
-#: ../KUBA.py:109
+#: ../KUBA.py:112
 msgid "Converting CRS, please wait..."
 msgstr ""
 
-#: ../KUBA.py:113
+#: ../KUBA.py:116
 msgid "Creating base map, please wait..."
 msgstr ""
 
-#: ../KUBA.py:153 ../KUBA.py:162
+#: ../KUBA.py:152
+msgid "Cluster bridges"
+msgstr ""
+
+#: ../KUBA.py:162 ../KUBA.py:171
 msgid "Number of bridges"
 msgstr ""
 
-#: ../KUBA.py:172
+#: ../KUBA.py:181
 msgid "Load selected number of bridges"
 msgstr ""
 
-#: ../KUBA.py:182 ../KUBA.py:502 ../KUBA.py:534
+#: ../KUBA.py:191 ../KUBA.py:519 ../KUBA.py:554
 msgid "Bridges are being loaded"
 msgstr ""
 
-#: ../KUBA.py:511 ../KUBA.py:624 ../KUBA.py:671
+#: ../KUBA.py:528 ../KUBA.py:644 ../KUBA.py:684
 msgid "Name"
 msgstr ""
 
-#: ../KUBA.py:512 ../KUBA.py:625 ../KUBA.py:672
+#: ../KUBA.py:529 ../KUBA.py:645 ../KUBA.py:685
 msgid "Year of the norm"
 msgstr ""
 
-#: ../KUBA.py:513 ../KUBA.py:627 ../KUBA.py:673
+#: ../KUBA.py:530 ../KUBA.py:647 ../KUBA.py:686
 msgid "Year of construction"
 msgstr ""
 
-#: ../KUBA.py:514 ../KUBA.py:629 ../KUBA.py:674
+#: ../KUBA.py:531 ../KUBA.py:649 ../KUBA.py:687
 msgid "Human error factor"
 msgstr ""
 
-#: ../KUBA.py:515 ../KUBA.py:631 ../KUBA.py:675
+#: ../KUBA.py:532 ../KUBA.py:651 ../KUBA.py:688
 msgid "Type"
 msgstr ""
 
-#: ../KUBA.py:516 ../KUBA.py:633 ../KUBA.py:676
+#: ../KUBA.py:533 ../KUBA.py:653 ../KUBA.py:689
 msgid "Statical determinacy factor"
 msgstr ""
 
-#: ../KUBA.py:517 ../KUBA.py:635 ../KUBA.py:678
+#: ../KUBA.py:534 ../KUBA.py:655 ../KUBA.py:691
 msgid "Age"
 msgstr ""
 
-#: ../KUBA.py:518 ../KUBA.py:637 ../KUBA.py:679
+#: ../KUBA.py:535 ../KUBA.py:657 ../KUBA.py:692
 msgid "Condition factor"
 msgstr ""
 
-#: ../KUBA.py:519 ../KUBA.py:639 ../KUBA.py:680
+#: ../KUBA.py:536 ../KUBA.py:659 ../KUBA.py:693
 msgid "Span"
 msgstr ""
 
-#: ../KUBA.py:520 ../KUBA.py:641 ../KUBA.py:681
+#: ../KUBA.py:537 ../KUBA.py:661 ../KUBA.py:694
 msgid "Static calculation factor"
 msgstr ""
 
-#: ../KUBA.py:521 ../KUBA.py:643 ../KUBA.py:683
+#: ../KUBA.py:538 ../KUBA.py:663 ../KUBA.py:696
 msgid "Bridge type factor"
 msgstr ""
 
-#: ../KUBA.py:522 ../KUBA.py:645 ../KUBA.py:684
+#: ../KUBA.py:539 ../KUBA.py:665 ../KUBA.py:697
 msgid "Building material"
 msgstr ""
 
-#: ../KUBA.py:523 ../KUBA.py:648 ../KUBA.py:685
+#: ../KUBA.py:540 ../KUBA.py:668 ../KUBA.py:698
 msgid "Building material factor"
 msgstr ""
 
-#: ../KUBA.py:524 ../KUBA.py:650 ../KUBA.py:686
+#: ../KUBA.py:541 ../KUBA.py:670 ../KUBA.py:699
 msgid "Robustness factor"
 msgstr ""
 
-#: ../KUBA.py:525 ../KUBA.py:652 ../KUBA.py:687
+#: ../KUBA.py:542 ../KUBA.py:672 ../KUBA.py:700
 msgid "Earthquake zone"
 msgstr ""
 
-#: ../KUBA.py:526 ../KUBA.py:654 ../KUBA.py:688
+#: ../KUBA.py:543 ../KUBA.py:674 ../KUBA.py:701 ../KUBA.py:708 ../KUBA.py:710
 msgid "Risk"
 msgstr ""
 
-#: ../KUBA.py:601
+#: ../KUBA.py:621
 msgid "none"
 msgstr ""
 
-#: ../KUBA.py:606 ../KUBA.py:613 ../KUBA.py:616 ../KUBA.py:619
+#: ../KUBA.py:626 ../KUBA.py:633 ../KUBA.py:636 ../KUBA.py:639
 msgid "unknown"
 msgstr ""
 
-#: ../KUBA.py:609
+#: ../KUBA.py:629
 #, python-brace-format
 msgid "{0} year"
 msgid_plural "{0} years"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../KUBA.py:693
+#: ../KUBA.py:720
+msgid "Clustered Bridges"
+msgstr ""
+
+#: ../KUBA.py:727
+msgid "Individual Bridges"
+msgstr ""
+
+#: ../KUBA.py:736
 msgid "Bridges"
 msgstr ""
 
-#: ../temp.py:36
+#: ../temp.py:37
 msgid ""
 "\n"
 "                <h1>Startup failed</h1>\n"
