@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-18 20:12+0200\n"
+"POT-Creation-Date: 2024-06-18 21:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -50,102 +50,106 @@ msgstr ""
 msgid "Load selected number of bridges"
 msgstr ""
 
-#: ../KUBA.py:201 ../KUBA.py:239 ../KUBA.py:280
+#: ../KUBA.py:201 ../KUBA.py:239 ../KUBA.py:281
 msgid "Bridges are being loaded"
 msgstr ""
 
-#: ../KUBA.py:248 ../KUBA.py:385 ../KUBA.py:425
+#: ../KUBA.py:248 ../KUBA.py:391 ../KUBA.py:434
 msgid "Name"
 msgstr ""
 
-#: ../KUBA.py:249 ../KUBA.py:386 ../KUBA.py:426
+#: ../KUBA.py:249 ../KUBA.py:392 ../KUBA.py:435
 msgid "Year of the norm"
 msgstr ""
 
-#: ../KUBA.py:250 ../KUBA.py:388 ../KUBA.py:427
+#: ../KUBA.py:250 ../KUBA.py:394 ../KUBA.py:436
 msgid "Year of construction"
 msgstr ""
 
-#: ../KUBA.py:251 ../KUBA.py:390 ../KUBA.py:428
+#: ../KUBA.py:251 ../KUBA.py:396 ../KUBA.py:437
 msgid "Human error factor"
 msgstr ""
 
-#: ../KUBA.py:252 ../KUBA.py:392 ../KUBA.py:429
+#: ../KUBA.py:252 ../KUBA.py:398 ../KUBA.py:438
 msgid "Type"
 msgstr ""
 
-#: ../KUBA.py:253 ../KUBA.py:394 ../KUBA.py:430
+#: ../KUBA.py:253 ../KUBA.py:400 ../KUBA.py:439
 msgid "Statical determinacy factor"
 msgstr ""
 
-#: ../KUBA.py:254 ../KUBA.py:396 ../KUBA.py:432
+#: ../KUBA.py:254 ../KUBA.py:402 ../KUBA.py:441
 msgid "Age"
 msgstr ""
 
-#: ../KUBA.py:255 ../KUBA.py:398 ../KUBA.py:433
+#: ../KUBA.py:255 ../KUBA.py:404 ../KUBA.py:442
 msgid "Condition factor"
 msgstr ""
 
-#: ../KUBA.py:256 ../KUBA.py:400 ../KUBA.py:434
+#: ../KUBA.py:256 ../KUBA.py:406 ../KUBA.py:443
 msgid "Span"
 msgstr ""
 
-#: ../KUBA.py:257 ../KUBA.py:402 ../KUBA.py:435
+#: ../KUBA.py:257 ../KUBA.py:408 ../KUBA.py:444
 msgid "Static calculation factor"
 msgstr ""
 
-#: ../KUBA.py:258 ../KUBA.py:404 ../KUBA.py:437
+#: ../KUBA.py:258 ../KUBA.py:410 ../KUBA.py:446
 msgid "Bridge type factor"
 msgstr ""
 
-#: ../KUBA.py:259 ../KUBA.py:406 ../KUBA.py:438
+#: ../KUBA.py:259 ../KUBA.py:412 ../KUBA.py:447
 msgid "Building material"
 msgstr ""
 
-#: ../KUBA.py:260 ../KUBA.py:409 ../KUBA.py:439
+#: ../KUBA.py:260 ../KUBA.py:415 ../KUBA.py:448
 msgid "Building material factor"
 msgstr ""
 
-#: ../KUBA.py:261 ../KUBA.py:411 ../KUBA.py:440
+#: ../KUBA.py:261 ../KUBA.py:417 ../KUBA.py:449
 msgid "Robustness factor"
 msgstr ""
 
-#: ../KUBA.py:262 ../KUBA.py:413 ../KUBA.py:441
+#: ../KUBA.py:262 ../KUBA.py:419 ../KUBA.py:450
 msgid "Earthquake zone"
 msgstr ""
 
-#: ../KUBA.py:263 ../KUBA.py:415 ../KUBA.py:442 ../KUBA.py:449 ../KUBA.py:451
-msgid "Risk"
+#: ../KUBA.py:263 ../KUBA.py:421 ../KUBA.py:451
+msgid "Earthquake zone factor"
 msgstr ""
 
-#: ../KUBA.py:286
+#: ../KUBA.py:264 ../KUBA.py:423 ../KUBA.py:452 ../KUBA.py:459 ../KUBA.py:461
+msgid "Probability of collapse"
+msgstr ""
+
+#: ../KUBA.py:287
 msgid "without coordinates"
 msgstr ""
 
-#: ../KUBA.py:362
+#: ../KUBA.py:347
 msgid "none"
 msgstr ""
 
-#: ../KUBA.py:367 ../KUBA.py:374 ../KUBA.py:377 ../KUBA.py:380
+#: ../KUBA.py:373 ../KUBA.py:380 ../KUBA.py:383 ../KUBA.py:386
 msgid "unknown"
 msgstr ""
 
-#: ../KUBA.py:370
+#: ../KUBA.py:376
 #, python-brace-format
 msgid "{0} year"
 msgid_plural "{0} years"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../KUBA.py:461
+#: ../KUBA.py:471
 msgid "Clustered Bridges"
 msgstr ""
 
-#: ../KUBA.py:468
+#: ../KUBA.py:478
 msgid "Individual Bridges"
 msgstr ""
 
-#: ../KUBA.py:476
+#: ../KUBA.py:486
 msgid "Bridges"
 msgstr ""
 

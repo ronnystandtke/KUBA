@@ -260,7 +260,8 @@ class KUBA:
                 _('Building material factor'): [],
                 _('Robustness factor'): [],
                 _('Earthquake zone'): [],
-                _('Risk'): []})
+                _('Earthquake zone factor'): [],
+                _('Probability of collapse'): []})
 
             riskColormap = linear.YlOrRd_04
 
@@ -312,13 +313,13 @@ class KUBA:
                         conditionClass, age)
 
                     # K_6
-                    bridgeNumber = self.bridges[NUMBER_LABEL][i]
-                    building = self.dfBuildings[
-                        self.dfBuildings[NUMBER_LABEL] == bridgeNumber]
+                    # bridgeNumber = self.bridges[NUMBER_LABEL][i]
+                    # building = self.dfBuildings[
+                    #    self.dfBuildings[NUMBER_LABEL] == bridgeNumber]
                     # TODO:
-                    #     - many bridges are NOT in the buildings table
-                    #     - some bridges are multiple times in the buildings table
-                    #functionText = building[FUNCTION_TEXT_LABEL].iat[0]
+                    # - many bridges are NOT in the buildings table
+                    # - some bridges (e.g. N5/3BS30N) are there multiple times
+                    # functionText = building[FUNCTION_TEXT_LABEL].iat[0]
 
                     # K_7
                     span = Risk.getSpan(self.bridges[SPAN_LABEL][i])
@@ -338,7 +339,18 @@ class KUBA:
                     robustnessFactor = Risk.getRobustnessFactor(
                         yearOfConstruction)
 
-                    risk = (
+                    # K_13
+                    zone = self.earthquakeZones[
+                        self.earthquakeZones.contains(
+                            self.bridges['geometry'][i])]['ZONE']
+                    if zone.empty:
+                        zoneName = _("none")
+                    else:
+                        zoneName = zone.iloc[0]
+                    earthQuakeZoneFactor = Risk.getEarthQuakeZoneFactor(
+                        zoneName, yearOfConstruction, type)
+
+                    probabilityOfCollapse = (
                         (1 if humanErrorFactor is None
                          else humanErrorFactor) *
                         (1 if staticalDeterminacyFactor is None
@@ -352,16 +364,10 @@ class KUBA:
                         (1 if materialFactor is None
                          else materialFactor) *
                         (1 if robustnessFactor is None
-                         else robustnessFactor)
+                         else robustnessFactor) *
+                        (1 if earthQuakeZoneFactor is None
+                         else earthQuakeZoneFactor)
                         )
-
-                    zone = self.earthquakeZones[
-                        self.earthquakeZones.contains(
-                            self.bridges['geometry'][i])]['ZONE']
-                    if zone.empty:
-                        zoneName = _("none")
-                    else:
-                        zoneName = zone.iloc[0]
 
                     if age is None:
                         ageText = _('unknown')
@@ -411,8 +417,11 @@ class KUBA:
                         '<b><i>K<sub>11</sub>: ' + _('Robustness factor') +
                         '</b>: ' + str(robustnessFactor) + '</i><br>' +
                         '<b>' + _('Earthquake zone') + '</b>: ' + zoneName +
-                        '<br>' +
-                        '<b>' + _('Risk') + '</b>: ' + str(risk) + '<br>')
+                        '<br>' + '<b><i>K<sub>13</sub>: ' +
+                        _('Earthquake zone factor') + '</b>: ' +
+                        str(earthQuakeZoneFactor) + '</i><br>' + '<b>' +
+                        _('Probability of collapse') + '</b>: ' +
+                        str(probabilityOfCollapse) + '<br>')
 
                     circle_marker = CircleMarker()
                     circle_marker.location = [point.xy[1][0], point.xy[0][0]]
@@ -439,16 +448,17 @@ class KUBA:
                         _('Building material factor'): [materialFactor],
                         _('Robustness factor'): [robustnessFactor],
                         _('Earthquake zone'): [zoneName],
-                        _('Risk'): [risk]})
+                        _('Earthquake zone factor'): [earthQuakeZoneFactor],
+                        _('Probability of collapse'): [probabilityOfCollapse]})
 
                     self.dataFrame = pd.concat(
                         [self.dataFrame, newDataFrame], ignore_index=True)
 
             # apply risk color map to all markers
             riskColormap = riskColormap.scale(
-                0, self.dataFrame[_('Risk')].max())
+                0, self.dataFrame[_('Probability of collapse')].max())
             for i in range(0, len(markers)):
-                risk = self.dataFrame[_('Risk')][i]
+                risk = self.dataFrame[_('Probability of collapse')][i]
                 riskColor = riskColormap(risk)
                 marker = markers[i]
                 marker.color = riskColor

@@ -293,6 +293,8 @@ class Risk:
 
     @staticmethod
     def getRobustnessFactor(yearOfConstruction):
+        # factor K_11 ("Baustoff")
+
         # TODO:
         # there are bridges without a year of construction in the dataset!
         if math.isnan(yearOfConstruction):
@@ -311,3 +313,52 @@ class Risk:
                 return 1.2
             else:
                 return 1
+
+    @staticmethod
+    def getEarthQuakeZoneFactor(zoneName, yearOfConstruction, type):
+        # factor K_13 ("Erdbeben")
+        collapseProbabilityIncreasingFactor = (
+            Risk.__getCollapseProbabilityIncreasingFactor(
+                zoneName, yearOfConstruction))
+        earthQuakeFactorH2 = Risk.__getEarthQuakeFactorH2(type)
+        return collapseProbabilityIncreasingFactor * earthQuakeFactorH2
+
+    @staticmethod
+    def __getCollapseProbabilityIncreasingFactor(zoneName, yearOfConstruction):
+        # see table 3.30 ("Erhöhungsfaktor der Einsturzwahrscheinlichkeit")
+        if (zoneName == 'Z1a') or (zoneName == 'Z1b'):
+            return Risk.__getEHF(yearOfConstruction, 0)
+        if (zoneName == 'Z2'):
+            return Risk.__getEHF(yearOfConstruction, 1)
+        if (zoneName == 'Z3a') or (zoneName == 'Z3b'):
+            return Risk.__getEHF(yearOfConstruction, 2)
+        else:
+            # TODO: There are bridges outside of earthquake zones
+            # assume worst case (zone 3)?
+            return Risk.__getEHF(yearOfConstruction, 2)
+
+    @staticmethod
+    def __getEHF(yearOfConstruction, index):
+        values = [[3.0, 10.0, 15],
+                  [1.8,  3.0,  4],
+                  [1.1,  1.5,  2]]
+        if yearOfConstruction < 1970:
+            return values[0][index]
+        elif yearOfConstruction < 1989:
+            return values[1][index]
+        elif yearOfConstruction < 2003:
+            return values[2][index]
+        else:
+            return 1
+
+    @staticmethod
+    def __getEarthQuakeFactorH2(type):
+        # see table 3.31 ("Faktor H 2 basierend auf Wenk, Basöz et al.")
+        if (type == 1121) or (type == 1122):
+            # 1121: "Brücke mit Rahmentragwerk"
+            # 1122: "Brücke mit Sprengwerk"
+            # TODO: simplify formula? (0.25 / 0.6 == 5/12)
+            return 5 / 12
+        else:
+            # TODO: simplify formula? (5 * 0.6 == 3)
+            return 3
