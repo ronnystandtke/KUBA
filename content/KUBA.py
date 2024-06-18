@@ -63,8 +63,9 @@ class KUBA:
             open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
             sheet_name='Alle Brücken mit Zusatzinfos')
 
-        # dfBuildings = pd.read_excel(open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
-        #                    sheet_name='Bauwerke mitErdbebenüberprüfung')
+        self.dfBuildings = pd.read_excel(
+            open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
+            sheet_name='Bauwerke mitErdbebenüberprüfung')
 
         # check how many bridges we find in the other sheets
         # bridgeInAllBuildings = 0
@@ -109,7 +110,7 @@ class KUBA:
         # Leaflet always works in EPSG:4326
         # therefore we have to convert the CRS here
         statusText.value = _('Converting CRS, please wait...')
-        self.osmBridges = self.bridges.to_crs('EPSG:4326')
+        self.bridges.to_crs('EPSG:4326', inplace=True)
         self.earthquakeZones.to_crs(crs="EPSG:4326", inplace=True)
 
         statusText.value = _('Creating base map, please wait...')
@@ -266,7 +267,7 @@ class KUBA:
             bridgesWithoutCoordinates = 0
 
             for i in range(0, self.bridgesSlider.value):
-                point = self.osmBridges['geometry'][i]
+                point = self.bridges['geometry'][i]
 
                 # there ARE empty coordinates in the table! :-(
                 if point.is_empty:
@@ -286,32 +287,41 @@ class KUBA:
 
                     self.progressBar.description = description
 
-                    bridgeName = str(self.osmBridges['Name'][i])
+                    bridgeName = str(self.bridges['Name'][i])
 
                     # K_1
                     normYear = Risk.getNormYear(
-                        self.osmBridges[NORM_YEAR_LABEL][i])
+                        self.bridges[NORM_YEAR_LABEL][i])
                     yearOfConstruction = (
-                        self.osmBridges[YEAR_OF_CONSTRUCTION_LABEL][i])
+                        self.bridges[YEAR_OF_CONSTRUCTION_LABEL][i])
                     if not math.isnan(yearOfConstruction):
                         yearOfConstruction = int(yearOfConstruction)
                     humanErrorFactor = Risk.getHumanErrorFactor(
                         normYear, yearOfConstruction)
 
                     # K_3
-                    typeCode = self.osmBridges[TYPE_CODE_LABEL][i]
-                    typeText = self.osmBridges[TYPE_TEXT_LABEL][i]
+                    typeCode = self.bridges[TYPE_CODE_LABEL][i]
+                    typeText = self.bridges[TYPE_TEXT_LABEL][i]
                     staticalDeterminacyFactor = (
                         Risk.getStaticalDeterminacyFactor(typeCode))
 
                     # P_f * K_4
-                    conditionClass = self.osmBridges[CONDITION_CLASS_LABEL][i]
+                    conditionClass = self.bridges[CONDITION_CLASS_LABEL][i]
                     age = Risk.getAge(yearOfConstruction)
                     conditionFactor = Risk.getConditionFactor(
                         conditionClass, age)
 
+                    # K_6
+                    bridgeNumber = self.bridges[NUMBER_LABEL][i]
+                    building = self.dfBuildings[
+                        self.dfBuildings[NUMBER_LABEL] == bridgeNumber]
+                    # TODO:
+                    #     - many bridges are NOT in the buildings table
+                    #     - some bridges are multiple times in the buildings table
+                    #functionText = building[FUNCTION_TEXT_LABEL].iat[0]
+
                     # K_7
-                    span = Risk.getSpan(self.osmBridges[SPAN_LABEL][i])
+                    span = Risk.getSpan(self.bridges[SPAN_LABEL][i])
                     staticCalculationFactor = Risk.getStaticCalculationFactor(
                         span)
 
@@ -320,8 +330,8 @@ class KUBA:
 
                     # K_9
                     materialCode = Risk.getMaterialCode(
-                        self.osmBridges[MATERIAL_CODE_LABEL][i])
-                    materialText = self.osmBridges[MATERIAL_TEXT_LABEL][i]
+                        self.bridges[MATERIAL_CODE_LABEL][i])
+                    materialText = self.bridges[MATERIAL_TEXT_LABEL][i]
                     materialFactor = Risk.getMaterialFactor(materialCode)
 
                     # K_11
@@ -347,7 +357,7 @@ class KUBA:
 
                     zone = self.earthquakeZones[
                         self.earthquakeZones.contains(
-                            self.osmBridges['geometry'][i])]['ZONE']
+                            self.bridges['geometry'][i])]['ZONE']
                     if zone.empty:
                         zoneName = _("none")
                     else:

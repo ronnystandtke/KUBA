@@ -76,52 +76,64 @@ class Risk:
     @staticmethod
     def getConditionFactor(conditionClass, age):
         # factor P_f * K_4 ("Zustandsklasse")
-
-        if conditionClass is None:
-            # TODO: correct value for unknown condition classes?
-            h1 = 3e-5
-        elif conditionClass < 3:
-            h1 = 1e-6
-        elif conditionClass < 4:
-            h1 = 3e-6
-        elif conditionClass < 5:
-            h1 = 1e-5
-        else:
-            h1 = 3e-5
-
-        if age is None:
-            # TODO: value for unknown ages?
-            h2 = 1.019e-4 * 90.31
-        elif age <= 1:
-            h2 = 1.128e-6
-        elif age <= 2:
-            h2 = 2.112e-6 * 1.87
-        elif age <= 5:
-            h2 = 5.067e-6 * 4.49
-        elif age <= 10:
-            h2 = 9.712e-6 * 8.61
-        elif age <= 15:
-            h2 = 1.612e-5 * 14.29
-        elif age <= 20:
-            h2 = 2.066e-5 * 18.31
-        elif age <= 30:
-            h2 = 3.148e-5 * 27.91
-        elif age <= 40:
-            h2 = 4.025e-5 * 35.68
-        elif age <= 50:
-            h2 = 5.102e-5 * 45.22
-        elif age <= 60:
-            h2 = 6.079e-5 * 53.89
-        elif age <= 70:
-            h2 = 7.235e-5 * 64.13
-        elif age <= 80:
-            h2 = 8.117e-5 * 71.95
-        elif age <= 90:
-            h2 = 9.095e-5 * 80.62
-        else:
-            h2 = 1.019e-4 * 90.31
-
+        h1 = Risk.__getConditionFactorH1(conditionClass)
+        h2 = Risk.__getConditionFactorH2(age)
         return 0.7 * h1 + 0.3 * h2
+
+    @staticmethod
+    def __getConditionFactorH1(conditionClass):
+        # see table 3.23 ("Festlegung H1")
+        if conditionClass is None:
+            # use worst value if condition class is unknown
+            return 3e-5
+        if conditionClass < 3:
+            return 1e-6
+        if conditionClass < 4:
+            return 3e-6
+        if conditionClass < 5:
+            return 1e-5
+        else:
+            return 3e-5
+
+    @staticmethod
+    def __getConditionFactorH2(age):
+        # see table 3.24 ("Festlegung H2")
+        if age is None:
+            # use worst value if age is unknown
+            return 1.019e-4 * 90.31
+        if age <= 1:
+            return 1.128e-6
+        if age <= 2:
+            return 2.112e-6 * 1.87
+        if age <= 5:
+            return 5.067e-6 * 4.49
+        if age <= 10:
+            return 9.712e-6 * 8.61
+        if age <= 15:
+            return 1.612e-5 * 14.29
+        if age <= 20:
+            return 2.066e-5 * 18.31
+        if age <= 30:
+            return 3.148e-5 * 27.91
+        if age <= 40:
+            return 4.025e-5 * 35.68
+        if age <= 50:
+            return 5.102e-5 * 45.22
+        if age <= 60:
+            return 6.079e-5 * 53.89
+        if age <= 70:
+            return 7.235e-5 * 64.13
+        if age <= 80:
+            return 8.117e-5 * 71.95
+        if age <= 90:
+            return 9.095e-5 * 80.62
+        else:
+            return 1.019e-4 * 90.31
+
+    @staticmethod
+    def getOverpassFactor(functionText):
+        # factor K_6 ("Berücksichtigung der Überführung")
+        pass
 
     @staticmethod
     def getSpan(spanText):
