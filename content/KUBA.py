@@ -156,28 +156,32 @@ class KUBA:
         self.map.add(LayersControl())
 
         initialWidthStyle = {'description_width': 'initial'}
-        sliderLayout = widgets.Layout(width='95%')
-        self.bridgesSlider = widgets.IntSlider(
+
+        self.bridgesIntText = widgets.BoundedIntText(
             description=_('Number of bridges'),
+            min=1,
+            max=self.bridges.index.stop,
+            layout=widgets.Layout(flex='0 0 auto', width='auto'),
+            style=initialWidthStyle
+        )
+
+        self.bridgesSlider = widgets.IntSlider(
             value=20,
             min=1,
             max=self.bridges.index.stop,
             style=initialWidthStyle,
-            layout=sliderLayout,
+            layout=widgets.Layout(
+                flex='1 1 auto',
+                width='auto',
+                margin='0px 0px 0px 10px'),
             readout=False  # we add a readout with custom formatting
         )
 
         self.sliderReadout = widgets.Label()
         self.updateReadout()
         self.sliderHBox = widgets.HBox(
-            [self.bridgesSlider, self.sliderReadout])
+            [self.bridgesIntText, self.bridgesSlider, self.sliderReadout])
 
-        self.bridgesIntText = widgets.BoundedIntText(
-            description=_('Number of bridges'),
-            min=1,
-            max=self.bridges.index.stop,
-            style=initialWidthStyle
-        )
         widgets.link(
             (self.bridgesSlider, 'value'), (self.bridgesIntText, 'value'))
 
@@ -205,7 +209,6 @@ class KUBA:
 
         clear_output()
         display(self.sliderHBox)
-        display(self.bridgesIntText)
         display(self.loadButton)
         display(self.output)
 
@@ -260,16 +263,28 @@ class KUBA:
 
             riskColormap = linear.YlOrRd_04
 
+            bridgesWithoutCoordinates = 0
+
             for i in range(0, self.bridgesSlider.value):
                 point = self.osmBridges['geometry'][i]
-                # there ARE empty coordinates in the table! :-(
-                if not point.is_empty:
 
+                # there ARE empty coordinates in the table! :-(
+                if point.is_empty:
+                    bridgesWithoutCoordinates += 1
+
+                else:
                     self.progressBar.value += 1
-                    self.progressBar.description = (
+
+                    description = (
                         _('Bridges are being loaded') + ': ' +
                         str(self.progressBar.value) + '/' +
                         str(self.progressBar.max))
+
+                    if bridgesWithoutCoordinates > 0:
+                        description += (' (' + str(bridgesWithoutCoordinates) +
+                                        ' ' + _("without coordinates") + ')')
+
+                    self.progressBar.description = description
 
                     bridgeName = str(self.osmBridges['Name'][i])
 
@@ -443,7 +458,6 @@ class KUBA:
                 layers=markers, name=_("Individual Bridges"))
             self.map.add(self.markerGroup)
 
-            self.output.clear_output(wait=True)
             with self.output:
                 display(self.map)
                 show(self.dataFrame,
