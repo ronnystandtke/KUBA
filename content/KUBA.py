@@ -465,14 +465,16 @@ class KUBA:
                 marker.fill_color = riskColor
 
             # update markerCluster
-            if self.markerCluster is not None:
+            if ((self.markerCluster is not None) and
+                    (self.markerCluster in self.map.layers)):
                 self.map.remove(self.markerCluster)
             self.markerCluster = MarkerCluster(
                 markers=markers, name=_("Clustered Bridges"))
             # self.map.add(self.markerCluster)
 
             # update marker layer
-            if self.markerGroup is not None:
+            if ((self.markerGroup is not None) and
+                    (self.markerGroup in self.map.layers)):
                 self.map.remove(self.markerGroup)
             self.markerGroup = LayerGroup(
                 layers=markers, name=_("Individual Bridges"))
