@@ -163,8 +163,14 @@ class KUBA:
             min=1,
             max=self.bridges.index.stop,
             style=initialWidthStyle,
-            layout=sliderLayout
+            layout=sliderLayout,
+            readout=False  # we add a readout with custom formatting
         )
+
+        self.sliderReadout = widgets.Label()
+        self.updateReadout()
+        self.sliderHBox = widgets.HBox(
+            [self.bridgesSlider, self.sliderReadout])
 
         self.bridgesIntText = widgets.BoundedIntText(
             description=_('Number of bridges'),
@@ -198,10 +204,14 @@ class KUBA:
         )
 
         clear_output()
-        display(self.bridgesSlider)
+        display(self.sliderHBox)
         display(self.bridgesIntText)
         display(self.loadButton)
         display(self.output)
+
+    def updateReadout(self):
+        self.sliderReadout.value = '{} / {}'.format(
+            self.bridgesSlider.value, self.bridgesSlider.max)
 
     def toggleMarkerLayers(self):
         if self.clusterButton.value:
