@@ -354,7 +354,7 @@ class KUBA:
                         (1 if humanErrorFactor is None
                          else humanErrorFactor) *
                         (1 if staticalDeterminacyFactor is None
-                         else humanErrorFactor) *
+                         else staticalDeterminacyFactor) *
                         (1 if conditionFactor is None
                          else conditionFactor) *
                         (1 if staticCalculationFactor is None
