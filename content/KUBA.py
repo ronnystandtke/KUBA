@@ -8,6 +8,7 @@ import pandas as pd
 import ipywidgets as widgets
 import traceback
 from branca.colormap import linear
+from functools import cache
 from ipyleaflet import (basemaps, Choropleth, CircleMarker, LayerGroup,
                         LayersControl, LegendControl, Map, MarkerCluster,
                         WidgetControl)
@@ -389,7 +390,7 @@ class KUBA:
                     if age is None:
                         ageText = _('unknown')
                     else:
-                        ageText = gettext.ngettext(
+                        ageText = self.__cached_ngettext(
                             '{0} year', '{0} years', age)
                         ageText = ageText.format(age)
 
@@ -524,6 +525,12 @@ class KUBA:
         except Exception:
             with self.output:
                 print(traceback.format_exc())
+
+    @cache
+    def __cached_ngettext(self, singular, plural, n):
+        # speeds up calls to ngettext by looking up already processed function
+        # arguments from a dictionary
+        return gettext.ngettext(singular, plural, n)
 
     def __updateProgressBarAfterTimeout(self):
         # updating the progressbar is a very time consuming operation
