@@ -2,6 +2,7 @@ import geopandas as gpd
 import gettext
 import json
 import math
+import os.path
 import time
 import pandas as pd
 import ipywidgets as widgets
@@ -37,6 +38,8 @@ MATERIAL_TEXT_LABEL = 'Bauart\xa0Text'
 CONDITION_CLASS_LABEL = 'Zustands- Klasse'
 FUNCTION_TEXT_LABEL = 'Funktion\xa0Text'
 
+earthquakeZonesDictFileName = "data/earthquakezones.json"
+
 
 class KUBA:
 
@@ -68,6 +71,12 @@ class KUBA:
         self.dfBuildings = pd.read_excel(
             open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
             sheet_name='Bauwerke mitErdbebenüberprüfung')
+
+        # load pre-calculated earthquake zone data
+        self.earthquakeZonesDict = {}
+        if os.path.isfile(earthquakeZonesDictFileName):
+            with open(earthquakeZonesDictFileName) as file:
+                self.earthquakeZonesDict = json.load(file)
 
         # check how many bridges we find in the other sheets
         # bridgeInAllBuildings = 0
@@ -236,6 +245,8 @@ class KUBA:
     @output.capture()
     def loadBridges(self):
 
+        newDict = len(self.earthquakeZonesDict) == 0
+
         try:
             self.bridgesSlider.disabled = True
             self.bridgesIntText.disabled = True
@@ -339,13 +350,20 @@ class KUBA:
                         yearOfConstruction)
 
                     # K_13
-                    zone = self.earthquakeZones[
-                        self.earthquakeZones.contains(
-                            self.bridges['geometry'][i])]['ZONE']
-                    if zone.empty:
-                        zoneName = _("none")
+                    point = self.bridges['geometry'][i]
+                    if newDict:
+                        zone = self.earthquakeZones[
+                            self.earthquakeZones.contains(point)]['ZONE']
+                        if zone.empty:
+                            zoneName = _("none")
+                        else:
+                            zoneName = zone.iloc[0]
+                        self.earthquakeZonesDict[
+                            str(point.x) + ' ' + str(point.y)] = zoneName
                     else:
-                        zoneName = zone.iloc[0]
+                        zoneName = self.earthquakeZonesDict[
+                            str(point.x) + ' ' + str(point.y)]
+
                     earthQuakeZoneFactor = Risk.getEarthQuakeZoneFactor(
                         zoneName, yearOfConstruction, type)
 
@@ -457,6 +475,11 @@ class KUBA:
 
             # final update of the progress bar
             self.__updateProgressBar()
+
+            # save earthquakeZonesDict if just created
+            if newDict:
+                with open(earthquakeZonesDictFileName, 'w') as file:
+                    json.dump(self.earthquakeZonesDict, file, indent=4)
 
             # apply risk color map to all markers
             riskColormap = riskColormap.scale(
