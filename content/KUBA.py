@@ -56,8 +56,9 @@ class KUBA:
         # read file with data
         statusText.value = _('Loading building data, please wait...')
 
-        # dfAllBuildings = pd.read_excel(open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
-        #                    sheet_name='Alle Bauwerke mit Zusatzinfo')
+        # dfAllBuildings = pd.read_excel(
+        #     open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
+        #     sheet_name='Alle Bauwerke mit Zusatzinfo')
 
         dfBridges = pd.read_excel(
             open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
@@ -73,21 +74,27 @@ class KUBA:
         # bridgeInBuildings = 0
         # bridgeNotInBuildings = 0
         # for bridgeNumber in dfBridges[NUMBER_LABEL]:
-
-        #     if bridgeNumber in dfAllBuildings[ALL_BUILDINGS_NUMBER_LABEL].values:
+        #
+        #     allBuildingsNumbers = (
+        #         dfAllBuildings[ALL_BUILDINGS_NUMBER_LABEL].values)
+        #     if bridgeNumber in allBuildingsNumbers:
         #         bridgeInAllBuildings += 1
         #     else:
         #         bridgeNotInAllBuildings += 1
-
-        #     if bridgeNumber in dfBuildings[NUMBER_LABEL].values:
+        #
+        #     if bridgeNumber in self.dfBuildings[NUMBER_LABEL].values:
         #         bridgeInBuildings += 1
         #     else:
         #         bridgeNotInBuildings += 1
-
-        # print("number of bridges found in sheet 'Alle Bauwerke mit Zusatzinfo':", bridgeInAllBuildings)
-        # print("number of bridges NOT found in sheet 'Alle Bauwerke mit Zusatzinfo':", bridgeNotInAllBuildings)
-        # print("number of bridges found in sheet 'Bauwerke mitErdbebenüberprüfung':", bridgeInBuildings)
-        # print("number of bridges NOT found in sheet 'Bauwerke mitErdbebenüberprüfung':", bridgeNotInBuildings)
+        #
+        # print("number of bridges found in sheet \
+        #     'Alle Bauwerke mit Zusatzinfo':", bridgeInAllBuildings)
+        # print("number of bridges NOT found in sheet \
+        #     'Alle Bauwerke mit Zusatzinfo':", bridgeNotInAllBuildings)
+        # print("number of bridges found in sheet \
+        #     'Bauwerke mitErdbebenüberprüfung':", bridgeInBuildings)
+        # print("number of bridges NOT found in sheet \
+        #     'Bauwerke mitErdbebenüberprüfung':", bridgeNotInBuildings)
 
         # code to get the correct labels
         # print(dfBuildings.columns.values)
@@ -487,7 +494,8 @@ class KUBA:
                          "pageLength",
                          {"extend": "csvHtml5", "title": _("Bridges")}],
                      column_filters="footer",
-                     layout={"top": "searchBuilder"})
+                     layout={"top": "searchBuilder"},
+                     maxBytes=0)
 
             self.bridgesSlider.disabled = False
             self.bridgesIntText.disabled = False
