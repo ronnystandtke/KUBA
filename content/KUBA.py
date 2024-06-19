@@ -22,7 +22,6 @@ init_notebook_mode(all_interactive=True)
 
 gettext.bindtextdomain('kuba', 'translations')
 gettext.textdomain('kuba')
-_ = gettext.gettext
 
 # our constants
 ALL_BUILDINGS_NUMBER_LABEL = 'Nummer'
@@ -40,6 +39,22 @@ CONDITION_CLASS_LABEL = 'Zustands- Klasse'
 FUNCTION_TEXT_LABEL = 'Funktion\xa0Text'
 
 earthquakeZonesDictFileName = "data/earthquakezones.json"
+
+
+@cache
+def cached_ngettext(singular, plural, n):
+    # speeds up calls to gettext by looking up already processed function
+    # arguments from a dictionary
+    return gettext.ngettext(singular, plural, n)
+
+
+@cache
+def cached_gettext(message):
+    # dito
+    return gettext.gettext(message)
+
+
+_ = cached_gettext
 
 
 class KUBA:
@@ -390,7 +405,7 @@ class KUBA:
                     if age is None:
                         ageText = _('unknown')
                     else:
-                        ageText = self.__cached_ngettext(
+                        ageText = cached_ngettext(
                             '{0} year', '{0} years', age)
                         ageText = ageText.format(age)
 
@@ -525,12 +540,6 @@ class KUBA:
         except Exception:
             with self.output:
                 print(traceback.format_exc())
-
-    @cache
-    def __cached_ngettext(self, singular, plural, n):
-        # speeds up calls to ngettext by looking up already processed function
-        # arguments from a dictionary
-        return gettext.ngettext(singular, plural, n)
 
     def __updateProgressBarAfterTimeout(self):
         # updating the progressbar is a very time consuming operation
