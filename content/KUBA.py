@@ -2,6 +2,7 @@ import geopandas as gpd
 import gettext
 import json
 import math
+import time
 import pandas as pd
 import ipywidgets as widgets
 import traceback
@@ -272,28 +273,19 @@ class KUBA:
 
             riskColormap = linear.YlOrRd_04
 
-            bridgesWithoutCoordinates = 0
+            self.bridgesWithoutCoordinates = 0
+            self.lastProgressBarUpdate = 0
+            self.progressBarValue = 0
 
             for i in range(0, self.bridgesSlider.value):
                 point = self.bridges['geometry'][i]
 
                 # there ARE empty coordinates in the table! :-(
                 if point.is_empty:
-                    bridgesWithoutCoordinates += 1
+                    self.bridgesWithoutCoordinates += 1
 
                 else:
-                    self.progressBar.value += 1
-
-                    description = (
-                        _('Bridges are being loaded') + ': ' +
-                        str(self.progressBar.value) + '/' +
-                        str(self.progressBar.max))
-
-                    if bridgesWithoutCoordinates > 0:
-                        description += (' (' + str(bridgesWithoutCoordinates) +
-                                        ' ' + _("without coordinates") + ')')
-
-                    self.progressBar.description = description
+                    self.progressBarValue += 1
 
                     bridgeName = str(self.bridges['Name'][i])
 
@@ -461,6 +453,11 @@ class KUBA:
                     self.dataFrame = pd.concat(
                         [self.dataFrame, newDataFrame], ignore_index=True)
 
+                self.__updateProgressBarAfterTimeout()
+
+            # final update of the progress bar
+            self.__updateProgressBar()
+
             # apply risk color map to all markers
             riskColormap = riskColormap.scale(
                 0, self.dataFrame[_('Probability of collapse')].max())
@@ -504,3 +501,27 @@ class KUBA:
         except Exception:
             with self.output:
                 print(traceback.format_exc())
+
+    def __updateProgressBarAfterTimeout(self):
+        # updating the progressbar is a very time consuming operation
+        # therefore we only update it after some time elapsed
+        # and not at every iteration
+        now = time.time()
+        elapsedTime = now - self.lastProgressBarUpdate
+        if elapsedTime > 1:
+            self.__updateProgressBar()
+            self.lastProgressBarUpdate = now
+
+    def __updateProgressBar(self):
+        # update value
+        self.progressBar.value = self.progressBarValue
+
+        # update description
+        description = (
+            _('Bridges are being loaded') + ': ' +
+            str(self.progressBar.value) + '/' +
+            str(self.progressBar.max))
+        if self.bridgesWithoutCoordinates > 0:
+            description += (' (' + str(self.bridgesWithoutCoordinates) +
+                            ' ' + _("without coordinates") + ')')
+        self.progressBar.description = description
