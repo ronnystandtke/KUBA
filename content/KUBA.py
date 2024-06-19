@@ -200,7 +200,7 @@ class KUBA:
         )
 
         self.bridgesSlider = widgets.IntSlider(
-            value=20,
+            value=200,
             min=1,
             max=self.bridges.index.stop,
             style=initialWidthStyle,
