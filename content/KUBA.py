@@ -278,7 +278,7 @@ class KUBA:
             with self.output:
                 display(self.progressBar)
 
-            markers = ()
+            markers = []
             self.dataFrame = pd.DataFrame({
                 _('Name'): [],
                 _('Year of the norm'): [],
@@ -461,7 +461,7 @@ class KUBA:
                     circle_marker.radius = 10
                     circle_marker.popup = message
 
-                    markers = markers + (circle_marker,)
+                    markers.append(circle_marker)
 
                     newDataFrame = pd.DataFrame({
                         _('Name'): [bridgeName],
@@ -506,6 +506,10 @@ class KUBA:
                 marker = markers[i]
                 marker.color = riskColor
                 marker.fill_color = riskColor
+
+            # sort list by color
+            # markers = sorted(markers, key=lambda markers: markers.color, reverse=True)
+            markers.sort(key=lambda markers: markers.color, reverse=True)
 
             # update markerCluster
             if ((self.markerCluster is not None) and
