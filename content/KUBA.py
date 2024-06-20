@@ -9,7 +9,7 @@ import ipywidgets as widgets
 import traceback
 from branca.colormap import linear
 from functools import cache
-from ipyleaflet import (basemaps, Choropleth, CircleMarker, LayerGroup,
+from ipyleaflet import (basemaps, basemap_to_tiles, Choropleth, CircleMarker, LayerGroup,
                         LayersControl, LegendControl, Map, MarkerCluster,
                         WidgetControl)
 from IPython.display import clear_output
@@ -147,8 +147,12 @@ class KUBA:
         self.earthquakeZones.to_crs(crs="EPSG:4326", inplace=True)
 
         statusText.value = _('Creating base map, please wait...')
+        worldImagery = basemap_to_tiles(basemaps.Esri.WorldImagery)
+        worldImagery.base = True
+        mapnik = basemap_to_tiles(basemaps.OpenStreetMap.Mapnik)
+        mapnik.base = True
         self.map = Map(
-            basemap=basemaps.OpenStreetMap.Mapnik,
+            layers=[worldImagery, mapnik],
             center=(46.988, 8.17),
             scroll_wheel_zoom=True,
             zoom=8)
