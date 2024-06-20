@@ -204,7 +204,7 @@ class KUBA:
         )
 
         self.bridgesSlider = widgets.IntSlider(
-            value=200,
+            value=self.bridges.index.stop,
             min=1,
             max=self.bridges.index.stop,
             style=initialWidthStyle,
@@ -246,9 +246,10 @@ class KUBA:
         )
 
         clear_output()
-        display(self.sliderHBox)
-        display(self.loadButton)
+        # display(self.sliderHBox)
+        # display(self.loadButton)
         display(self.output)
+        self.loadBridges()
 
     def updateReadout(self):
         self.sliderReadout.value = '{} / {}'.format(
