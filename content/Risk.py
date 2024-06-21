@@ -159,7 +159,7 @@ class Risk:
         else:
             h1 = 0.0238
 
-        return 0.9 + 0.1 + h1
+        return 0.9 + 0.1 * h1
 
     @staticmethod
     def getBridgeTypeFactor(type):
