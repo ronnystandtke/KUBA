@@ -438,9 +438,10 @@ class KUBA:
                         '<b>' + _('Age') + '</b>: ' + ageText + '<br>' +
                         '<b><i>P<sub>f</sub>&times;K<sub>4</sub>: ' +
                         _('Condition factor') + '</b>: ' +
-                        str(conditionFactor) + '</i><br>' +
-                        '<b>' + _('Span') + '</b>: ' + str(span) + ' m<br>' +
-                        '<b><i>K<sub>7</sub>: ' +
+                        str(conditionFactor) + '</i><br><b>' + _('Span') +
+                        '</b>: ' + (_('unknown') if span is None
+                                    else (str(span) + ' m')) +
+                        '<br><b><i>K<sub>7</sub>: ' +
                         _('Static calculation factor') + '</b>: ' +
                         str(staticCalculationFactor) + '</i><br>' +
                         '<b><i>K<sub>8</sub>: ' + _('Bridge type factor') +
