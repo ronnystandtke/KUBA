@@ -9,9 +9,9 @@ import ipywidgets as widgets
 import traceback
 from branca.colormap import linear
 from functools import cache
-from ipyleaflet import (basemaps, basemap_to_tiles, Choropleth, CircleMarker, LayerGroup,
-                        LayersControl, LegendControl, Map, MarkerCluster,
-                        WidgetControl)
+from ipyleaflet import (basemaps, basemap_to_tiles, Choropleth, CircleMarker,
+                        LayerGroup, LayersControl, LegendControl, Map,
+                        MarkerCluster, WidgetControl)
 from IPython.display import clear_output
 from IPython.display import display
 from itables import init_notebook_mode, show
@@ -303,8 +303,6 @@ class KUBA:
                 _('Earthquake zone factor'): [],
                 _('Probability of collapse'): []})
 
-            riskColormap = linear.YlOrRd_04
-
             self.bridgesWithoutCoordinates = 0
             self.lastProgressBarUpdate = 0
             self.progressBarValue = 0
@@ -463,7 +461,6 @@ class KUBA:
 
                     circle_marker = CircleMarker()
                     circle_marker.location = [point.xy[1][0], point.xy[0][0]]
-                    circle_marker.radius = 10
                     circle_marker.popup = message
 
                     markers.append(circle_marker)
@@ -502,19 +499,24 @@ class KUBA:
                 with open(earthquakeZonesDictFileName, 'w') as file:
                     json.dump(self.earthquakeZonesDict, file, indent=4)
 
-            # apply risk color map to all markers
-            riskColormap = riskColormap.scale(
-                0, self.dataFrame[_('Probability of collapse')].max())
+            # apply probybility color map to all markers
+            maxProbability = self.dataFrame[_('Probability of collapse')].max()
+            # probabilityColormap = linear.YlOrRd_04
+            # probabilityColormap = linear.RdYlGn_10
+            probabilityColormap = linear.Spectral_11
+            probabilityColormap = probabilityColormap.scale(0, maxProbability)
             for i in range(0, len(markers)):
-                risk = self.dataFrame[_('Probability of collapse')][i]
-                riskColor = riskColormap(risk)
+                probability = self.dataFrame[_('Probability of collapse')][i]
+                probabilityColor = probabilityColormap(
+                    maxProbability - probability)
                 marker = markers[i]
-                marker.color = riskColor
-                marker.fill_color = riskColor
+                marker.probability = probability
+                marker.radius = 5 + round(10 * probability / maxProbability)
+                marker.color = probabilityColor
+                marker.fill_color = probabilityColor
 
-            # sort list by color
-            # markers = sorted(markers, key=lambda markers: markers.color, reverse=True)
-            markers.sort(key=lambda markers: markers.color, reverse=True)
+            # sort list by probability
+            markers.sort(key=lambda markers: markers.probability)
 
             # update markerCluster
             if ((self.markerCluster is not None) and
