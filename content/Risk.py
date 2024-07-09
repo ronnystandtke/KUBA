@@ -31,7 +31,6 @@ class Risk:
         # we use the year of construction
         if normYear is None:
             if yearOfConstruction is None:
-                # TODO: is this correct if both years are unknown?
                 return 90
             else:
                 relevantYear = yearOfConstruction
@@ -61,13 +60,10 @@ class Risk:
             # Brücke mit Durchlaufträger
             return 0.014
         else:
-            # TODO: what about all other types?
             return None
 
     @staticmethod
     def getAge(yearOfConstruction):
-        # TODO:
-        # there are bridges without a year of construction in the dataset!
         if math.isnan(yearOfConstruction) or yearOfConstruction == -1:
             return None
         else:
@@ -224,12 +220,12 @@ class Risk:
             return 17.5
 
         else:
-            # TODO: default value?
-            return 1
+            # default value for unknown types
+            # (smallest possible value)
+            return 0.4
 
     @staticmethod
     def getMaterialCode(codeText):
-        # TODO: there are bridges without material data!
         if codeText == '\\' or math.isnan(codeText):
             return None
         else:
@@ -288,17 +284,15 @@ class Risk:
             return 6.67
 
         else:
-            # TODO: default value?
-            return 1
+            # default value is larges value in list
+            return 6.67
 
     @staticmethod
     def getRobustnessFactor(yearOfConstruction):
         # factor K_11 ("Baustoff")
 
-        # TODO:
-        # there are bridges without a year of construction in the dataset!
         if math.isnan(yearOfConstruction):
-            # TODO: value for unkonwn year?
+            # if year of construction is unkown we use the maximum value
             return 5
         else:
             if yearOfConstruction < 1968:
@@ -333,9 +327,8 @@ class Risk:
         if (zoneName == 'Z3a') or (zoneName == 'Z3b'):
             return Risk.__getEHF(yearOfConstruction, 2)
         else:
-            # TODO: There are bridges outside of earthquake zones
-            # assume worst case (zone 3)?
-            return Risk.__getEHF(yearOfConstruction, 2)
+            # When there are bridges outside of earthquake zones we assume zone 2.
+            return Risk.__getEHF(yearOfConstruction, 1)
 
     @staticmethod
     def __getEHF(yearOfConstruction, index):
@@ -357,8 +350,8 @@ class Risk:
         if (type == 1121) or (type == 1122):
             # 1121: "Brücke mit Rahmentragwerk"
             # 1122: "Brücke mit Sprengwerk"
-            # TODO: simplify formula? (0.25 / 0.6 == 5/12)
+            # simplified formula (0.25 / 0.6 == 5/12)
             return 5 / 12
         else:
-            # TODO: simplify formula? (5 * 0.6 == 3)
+            # simplified formula (5 * 0.6 == 3)
             return 3

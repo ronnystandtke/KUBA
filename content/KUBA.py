@@ -127,7 +127,7 @@ class KUBA:
         #     'Bauwerke mitErdbebenüberprüfung':", bridgeNotInBuildings)
 
         # code to get the correct labels
-        # print(dfBuildings.columns.values)
+        # print(self.dfBuildings.columns.values)
 
         # convert to GeoDataFrame
         statusText.value = _(
@@ -384,6 +384,7 @@ class KUBA:
                         zone = self.earthquakeZones[
                             self.earthquakeZones.contains(point)]['ZONE']
                         if zone.empty:
+                            # TODO: find neighbouring earthquake zone
                             zoneName = _("none")
                         else:
                             zoneName = zone.iloc[0]
@@ -415,7 +416,9 @@ class KUBA:
                          else earthQuakeZoneFactor)
                         )
 
-                    if age is not None and conditionClass is not None:
+                    if (age is not None and
+                        conditionClass is not None and
+                        conditionClass < 9):
                         newDataFrame = pd.DataFrame(
                             [[age, conditionClass, probabilityOfCollapse]],
                             columns=acpScatterColumns)
