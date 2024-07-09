@@ -2,6 +2,7 @@ import geopandas as gpd
 import gettext
 import json
 import math
+import matplotlib.pyplot as plt
 import os.path
 import time
 import pandas as pd
@@ -17,6 +18,9 @@ from IPython.display import display
 from itables import init_notebook_mode, show
 from Risk import Risk
 from shapely.geometry import Point
+
+from warnings import simplefilter
+simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 
 init_notebook_mode(all_interactive=True)
 
@@ -307,6 +311,12 @@ class KUBA:
             self.lastProgressBarUpdate = 0
             self.progressBarValue = 0
 
+            # add a new DataFrame to simplify the scatter plots
+            acpScatterColumns = [
+                _('Age'), _('Condition class'), _('Probability of collapse')]
+            self.ageConditionPocScatter = pd.DataFrame(
+                columns=acpScatterColumns)
+
             for i in range(0, self.bridgesSlider.value):
                 point = self.bridges['geometry'][i]
 
@@ -404,6 +414,13 @@ class KUBA:
                         (1 if earthQuakeZoneFactor is None
                          else earthQuakeZoneFactor)
                         )
+
+                    if age is not None and conditionClass is not None:
+                        newDataFrame = pd.DataFrame(
+                            [[age, conditionClass, probabilityOfCollapse]],
+                            columns=acpScatterColumns)
+                        self.ageConditionPocScatter = pd.concat(
+                            [self.ageConditionPocScatter, newDataFrame])
 
                     if age is None:
                         ageText = _('unknown')
@@ -544,6 +561,7 @@ class KUBA:
                      column_filters="footer",
                      layout={"top": "searchBuilder"},
                      maxBytes=0)
+                self.__showPlots()
 
             self.bridgesSlider.disabled = False
             self.bridgesIntText.disabled = False
@@ -552,6 +570,20 @@ class KUBA:
         except Exception:
             with self.output:
                 print(traceback.format_exc())
+
+    def __showPlots(self):
+        # scatter plots
+        fig, ax = plt.subplots()
+        ax.scatter(
+            self.ageConditionPocScatter[_('Age')],
+            self.ageConditionPocScatter[_('Condition class')],
+            s=self.ageConditionPocScatter[_('Probability of collapse')])
+        ax.set_xlabel(_('Age'))
+        ax.set_ylabel(_('Condition class'))
+        ax.set_title(_('Probability of collapse'))
+        ax.grid(True)
+        fig.tight_layout()
+        plt.show()
 
     def __updateProgressBarAfterTimeout(self):
         # updating the progressbar is a very time consuming operation

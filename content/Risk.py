@@ -68,7 +68,7 @@ class Risk:
     def getAge(yearOfConstruction):
         # TODO:
         # there are bridges without a year of construction in the dataset!
-        if math.isnan(yearOfConstruction):
+        if math.isnan(yearOfConstruction) or yearOfConstruction == -1:
             return None
         else:
             return CURRENT_YEAR - int(yearOfConstruction)

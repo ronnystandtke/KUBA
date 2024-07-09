@@ -5,7 +5,7 @@ Initial setup:
 jupyter nbconvert --to script ../KUBA.ipynb --output temp
 
 2) Extract messages from Python script and (temporary) notebook script:
-xgettext ../KUBA.py ../temp.py
+xgettext ../*.py ../temp.py
 rm ../temp.py
 
 3) Edit comment at the top of the po file, e.g. with vi:
@@ -35,7 +35,7 @@ Update:
 jupyter nbconvert --to script ../KUBA.ipynb --output temp
 
 2) Extract messages from Python script and (temporary) notebook script:
-xgettext ../KUBA.py ../temp.py
+xgettext ../*.py ../temp.py
 rm ../temp.py
 
 3) Update language specific po file, e.g. for German:
