@@ -318,10 +318,18 @@ class KUBA:
             self.progressBarValue = 0
 
             # add a new DataFrame to simplify the scatter plots
-            acpScatterColumns = [
+            self.acpScatterColumns = [
                 _('Age'), _('Condition class'), _('Probability of collapse')]
             self.ageConditionPocScatter = pd.DataFrame(
-                columns=acpScatterColumns)
+                columns=self.acpScatterColumns)
+            self.cpScatterColumns = [
+                _('Condition class'), _('Probability of collapse')]
+            self.conditionPocScatter = pd.DataFrame(
+                columns=self.cpScatterColumns)
+            self.spScatterColumns = [
+                _('Span'), _('Probability of collapse')]
+            self.spanPocScatter = pd.DataFrame(
+                columns=self.spScatterColumns)
 
             for i in range(0, self.bridgesSlider.value):
                 point = self.bridges['geometry'][i]
@@ -439,15 +447,30 @@ class KUBA:
                          else earthQuakeZoneFactor)
                         )
 
-                    if (age is not None
-                            and conditionClass is not None
-                            and conditionClass < 9):
-                        newDataFrame = pd.DataFrame(
-                            [[age, conditionClass, probabilityOfCollapse]],
-                            columns=acpScatterColumns)
-                        self.ageConditionPocScatter = pd.concat(
-                            [self.ageConditionPocScatter, newDataFrame])
+                    # fill data frames for diagramms
+                    if conditionClass is not None and conditionClass < 9:
 
+                        newDataFrame = pd.DataFrame(
+                            [[conditionClass, probabilityOfCollapse]],
+                            columns=self.cpScatterColumns)
+                        self.conditionPocScatter = pd.concat(
+                            [self.conditionPocScatter, newDataFrame])
+
+                        if age is not None:
+                            newDataFrame = pd.DataFrame(
+                                [[age, conditionClass, probabilityOfCollapse]],
+                                columns=self.acpScatterColumns)
+                            self.ageConditionPocScatter = pd.concat(
+                                [self.ageConditionPocScatter, newDataFrame])
+
+                    if span is not None:
+                        newDataFrame = pd.DataFrame(
+                            [[span, probabilityOfCollapse]],
+                            columns=self.spScatterColumns)
+                        self.spanPocScatter = pd.concat(
+                            [self.spanPocScatter, newDataFrame])
+
+                    # create HTML for marker
                     if age is None:
                         ageText = _('unknown')
                     else:
@@ -601,12 +624,12 @@ class KUBA:
         # age (x) vs. condition class (y) and probability of collapse (size)
         fig, ax = plt.subplots()
         ax.scatter(
-            self.ageConditionPocScatter[_('Age')],
-            self.ageConditionPocScatter[_('Condition class')],
-            s=self.ageConditionPocScatter[_('Probability of collapse')])
-        ax.set_xlabel(_('Age'))
-        ax.set_ylabel(_('Condition class'))
-        ax.set_title(_('Probability of collapse'))
+            self.ageConditionPocScatter[self.acpScatterColumns[0]],
+            self.ageConditionPocScatter[self.acpScatterColumns[1]],
+            s=self.ageConditionPocScatter[self.acpScatterColumns[2]])
+        ax.set_xlabel(self.acpScatterColumns[0])
+        ax.set_ylabel(self.acpScatterColumns[1])
+        ax.set_title(self.acpScatterColumns[2])
         ax.grid(True)
         fig.tight_layout()
         plt.show()
@@ -614,10 +637,32 @@ class KUBA:
         # age vs. probability of collapse
         fig, ax = plt.subplots()
         ax.scatter(
-            self.ageConditionPocScatter[_('Age')],
-            self.ageConditionPocScatter[_('Probability of collapse')])
-        ax.set_xlabel(_('Age'))
-        ax.set_ylabel(_('Probability of collapse'))
+            self.ageConditionPocScatter[self.acpScatterColumns[0]],
+            self.ageConditionPocScatter[self.acpScatterColumns[2]])
+        ax.set_xlabel(self.acpScatterColumns[0])
+        ax.set_ylabel(self.acpScatterColumns[2])
+        ax.grid(True)
+        fig.tight_layout()
+        plt.show()
+
+        # condition class vs. probability of collapse
+        fig, ax = plt.subplots()
+        ax.scatter(
+            self.conditionPocScatter[self.cpScatterColumns[0]],
+            self.conditionPocScatter[self.cpScatterColumns[1]])
+        ax.set_xlabel(self.cpScatterColumns[0])
+        ax.set_ylabel(self.cpScatterColumns[1])
+        ax.grid(True)
+        fig.tight_layout()
+        plt.show()
+
+        # span vs. probability of collapse
+        fig, ax = plt.subplots()
+        ax.scatter(
+            self.spanPocScatter[self.spScatterColumns[0]],
+            self.spanPocScatter[self.spScatterColumns[1]])
+        ax.set_xlabel(self.spScatterColumns[0])
+        ax.set_ylabel(self.spScatterColumns[1])
         ax.grid(True)
         fig.tight_layout()
         plt.show()
