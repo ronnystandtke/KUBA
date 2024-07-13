@@ -16,6 +16,7 @@ from ipyleaflet import (basemaps, basemap_to_tiles, Choropleth, CircleMarker,
 from IPython.display import clear_output
 from IPython.display import display
 from itables import init_notebook_mode, show
+from json import JSONDecodeError
 from Risk import Risk
 from shapely.geometry import Point
 
@@ -94,9 +95,14 @@ class KUBA:
 
         # load pre-calculated earthquake zone data
         self.earthquakeZonesDict = {}
-        if os.path.isfile(earthquakeZonesDictFileName):
-            with open(earthquakeZonesDictFileName) as file:
-                self.earthquakeZonesDict = json.load(file)
+        try:
+            if os.path.isfile(earthquakeZonesDictFileName):
+                with open(earthquakeZonesDictFileName) as file:
+                    self.earthquakeZonesDict = json.load(file)
+        except JSONDecodeError:
+            # This only happens when we empty earthquakezones.json to enforce a
+            # recalculation.
+            pass
 
         # check how many bridges we find in the other sheets
         # bridgeInAllBuildings = 0
@@ -379,12 +385,29 @@ class KUBA:
                         yearOfConstruction)
 
                     # K_13
-                    point = self.bridges['geometry'][i]
                     if newDict:
                         zone = self.earthquakeZones[
                             self.earthquakeZones.contains(point)]['ZONE']
                         if zone.empty:
-                            # TODO: find neighbouring earthquake zone
+                            # The earthquake zones don't cover bodies of water.
+                            # Therefore we have some coordinates of bridges
+                            # outside of any earthquake zone.
+                            # Our workaround is to create a 1000 m circle
+                            # around the coordinates of the bridge to find an
+                            # intersecting earthquake zone (1000m should be
+                            # large enough to catch all such cases).
+                            circle = gpd.GeoDataFrame(
+                                {'geometry': [point]}, crs='EPSG:4326')
+                            # map to CRS 'EPSG:3857', so that we can give the
+                            # parameter to buffer() below in meters
+                            circle.to_crs('EPSG:3857', inplace=True)
+                            circle.geometry = circle.buffer(1000)
+                            # map back to the Leaflet default of EPSG:4326
+                            circle = circle.to_crs('EPSG:4326')
+                            intersections = self.earthquakeZones.intersects(
+                                circle.iloc[0, 0])
+                            zone = self.earthquakeZones[intersections]['ZONE']
+                        if zone.empty:
                             zoneName = _("none")
                         else:
                             zoneName = zone.iloc[0]
@@ -416,9 +439,9 @@ class KUBA:
                          else earthQuakeZoneFactor)
                         )
 
-                    if (age is not None and
-                        conditionClass is not None and
-                        conditionClass < 9):
+                    if (age is not None
+                            and conditionClass is not None
+                            and conditionClass < 9):
                         newDataFrame = pd.DataFrame(
                             [[age, conditionClass, probabilityOfCollapse]],
                             columns=acpScatterColumns)
