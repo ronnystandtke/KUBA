@@ -598,7 +598,7 @@ class KUBA:
                 print(traceback.format_exc())
 
     def __showPlots(self):
-        # scatter plots
+        # age (x) vs. condition class (y) and probability of collapse (size)
         fig, ax = plt.subplots()
         ax.scatter(
             self.ageConditionPocScatter[_('Age')],
@@ -607,6 +607,17 @@ class KUBA:
         ax.set_xlabel(_('Age'))
         ax.set_ylabel(_('Condition class'))
         ax.set_title(_('Probability of collapse'))
+        ax.grid(True)
+        fig.tight_layout()
+        plt.show()
+
+        # age vs. probability of collapse
+        fig, ax = plt.subplots()
+        ax.scatter(
+            self.ageConditionPocScatter[_('Age')],
+            self.ageConditionPocScatter[_('Probability of collapse')])
+        ax.set_xlabel(_('Age'))
+        ax.set_ylabel(_('Probability of collapse'))
         ax.grid(True)
         fig.tight_layout()
         plt.show()
