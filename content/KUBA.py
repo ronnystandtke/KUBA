@@ -308,7 +308,7 @@ class KUBA:
             self.lastProgressBarUpdate = 0
             self.progressBarValue = 0
 
-            plots = Plots()
+            self.plots = Plots()
 
             for i in range(0, self.bridgesSlider.value):
                 point = self.bridges['geometry'][i]
@@ -438,9 +438,10 @@ class KUBA:
                         )
 
                     # fill dataframes for later plots
-                    plots.fillData(i, conditionClass,
-                                   probabilityOfCollapse, age, span,
-                                   buildingMaterialString, self)
+                    self.plots.fillData(i, conditionClass,
+                                        probabilityOfCollapse, age, span,
+                                        buildingMaterialString,
+                                        yearOfConstruction, self)
 
                     # create HTML for marker
                     if age is None:
@@ -583,7 +584,7 @@ class KUBA:
                      column_filters="footer",
                      layout={"top": "searchBuilder"},
                      maxBytes=0)
-                plots.showPlots()
+                self.plots.showPlots()
 
             self.bridgesSlider.disabled = False
             self.bridgesIntText.disabled = False
