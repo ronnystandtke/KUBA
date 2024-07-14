@@ -675,6 +675,7 @@ class KUBA:
     def __showPlots(self):
         # age (x) vs. condition class (y) and probability of collapse (size)
         fig, ax = plt.subplots()
+        plt.yticks([1, 2, 3, 4])
         ax.scatter(
             self.ageConditionPocScatter[self.acpScatterColumns[0]],
             self.ageConditionPocScatter[self.acpScatterColumns[1]],
@@ -699,6 +700,7 @@ class KUBA:
 
         # condition class vs. probability of collapse
         fig, ax = plt.subplots()
+        plt.xticks([1, 2, 3, 4])
         ax.scatter(
             self.conditionPocScatter[self.cpScatterColumns[0]],
             self.conditionPocScatter[self.cpScatterColumns[1]])
