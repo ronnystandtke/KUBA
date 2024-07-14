@@ -1,0 +1,16 @@
+ALL_BUILDINGS_NUMBER_LABEL = 'Nummer'
+NUMBER_LABEL = '\xa0Nummer'
+X_LABEL = 'Landeskoordinaten\xa0E\xa0[m]'
+Y_LABEL = 'Landeskoordinaten\xa0N\xa0[m]'
+NORM_YEAR_LABEL = 'Belastungsnorm\xa0Text'
+YEAR_OF_CONSTRUCTION_LABEL = 'Baujahr'
+LARGEST_SPAN_LABEL = 'Grösste Spannweite \xa0[m]\xa0)'
+SPAN_LABEL = 'Spannweite [m]'
+TYPE_CODE_LABEL = 'Typ\xa0Hierarchie-Code'
+TYPE_TEXT_LABEL = 'Typ\xa0Text'
+MATERIAL_CODE_LABEL = 'Bauart\xa0Code'
+MATERIAL_TEXT_LABEL = 'Bauart\xa0Text'
+CONDITION_CLASS_LABEL = 'Zustands- Klasse'
+FUNCTION_TEXT_LABEL = 'Funktion\xa0Text'
+MAINTENANCE_ACCEPTANCE_DATE_LABEL = (
+    'Erhaltungsmassnahme\xa0Datum\xa0der\xa0Abnahme')

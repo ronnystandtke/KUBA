@@ -1,16 +1,14 @@
 import geopandas as gpd
 import gettext
 import json
+import Labels
 import math
-import matplotlib.pyplot as plt
 import os.path
 import time
 import pandas as pd
 import ipywidgets as widgets
 import traceback
-from babel.dates import format_date
 from branca.colormap import linear
-from datetime import datetime
 from functools import cache
 from ipyleaflet import (basemaps, basemap_to_tiles, Choropleth, CircleMarker,
                         LayerGroup, LayersControl, LegendControl, Map,
@@ -19,6 +17,7 @@ from IPython.display import clear_output
 from IPython.display import display
 from itables import init_notebook_mode, show
 from json import JSONDecodeError
+from Plots import Plots
 from Risk import Risk
 from shapely.geometry import Point
 
@@ -29,24 +28,6 @@ init_notebook_mode(all_interactive=True)
 
 gettext.bindtextdomain('kuba', 'translations')
 gettext.textdomain('kuba')
-
-# our constants
-ALL_BUILDINGS_NUMBER_LABEL = 'Nummer'
-NUMBER_LABEL = '\xa0Nummer'
-X_LABEL = 'Landeskoordinaten\xa0E\xa0[m]'
-Y_LABEL = 'Landeskoordinaten\xa0N\xa0[m]'
-NORM_YEAR_LABEL = 'Belastungsnorm\xa0Text'
-YEAR_OF_CONSTRUCTION_LABEL = 'Baujahr'
-LARGEST_SPAN_LABEL = 'Grösste Spannweite \xa0[m]\xa0)'
-SPAN_LABEL = 'Spannweite [m]'
-TYPE_CODE_LABEL = 'Typ\xa0Hierarchie-Code'
-TYPE_TEXT_LABEL = 'Typ\xa0Text'
-MATERIAL_CODE_LABEL = 'Bauart\xa0Code'
-MATERIAL_TEXT_LABEL = 'Bauart\xa0Text'
-CONDITION_CLASS_LABEL = 'Zustands- Klasse'
-FUNCTION_TEXT_LABEL = 'Funktion\xa0Text'
-MAINTENANCE_ACCEPTANCE_DATE_LABEL = (
-    'Erhaltungsmassnahme\xa0Datum\xa0der\xa0Abnahme')
 
 earthquakeZonesDictFileName = "data/earthquakezones.json"
 
@@ -149,8 +130,8 @@ class KUBA:
             'Converting points to GeoDataFrames, please wait...')
         points = []
         for i in dfBridges.index:
-            x = dfBridges[X_LABEL][i]
-            y = dfBridges[Y_LABEL][i]
+            x = dfBridges[Labels.X_LABEL][i]
+            y = dfBridges[Labels.Y_LABEL][i]
             points.append(Point(x, y))
         self.bridges = gpd.GeoDataFrame(
             dfBridges, geometry=points, crs='EPSG:2056')
@@ -327,29 +308,7 @@ class KUBA:
             self.lastProgressBarUpdate = 0
             self.progressBarValue = 0
 
-            # add new DataFrames to simplify the scatter plots
-            self.acpScatterColumns = [
-                _('Age'), _('Condition class'), _('Probability of collapse')]
-            self.ageConditionPocScatter = pd.DataFrame(
-                columns=self.acpScatterColumns)
-            self.cpScatterColumns = [
-                _('Condition class'), _('Probability of collapse')]
-            self.conditionPocScatter = pd.DataFrame(
-                columns=self.cpScatterColumns)
-            self.spScatterColumns = [
-                _('Span'), _('Probability of collapse')]
-            self.spanPocScatter = pd.DataFrame(
-                columns=self.spScatterColumns)
-            self.maintenancePocScatterColumns = [
-                _('Last maintenance acceptance date'),
-                _('Probability of collapse')]
-            self.maintenancePocScatter = pd.DataFrame(
-                columns=self.maintenancePocScatterColumns)
-            self.materialPocBoxColumns = [
-                _('Building material'),
-                _('Probability of collapse')]
-            self.materialPocBox = pd.DataFrame(
-                columns=self.materialPocBoxColumns)
+            self.plots = Plots()
 
             for i in range(0, self.bridgesSlider.value):
                 point = self.bridges['geometry'][i]
@@ -365,22 +324,23 @@ class KUBA:
 
                     # K_1
                     normYear = Risk.getNormYear(
-                        self.bridges[NORM_YEAR_LABEL][i])
+                        self.bridges[Labels.NORM_YEAR_LABEL][i])
                     yearOfConstruction = (
-                        self.bridges[YEAR_OF_CONSTRUCTION_LABEL][i])
+                        self.bridges[Labels.YEAR_OF_CONSTRUCTION_LABEL][i])
                     if not math.isnan(yearOfConstruction):
                         yearOfConstruction = int(yearOfConstruction)
                     humanErrorFactor = Risk.getHumanErrorFactor(
                         normYear, yearOfConstruction)
 
                     # K_3
-                    typeCode = self.bridges[TYPE_CODE_LABEL][i]
-                    typeText = self.bridges[TYPE_TEXT_LABEL][i]
+                    typeCode = self.bridges[Labels.TYPE_CODE_LABEL][i]
+                    typeText = self.bridges[Labels.TYPE_TEXT_LABEL][i]
                     staticalDeterminacyFactor = (
                         Risk.getStaticalDeterminacyFactor(typeCode))
 
                     # P_f * K_4
-                    conditionClass = self.bridges[CONDITION_CLASS_LABEL][i]
+                    conditionClass = self.bridges[
+                        Labels.CONDITION_CLASS_LABEL][i]
                     age = Risk.getAge(yearOfConstruction)
                     conditionFactor = Risk.getConditionFactor(
                         conditionClass, age)
@@ -398,11 +358,11 @@ class KUBA:
                     # TODO: There are bridges where the span is smaller than
                     # the largest span, e.g. N13 154, Averserrhein Brücke.
                     # What does this actually mean, physically?
-                    span = Risk.getSpan(self.bridges[SPAN_LABEL][i])
+                    span = Risk.getSpan(self.bridges[Labels.SPAN_LABEL][i])
                     if span is None:
                         span = Risk.getSpan(
-                            self.bridges[LARGEST_SPAN_LABEL][i])
-                    Risk.getSpan(self.bridges[SPAN_LABEL][i])
+                            self.bridges[Labels.LARGEST_SPAN_LABEL][i])
+                    Risk.getSpan(self.bridges[Labels.SPAN_LABEL][i])
                     staticCalculationFactor = Risk.getStaticCalculationFactor(
                         span)
 
@@ -411,8 +371,8 @@ class KUBA:
 
                     # K_9
                     materialCode = Risk.getMaterialCode(
-                        self.bridges[MATERIAL_CODE_LABEL][i])
-                    materialText = self.bridges[MATERIAL_TEXT_LABEL][i]
+                        self.bridges[Labels.MATERIAL_CODE_LABEL][i])
+                    materialText = self.bridges[Labels.MATERIAL_TEXT_LABEL][i]
                     materialFactor = Risk.getMaterialFactor(materialCode)
                     buildingMaterialString = (
                         _('unknown') if not isinstance(materialText, str)
@@ -477,60 +437,10 @@ class KUBA:
                          else earthQuakeZoneFactor)
                         )
 
-                    # fill data frames for diagramms
-                    if conditionClass is not None and conditionClass < 9:
-
-                        newDataFrame = pd.DataFrame(
-                            [[conditionClass, probabilityOfCollapse]],
-                            columns=self.cpScatterColumns)
-                        self.conditionPocScatter = pd.concat(
-                            [self.conditionPocScatter, newDataFrame])
-
-                        if age is not None:
-                            newDataFrame = pd.DataFrame(
-                                [[age, conditionClass, probabilityOfCollapse]],
-                                columns=self.acpScatterColumns)
-                            self.ageConditionPocScatter = pd.concat(
-                                [self.ageConditionPocScatter, newDataFrame])
-
-                    if span is not None:
-                        newDataFrame = pd.DataFrame(
-                            [[span, probabilityOfCollapse]],
-                            columns=self.spScatterColumns)
-                        self.spanPocScatter = pd.concat(
-                            [self.spanPocScatter, newDataFrame])
-
-                    # TODO: There are bridges where the maintenance acceptance
-                    # date is 01.01.1900 and the kind of maintenance is
-                    # "Abbruch", e.g. S5731, BRÜCKE Gabi 4 N9S and
-                    # S5191, BRÜCKE Eggamatt N9S.
-                    # There are even obvious errors like the support wall
-                    # 52.303.13, SM Oben Nordportal Tunnel Ried FBNO where the
-                    # maintenance acceptance date is 31.12.3013.
-                    # How do we deal with these dates?
-                    bridgeNumber = self.bridges[NUMBER_LABEL][i]
-                    maintenance = self.dfMaintenance[
-                        self.dfMaintenance[NUMBER_LABEL] == bridgeNumber]
-                    maintenanceAcceptanceDate = None
-                    maintenanceAcceptanceDateString = _('unknown')
-                    if not maintenance.empty:
-                        maintenanceAcceptanceDate = maintenance[
-                            MAINTENANCE_ACCEPTANCE_DATE_LABEL].iloc[0]
-                        if isinstance(maintenanceAcceptanceDate, datetime):
-                            newDataFrame = pd.DataFrame(
-                                [[maintenanceAcceptanceDate,
-                                  probabilityOfCollapse]],
-                                columns=self.maintenancePocScatterColumns)
-                            self.maintenancePocScatter = pd.concat(
-                                [self.maintenancePocScatter, newDataFrame])
-                            maintenanceAcceptanceDateString = format_date(
-                                maintenanceAcceptanceDate)
-
-                    newDataFrame = pd.DataFrame(
-                        [[buildingMaterialString, probabilityOfCollapse]],
-                        columns=self.materialPocBoxColumns)
-                    self.materialPocBox = pd.concat(
-                        [self.materialPocBox, newDataFrame])
+                    # fill dataframes for later plots
+                    self.plots.fillData(i, conditionClass,
+                                        probabilityOfCollapse, age, span,
+                                        buildingMaterialString, self)
 
                     # create HTML for marker
                     if age is None:
@@ -583,7 +493,7 @@ class KUBA:
                         _('Earthquake zone factor') + '</b>: ' +
                         str(earthQuakeZoneFactor) + '</i><br>' + '<b>' +
                         _('Last maintenance acceptance date') + '</b>: ' +
-                        maintenanceAcceptanceDateString + '<br>' +
+                        self.maintenanceAcceptanceDateString + '<br>' +
                         _('Probability of collapse') + '</b>: ' +
                         str(probabilityOfCollapse) + '<br>')
 
@@ -613,7 +523,7 @@ class KUBA:
                         _('Earthquake zone'): [zoneName],
                         _('Earthquake zone factor'): [earthQuakeZoneFactor],
                         _('Last maintenance acceptance date'): [
-                            maintenanceAcceptanceDateString],
+                            self.maintenanceAcceptanceDateString],
                         _('Probability of collapse'): [probabilityOfCollapse]})
 
                     self.dataFrame = pd.concat(
@@ -684,81 +594,7 @@ class KUBA:
                 print(traceback.format_exc())
 
     def __showPlots(self):
-        # age (x) vs. condition class (y) and probability of collapse (size)
-        fig, ax = plt.subplots()
-        plt.yticks([1, 2, 3, 4])
-        ax.scatter(
-            self.ageConditionPocScatter[self.acpScatterColumns[0]],
-            self.ageConditionPocScatter[self.acpScatterColumns[1]],
-            s=self.ageConditionPocScatter[self.acpScatterColumns[2]])
-        ax.set_xlabel(self.acpScatterColumns[0])
-        ax.set_ylabel(self.acpScatterColumns[1])
-        ax.set_title(self.acpScatterColumns[2])
-        ax.grid(True)
-        fig.tight_layout()
-        plt.show()
-
-        # age vs. probability of collapse
-        fig, ax = plt.subplots()
-        ax.scatter(
-            self.ageConditionPocScatter[self.acpScatterColumns[0]],
-            self.ageConditionPocScatter[self.acpScatterColumns[2]])
-        ax.set_xlabel(self.acpScatterColumns[0])
-        ax.set_ylabel(self.acpScatterColumns[2])
-        ax.grid(True)
-        fig.tight_layout()
-        plt.show()
-
-        # condition class vs. probability of collapse
-        fig, ax = plt.subplots()
-        plt.xticks([1, 2, 3, 4])
-        ax.scatter(
-            self.conditionPocScatter[self.cpScatterColumns[0]],
-            self.conditionPocScatter[self.cpScatterColumns[1]])
-        ax.set_xlabel(self.cpScatterColumns[0])
-        ax.set_ylabel(self.cpScatterColumns[1])
-        ax.grid(True)
-        fig.tight_layout()
-        plt.show()
-
-        # span vs. probability of collapse
-        fig, ax = plt.subplots()
-        ax.scatter(
-            self.spanPocScatter[self.spScatterColumns[0]],
-            self.spanPocScatter[self.spScatterColumns[1]])
-        ax.set_xlabel(self.spScatterColumns[0])
-        ax.set_ylabel(self.spScatterColumns[1])
-        ax.grid(True)
-        fig.tight_layout()
-        plt.show()
-
-        # maintenance acceptance date vs. probability of collapse
-        fig, ax = plt.subplots()
-        ax.scatter(
-            self.maintenancePocScatter[self.maintenancePocScatterColumns[0]],
-            self.maintenancePocScatter[self.maintenancePocScatterColumns[1]])
-        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
-        ax.set_xlabel(self.maintenancePocScatterColumns[0])
-        ax.set_ylabel(self.maintenancePocScatterColumns[1])
-        ax.grid(True)
-        fig.tight_layout()
-        plt.show()
-
-        # box plot of materials vs. probability of collapse
-        materials = pd.unique(self.materialPocBox[
-            self.materialPocBoxColumns[0]])
-        boxplots = []
-        for material in materials:
-            matches = self.materialPocBox[
-                self.materialPocBoxColumns[0]] == material
-            pocs = self.materialPocBox[matches][self.materialPocBoxColumns[1]]
-            boxplots.append(pocs)
-        fig, ax = plt.subplots()
-        ax.set_xlabel(self.materialPocBoxColumns[0])
-        ax.set_ylabel(self.materialPocBoxColumns[1])
-        ax.boxplot(boxplots, labels=materials)
-        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
-        plt.show()
+        self.plots.showPlots()
 
     def __updateProgressBarAfterTimeout(self):
         # updating the progressbar is a very time consuming operation
