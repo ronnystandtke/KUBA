@@ -340,11 +340,16 @@ class KUBA:
                 _('Span'), _('Probability of collapse')]
             self.spanPocScatter = pd.DataFrame(
                 columns=self.spScatterColumns)
-            self.mpScatterColums = [
+            self.maintenancePocScatterColumns = [
                 _('Last maintenance acceptance date'),
                 _('Probability of collapse')]
             self.maintenancePocScatter = pd.DataFrame(
-                columns=self.mpScatterColums)
+                columns=self.maintenancePocScatterColumns)
+            self.materialPocBoxColumns = [
+                _('Building material'),
+                _('Probability of collapse')]
+            self.materialPocBox = pd.DataFrame(
+                columns=self.materialPocBoxColumns)
 
             for i in range(0, self.bridgesSlider.value):
                 point = self.bridges['geometry'][i]
@@ -409,6 +414,9 @@ class KUBA:
                         self.bridges[MATERIAL_CODE_LABEL][i])
                     materialText = self.bridges[MATERIAL_TEXT_LABEL][i]
                     materialFactor = Risk.getMaterialFactor(materialCode)
+                    buildingMaterialString = (
+                        _('unknown') if not isinstance(materialText, str)
+                        else materialText)
 
                     # K_11
                     robustnessFactor = Risk.getRobustnessFactor(
@@ -512,11 +520,17 @@ class KUBA:
                             newDataFrame = pd.DataFrame(
                                 [[maintenanceAcceptanceDate,
                                   probabilityOfCollapse]],
-                                columns=self.mpScatterColums)
+                                columns=self.maintenancePocScatterColumns)
                             self.maintenancePocScatter = pd.concat(
                                 [self.maintenancePocScatter, newDataFrame])
                             maintenanceAcceptanceDateString = format_date(
                                 maintenanceAcceptanceDate)
+
+                    newDataFrame = pd.DataFrame(
+                        [[buildingMaterialString, probabilityOfCollapse]],
+                        columns=self.materialPocBoxColumns)
+                    self.materialPocBox = pd.concat(
+                        [self.materialPocBox, newDataFrame])
 
                     # create HTML for marker
                     if age is None:
@@ -532,9 +546,6 @@ class KUBA:
                     yearOfConstructionString = (
                         _('unknown') if yearOfConstruction is None
                         else str(yearOfConstruction))
-                    buildingMaterialString = (
-                        _('unknown') if not isinstance(materialText, str)
-                        else materialText)
 
                     message = widgets.HTML()
                     message.value = (
@@ -724,13 +735,29 @@ class KUBA:
         # maintenance acceptance date vs. probability of collapse
         fig, ax = plt.subplots()
         ax.scatter(
-            self.maintenancePocScatter[self.mpScatterColums[0]],
-            self.maintenancePocScatter[self.mpScatterColums[1]])
+            self.maintenancePocScatter[self.maintenancePocScatterColumns[0]],
+            self.maintenancePocScatter[self.maintenancePocScatterColumns[1]])
         plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
-        ax.set_xlabel(self.mpScatterColums[0])
-        ax.set_ylabel(self.mpScatterColums[1])
+        ax.set_xlabel(self.maintenancePocScatterColumns[0])
+        ax.set_ylabel(self.maintenancePocScatterColumns[1])
         ax.grid(True)
         fig.tight_layout()
+        plt.show()
+
+        # box plot of materials vs. probability of collapse
+        materials = pd.unique(self.materialPocBox[
+            self.materialPocBoxColumns[0]])
+        boxplots = []
+        for material in materials:
+            matches = self.materialPocBox[
+                self.materialPocBoxColumns[0]] == material
+            pocs = self.materialPocBox[matches][self.materialPocBoxColumns[1]]
+            boxplots.append(pocs)
+        fig, ax = plt.subplots()
+        ax.set_xlabel(self.materialPocBoxColumns[0])
+        ax.set_ylabel(self.materialPocBoxColumns[1])
+        ax.boxplot(boxplots, labels=materials)
+        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
         plt.show()
 
     def __updateProgressBarAfterTimeout(self):
