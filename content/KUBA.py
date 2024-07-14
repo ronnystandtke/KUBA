@@ -308,7 +308,7 @@ class KUBA:
             self.lastProgressBarUpdate = 0
             self.progressBarValue = 0
 
-            self.plots = Plots()
+            plots = Plots()
 
             for i in range(0, self.bridgesSlider.value):
                 point = self.bridges['geometry'][i]
@@ -438,9 +438,9 @@ class KUBA:
                         )
 
                     # fill dataframes for later plots
-                    self.plots.fillData(i, conditionClass,
-                                        probabilityOfCollapse, age, span,
-                                        buildingMaterialString, self)
+                    plots.fillData(i, conditionClass,
+                                   probabilityOfCollapse, age, span,
+                                   buildingMaterialString, self)
 
                     # create HTML for marker
                     if age is None:
@@ -491,9 +491,9 @@ class KUBA:
                         '<b>' + _('Earthquake zone') + '</b>: ' + zoneName +
                         '<br>' + '<b><i>K<sub>13</sub>: ' +
                         _('Earthquake zone factor') + '</b>: ' +
-                        str(earthQuakeZoneFactor) + '</i><br>' + '<b>' +
+                        str(earthQuakeZoneFactor) + '</i><br><b>' +
                         _('Last maintenance acceptance date') + '</b>: ' +
-                        self.maintenanceAcceptanceDateString + '<br>' +
+                        self.maintenanceAcceptanceDateString + '<br><b>' +
                         _('Probability of collapse') + '</b>: ' +
                         str(probabilityOfCollapse) + '<br>')
 
@@ -583,7 +583,7 @@ class KUBA:
                      column_filters="footer",
                      layout={"top": "searchBuilder"},
                      maxBytes=0)
-                self.__showPlots()
+                plots.showPlots()
 
             self.bridgesSlider.disabled = False
             self.bridgesIntText.disabled = False
@@ -592,9 +592,6 @@ class KUBA:
         except Exception:
             with self.output:
                 print(traceback.format_exc())
-
-    def __showPlots(self):
-        self.plots.showPlots()
 
     def __updateProgressBarAfterTimeout(self):
         # updating the progressbar is a very time consuming operation
