@@ -1,6 +1,7 @@
 import gettext
 import Labels
 import matplotlib.pyplot as plt
+import matplotlib.ticker as plticker
 import pandas as pd
 from babel.dates import format_date
 from datetime import datetime
@@ -38,8 +39,13 @@ class Plots:
             _('Building material'), _('Probability of collapse')]
         self.materialPocBox = pd.DataFrame(columns=self.materialPocBoxColumns)
 
+        self.yearMaterialStackColumns = [
+            _('Year of construction'), _('Building material')]
+        self.yearMaterialStack = pd.DataFrame(
+            columns=self.yearMaterialStackColumns)
+
     def fillData(self, index, conditionClass, probabilityOfCollapse,
-                 age, span, buildingMaterialString, kuba):
+                 age, span, buildingMaterialString, yearOfConstruction, kuba):
 
         if conditionClass is not None and conditionClass < 9:
 
@@ -93,6 +99,13 @@ class Plots:
             columns=self.materialPocBoxColumns)
         self.materialPocBox = pd.concat(
             [self.materialPocBox, newDataFrame])
+
+        if yearOfConstruction != -1:
+            newDataFrame = pd.DataFrame(
+                [[yearOfConstruction, buildingMaterialString]],
+                columns=self.yearMaterialStackColumns)
+            self.yearMaterialStack = pd.concat(
+                [self.yearMaterialStack, newDataFrame])
 
     def showPlots(self):
         # age (x) vs. condition class (y) and probability of collapse (size)
@@ -169,4 +182,34 @@ class Plots:
         ax.set_ylabel(self.materialPocBoxColumns[1])
         ax.boxplot(boxplots, labels=materials)
         plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+        plt.show()
+
+        # stack plot year of construction vs. building material
+        years = pd.unique(self.yearMaterialStack[
+            self.yearMaterialStackColumns[0]])
+        years.sort()
+        materials = pd.unique(self.yearMaterialStack[
+            self.yearMaterialStackColumns[1]])
+        materials.sort()
+        stackX = []
+        for year in years:
+            stackX.append(year)
+        stackY = []
+        for material in materials:
+            yearData = []
+            for year in years:
+                tmp = self.yearMaterialStack[self.yearMaterialStack[
+                    self.yearMaterialStackColumns[0]] == year]
+                count = (tmp[self.yearMaterialStackColumns[1]].
+                         value_counts().get(material, 0))
+                yearData.append(count)
+            stackY.append(yearData)
+        cm = 1/2.54
+        fig, ax = plt.subplots(figsize=(40*cm, 20*cm))
+        ax.stackplot(stackX, stackY, labels=materials)
+        loc = plticker.MultipleLocator(base=20)
+        ax.xaxis.set_major_locator(loc)
+        ax.set_xlabel(self.yearMaterialStackColumns[0])
+        ax.set_ylabel(self.yearMaterialStackColumns[1])
+        ax.legend(loc='upper left')
         plt.show()
