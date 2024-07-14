@@ -35,6 +35,7 @@ X_LABEL = 'Landeskoordinaten\xa0E\xa0[m]'
 Y_LABEL = 'Landeskoordinaten\xa0N\xa0[m]'
 NORM_YEAR_LABEL = 'Belastungsnorm\xa0Text'
 YEAR_OF_CONSTRUCTION_LABEL = 'Baujahr'
+LARGEST_SPAN_LABEL = 'Grösste Spannweite \xa0[m]\xa0)'
 SPAN_LABEL = 'Spannweite [m]'
 TYPE_CODE_LABEL = 'Typ\xa0Hierarchie-Code'
 TYPE_TEXT_LABEL = 'Typ\xa0Text'
@@ -375,7 +376,14 @@ class KUBA:
                     # functionText = building[FUNCTION_TEXT_LABEL].iat[0]
 
                     # K_7
+                    # TODO: There are bridges where the span is smaller than
+                    # the largest span, e.g. N13 154, Averserrhein Brücke.
+                    # What does this actually mean, physically?
                     span = Risk.getSpan(self.bridges[SPAN_LABEL][i])
+                    if span is None:
+                        span = Risk.getSpan(
+                            self.bridges[LARGEST_SPAN_LABEL][i])
+                    Risk.getSpan(self.bridges[SPAN_LABEL][i])
                     staticCalculationFactor = Risk.getStaticCalculationFactor(
                         span)
 

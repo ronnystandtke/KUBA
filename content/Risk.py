@@ -133,7 +133,6 @@ class Risk:
 
     @staticmethod
     def getSpan(spanText):
-        # TODO: there are bridges without span data!
         if math.isnan(spanText):
             return None
         else:
@@ -143,10 +142,10 @@ class Risk:
     def getStaticCalculationFactor(span):
         # factor K_7 ("Statische Berechnung")
 
-        if span is None:
-            # TODO: value for unknown spans?
-            h1 = 0.0238
-        elif span < 6:
+        # TODO: middle column in table 3.26 is not used in calculation?
+
+        # If the span is unknown we use the minimal H3 value
+        if span is None or span < 6:
             h1 = 0.0023
         elif span < 12:
             h1 = 0.0047
@@ -327,7 +326,8 @@ class Risk:
         if (zoneName == 'Z3a') or (zoneName == 'Z3b'):
             return Risk.__getEHF(yearOfConstruction, 2)
         else:
-            # When there are bridges outside of earthquake zones we assume zone 2.
+            # When there are bridges outside of
+            # earthquake zones we assume zone 2.
             return Risk.__getEHF(yearOfConstruction, 1)
 
     @staticmethod
