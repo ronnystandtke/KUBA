@@ -8,7 +8,9 @@ import time
 import pandas as pd
 import ipywidgets as widgets
 import traceback
+from babel.dates import format_date
 from branca.colormap import linear
+from datetime import datetime
 from functools import cache
 from ipyleaflet import (basemaps, basemap_to_tiles, Choropleth, CircleMarker,
                         LayerGroup, LayersControl, LegendControl, Map,
@@ -43,6 +45,8 @@ MATERIAL_CODE_LABEL = 'Bauart\xa0Code'
 MATERIAL_TEXT_LABEL = 'Bauart\xa0Text'
 CONDITION_CLASS_LABEL = 'Zustands- Klasse'
 FUNCTION_TEXT_LABEL = 'Funktion\xa0Text'
+MAINTENANCE_ACCEPTANCE_DATE_LABEL = (
+    'Erhaltungsmassnahme\xa0Datum\xa0der\xa0Abnahme')
 
 earthquakeZonesDictFileName = "data/earthquakezones.json"
 
@@ -93,6 +97,10 @@ class KUBA:
         self.dfBuildings = pd.read_excel(
             open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
             sheet_name='Bauwerke mitErdbebenüberprüfung')
+
+        self.dfMaintenance = pd.read_excel(
+            open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
+            sheet_name='BW letzte Erhaltungsmassnahme')
 
         # load pre-calculated earthquake zone data
         self.earthquakeZonesDict = {}
@@ -312,13 +320,14 @@ class KUBA:
                 _('Robustness factor'): [],
                 _('Earthquake zone'): [],
                 _('Earthquake zone factor'): [],
+                _('Last maintenance acceptance date'): [],
                 _('Probability of collapse'): []})
 
             self.bridgesWithoutCoordinates = 0
             self.lastProgressBarUpdate = 0
             self.progressBarValue = 0
 
-            # add a new DataFrame to simplify the scatter plots
+            # add new DataFrames to simplify the scatter plots
             self.acpScatterColumns = [
                 _('Age'), _('Condition class'), _('Probability of collapse')]
             self.ageConditionPocScatter = pd.DataFrame(
@@ -331,6 +340,11 @@ class KUBA:
                 _('Span'), _('Probability of collapse')]
             self.spanPocScatter = pd.DataFrame(
                 columns=self.spScatterColumns)
+            self.mpScatterColums = [
+                _('Last maintenance acceptance date'),
+                _('Probability of collapse')]
+            self.maintenancePocScatter = pd.DataFrame(
+                columns=self.mpScatterColums)
 
             for i in range(0, self.bridgesSlider.value):
                 point = self.bridges['geometry'][i]
@@ -478,6 +492,32 @@ class KUBA:
                         self.spanPocScatter = pd.concat(
                             [self.spanPocScatter, newDataFrame])
 
+                    # TODO: There are bridges where the maintenance acceptance
+                    # date is 01.01.1900 and the kind of maintenance is
+                    # "Abbruch", e.g. S5731, BRÜCKE Gabi 4 N9S and
+                    # S5191, BRÜCKE Eggamatt N9S.
+                    # There are even obvious errors like the support wall
+                    # 52.303.13, SM Oben Nordportal Tunnel Ried FBNO where the
+                    # maintenance acceptance date is 31.12.3013.
+                    # How do we deal with these dates?
+                    bridgeNumber = self.bridges[NUMBER_LABEL][i]
+                    maintenance = self.dfMaintenance[
+                        self.dfMaintenance[NUMBER_LABEL] == bridgeNumber]
+                    maintenanceAcceptanceDate = None
+                    maintenanceAcceptanceDateString = _('unknown')
+                    if not maintenance.empty:
+                        maintenanceAcceptanceDate = maintenance[
+                            MAINTENANCE_ACCEPTANCE_DATE_LABEL].iloc[0]
+                        if isinstance(maintenanceAcceptanceDate, datetime):
+                            newDataFrame = pd.DataFrame(
+                                [[maintenanceAcceptanceDate,
+                                  probabilityOfCollapse]],
+                                columns=self.mpScatterColums)
+                            self.maintenancePocScatter = pd.concat(
+                                [self.maintenancePocScatter, newDataFrame])
+                            maintenanceAcceptanceDateString = format_date(
+                                maintenanceAcceptanceDate)
+
                     # create HTML for marker
                     if age is None:
                         ageText = _('unknown')
@@ -531,6 +571,8 @@ class KUBA:
                         '<br>' + '<b><i>K<sub>13</sub>: ' +
                         _('Earthquake zone factor') + '</b>: ' +
                         str(earthQuakeZoneFactor) + '</i><br>' + '<b>' +
+                        _('Last maintenance acceptance date') + '</b>: ' +
+                        maintenanceAcceptanceDateString + '<br>' +
                         _('Probability of collapse') + '</b>: ' +
                         str(probabilityOfCollapse) + '<br>')
 
@@ -559,6 +601,8 @@ class KUBA:
                         _('Robustness factor'): [robustnessFactor],
                         _('Earthquake zone'): [zoneName],
                         _('Earthquake zone factor'): [earthQuakeZoneFactor],
+                        _('Last maintenance acceptance date'): [
+                            maintenanceAcceptanceDateString],
                         _('Probability of collapse'): [probabilityOfCollapse]})
 
                     self.dataFrame = pd.concat(
@@ -671,6 +715,18 @@ class KUBA:
             self.spanPocScatter[self.spScatterColumns[1]])
         ax.set_xlabel(self.spScatterColumns[0])
         ax.set_ylabel(self.spScatterColumns[1])
+        ax.grid(True)
+        fig.tight_layout()
+        plt.show()
+
+        # maintenance acceptance date vs. probability of collapse
+        fig, ax = plt.subplots()
+        ax.scatter(
+            self.maintenancePocScatter[self.mpScatterColums[0]],
+            self.maintenancePocScatter[self.mpScatterColums[1]])
+        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+        ax.set_xlabel(self.mpScatterColums[0])
+        ax.set_ylabel(self.mpScatterColums[1])
         ax.grid(True)
         fig.tight_layout()
         plt.show()
