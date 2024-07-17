@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-17 09:20+0200\n"
+"POT-Creation-Date: 2024-07-17 12:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -163,7 +163,11 @@ msgstr ""
 msgid "Condition class"
 msgstr ""
 
-#: ../temp.py:42
+#: ../temp.py:40
+msgid "Installing"
+msgstr ""
+
+#: ../temp.py:85
 msgid ""
 "\n"
 "                <h1>Startup failed</h1>\n"
