@@ -15,7 +15,7 @@ from ipyleaflet import (basemaps, basemap_to_tiles, Choropleth, CircleMarker,
                         MarkerCluster, WidgetControl)
 from IPython.display import clear_output
 from IPython.display import display
-from itables import init_notebook_mode, show
+from itables import show
 from json import JSONDecodeError
 from Plots import Plots
 from Risk import Risk
@@ -23,8 +23,6 @@ from shapely.geometry import Point
 
 from warnings import simplefilter
 simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
-
-init_notebook_mode(all_interactive=True)
 
 gettext.bindtextdomain('kuba', 'translations')
 gettext.textdomain('kuba')
@@ -62,6 +60,7 @@ class KUBA:
     def __init__(self):
         statusText = widgets.Text(
             value='', layout=widgets.Layout(width='95%'), disabled=True)
+        clear_output()
         display(statusText)
 
         # read file with data
