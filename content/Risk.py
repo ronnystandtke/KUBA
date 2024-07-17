@@ -129,7 +129,48 @@ class Risk:
     @staticmethod
     def getOverpassFactor(functionText):
         # factor K_6 ("Berücksichtigung der Überführung")
-        pass
+
+        if functionText is None:
+            # return the highest factor for unknown overpass situations
+            return 8.7
+
+        # the function texts contain non-breaking spaces
+        # improve readability of the code below by
+        # replacing them with normal spaces
+        myFunctionText = functionText.replace(u'\xa0', u' ')
+
+        if ((myFunctionText == 'Überquert anderes Infrastrukturobjekt') or
+                (myFunctionText == 'Überquert Bahnanlage') or
+                (myFunctionText == 'Überquert Strasse / Weg') or
+                (myFunctionText == 'Überquert übrige Infrastruktur') or
+                (myFunctionText == 'Überquert Verkehrsweg')):
+            return 5
+
+        elif ((myFunctionText == 'Überquert Fluss') or
+              (myFunctionText == 'Überquert Gewässer') or
+              (myFunctionText == 'Überquert Kanal')):
+            # TODO: where is the information about
+            # Einfeldträger or Mehrfeldträger?
+            # if Mehrfeldträger:
+            #     return 8.7
+            # elif Einfeldträger:
+            #     return 6
+            return 8.7
+
+        elif (myFunctionText == 'Überquert anderes'):
+            # TODO: move up to first elif?
+            return 5
+
+        elif ((myFunctionText == 'Überquert Natur') or
+              (myFunctionText == 'Überquert Leitungen')):
+            return 1
+
+        else:
+            # should not happen with current dataset...
+            # but treat it like an unknown situation and
+            # return the highest factor
+            print("WARNING: unknown function text: \"" + myFunctionText + "\"")
+            return 8.7
 
     @staticmethod
     def getSpan(spanText):

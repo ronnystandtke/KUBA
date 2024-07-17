@@ -293,6 +293,8 @@ class KUBA:
                 _('Statical determinacy factor'): [],
                 _('Age'): [],
                 _('Condition factor'): [],
+                _('Function'): [],
+                _('Overpass factor'): [],
                 _('Span'): [],
                 _('Static calculation factor'): [],
                 _('Bridge type factor'): [],
@@ -346,13 +348,20 @@ class KUBA:
                         conditionClass, age)
 
                     # K_6
-                    # bridgeNumber = self.bridges[NUMBER_LABEL][i]
-                    # building = self.dfBuildings[
-                    #    self.dfBuildings[NUMBER_LABEL] == bridgeNumber]
-                    # TODO:
-                    # - many bridges are NOT in the buildings table
-                    # - some bridges (e.g. N5/3BS30N) are there multiple times
-                    # functionText = building[FUNCTION_TEXT_LABEL].iat[0]
+                    bridgeNumber = self.bridges[Labels.NUMBER_LABEL][i]
+                    building = self.dfBuildings[
+                        (self.dfBuildings[Labels.NUMBER_LABEL] ==
+                         bridgeNumber) &
+                        (self.dfBuildings[Labels.FUNCTION_TEXT_LABEL]
+                         .str.startswith('Überquert'))]
+                    if building.empty:
+                        functionText = None
+                    else:
+                        functionText = (
+                            building[Labels.FUNCTION_TEXT_LABEL].iat[0])
+                    overpassFactor = Risk.getOverpassFactor(functionText)
+                    if functionText is None:
+                        functionText = _('unknown')
 
                     # K_7
                     # TODO: There are bridges where the span is smaller than
@@ -425,6 +434,8 @@ class KUBA:
                          else staticalDeterminacyFactor) *
                         (1 if conditionFactor is None
                          else conditionFactor) *
+                        (1 if overpassFactor is None
+                         else overpassFactor) *
                         (1 if staticCalculationFactor is None
                          else staticCalculationFactor) *
                         (1 if bridgeTypeFactor is None
@@ -477,7 +488,10 @@ class KUBA:
                         str(conditionFactor) + '</i><br><b>' + _('Span') +
                         '</b>: ' + (_('unknown') if span is None
                                     else (str(span) + ' m')) +
-                        '<br><b><i>K<sub>7</sub>: ' +
+                        '<br><b>' + _('Function') + '</b>: ' + functionText +
+                        '<br><b><i>K<sub>6</sub>: ' +
+                        _('Overpass factor') + '</b>: ' + str(overpassFactor) +
+                        '</i><br><b><i>K<sub>7</sub>: ' +
                         _('Static calculation factor') + '</b>: ' +
                         str(staticCalculationFactor) + '</i><br>' +
                         '<b><i>K<sub>8</sub>: ' + _('Bridge type factor') +
@@ -514,6 +528,8 @@ class KUBA:
                             staticalDeterminacyFactor],
                         _('Age'): [ageText],
                         _('Condition factor'): [conditionFactor],
+                        _('Function'): [functionText],
+                        _('Overpass factor'): [overpassFactor],
                         _('Span'): [span],
                         _('Static calculation factor'): [
                             staticCalculationFactor],

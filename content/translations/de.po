@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-14 14:28+0200\n"
+"POT-Creation-Date: 2024-07-17 09:20+0200\n"
 "PO-Revision-Date: 2024-04-14 20:08+0200\n"
 "Last-Translator: Ronny Standtke <ronny.standtke@gmx.net>\n"
 "Language-Team: DE <DE@li.org>\n"
@@ -17,145 +17,153 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
-#: ../KUBA.py:87
+#: ../KUBA.py:68
 msgid "Loading building data, please wait..."
 msgstr "Lade Bauwerksdaten, bitte warten..."
 
-#: ../KUBA.py:149
+#: ../KUBA.py:130
 msgid "Converting points to GeoDataFrames, please wait..."
 msgstr "Konvertiere Punkte zu GeoDataFrames, bitte warten..."
 
-#: ../KUBA.py:158
+#: ../KUBA.py:139
 msgid "Loading earthquake zones, please wait..."
 msgstr "Lade Erdbebenzonen, bitte warten..."
 
-#: ../KUBA.py:164
+#: ../KUBA.py:145
 msgid "Converting CRS, please wait..."
 msgstr "Konvertiere Koordinatenreferenzsystem, bitte warten..."
 
-#: ../KUBA.py:168
+#: ../KUBA.py:149
 msgid "Creating base map, please wait..."
 msgstr "Erzeuge Basiskarte, bitte warten..."
 
-#: ../KUBA.py:208
+#: ../KUBA.py:189
 msgid "Cluster bridges"
 msgstr "Brücken gruppieren"
 
-#: ../KUBA.py:218
+#: ../KUBA.py:199
 msgid "Number of bridges"
 msgstr "Anzahl der Brücken"
 
-#: ../KUBA.py:247
+#: ../KUBA.py:228
 msgid "Load selected number of bridges"
 msgstr "Lade ausgewählte Anzahl von Brücken"
 
-#: ../KUBA.py:257 ../KUBA.py:298 ../KUBA.py:750
+#: ../KUBA.py:238 ../KUBA.py:279 ../KUBA.py:629
 msgid "Bridges are being loaded"
 msgstr "Brücken werden geladen"
 
-#: ../KUBA.py:307 ../KUBA.py:541 ../KUBA.py:586
+#: ../KUBA.py:288 ../KUBA.py:474 ../KUBA.py:522
 msgid "Name"
 msgstr ""
 
-#: ../KUBA.py:308 ../KUBA.py:542 ../KUBA.py:587
+#: ../KUBA.py:289 ../KUBA.py:475 ../KUBA.py:523
 msgid "Year of the norm"
 msgstr "Jahr der Norm"
 
-#: ../KUBA.py:309 ../KUBA.py:544 ../KUBA.py:588
+#: ../KUBA.py:290 ../KUBA.py:477 ../KUBA.py:524 ../Plots.py:43
 msgid "Year of construction"
 msgstr "Baujahr"
 
-#: ../KUBA.py:310 ../KUBA.py:546 ../KUBA.py:589
+#: ../KUBA.py:291 ../KUBA.py:479 ../KUBA.py:525
 msgid "Human error factor"
 msgstr "Faktor für menschliche Fehler"
 
-#: ../KUBA.py:311 ../KUBA.py:548 ../KUBA.py:590
+#: ../KUBA.py:292 ../KUBA.py:481 ../KUBA.py:526
 msgid "Type"
 msgstr "Typ"
 
-#: ../KUBA.py:312 ../KUBA.py:550 ../KUBA.py:591
+#: ../KUBA.py:293 ../KUBA.py:483 ../KUBA.py:527
 msgid "Statical determinacy factor"
 msgstr "Faktor für statische Bestimmtheit"
 
-#: ../KUBA.py:313 ../KUBA.py:332 ../KUBA.py:552 ../KUBA.py:593
+#: ../KUBA.py:294 ../KUBA.py:485 ../KUBA.py:529 ../Plots.py:24
 msgid "Age"
 msgstr "Alter"
 
-#: ../KUBA.py:314 ../KUBA.py:554 ../KUBA.py:594
+#: ../KUBA.py:295 ../KUBA.py:487 ../KUBA.py:530
 msgid "Condition factor"
 msgstr "Faktor für die Zustandsklasse"
 
-#: ../KUBA.py:315 ../KUBA.py:340 ../KUBA.py:555 ../KUBA.py:595
+#: ../KUBA.py:296 ../KUBA.py:491 ../KUBA.py:531
+msgid "Function"
+msgstr "Funktion"
+
+#: ../KUBA.py:297 ../KUBA.py:493 ../KUBA.py:532
+msgid "Overpass factor"
+msgstr "Faktor für die Überführung"
+
+#: ../KUBA.py:298 ../KUBA.py:488 ../KUBA.py:533 ../Plots.py:31
 msgid "Span"
 msgstr "Spannweite"
 
-#: ../KUBA.py:316 ../KUBA.py:559 ../KUBA.py:596
+#: ../KUBA.py:299 ../KUBA.py:495 ../KUBA.py:534
 msgid "Static calculation factor"
 msgstr "Faktor für statische Berechnung"
 
-#: ../KUBA.py:317 ../KUBA.py:561 ../KUBA.py:598
+#: ../KUBA.py:300 ../KUBA.py:497 ../KUBA.py:536
 msgid "Bridge type factor"
 msgstr "Faktor für Brückentyp"
 
-#: ../KUBA.py:318 ../KUBA.py:563 ../KUBA.py:599
+#: ../KUBA.py:301 ../KUBA.py:499 ../KUBA.py:537 ../Plots.py:39 ../Plots.py:43
 msgid "Building material"
 msgstr "Baumaterial"
 
-#: ../KUBA.py:319 ../KUBA.py:566 ../KUBA.py:600
+#: ../KUBA.py:302 ../KUBA.py:502 ../KUBA.py:538
 msgid "Building material factor"
 msgstr "Faktor für den Baustoff"
 
-#: ../KUBA.py:320 ../KUBA.py:568 ../KUBA.py:601
+#: ../KUBA.py:303 ../KUBA.py:504 ../KUBA.py:539
 msgid "Robustness factor"
 msgstr "Faktor für Robustheit"
 
-#: ../KUBA.py:321 ../KUBA.py:570 ../KUBA.py:602
+#: ../KUBA.py:304 ../KUBA.py:506 ../KUBA.py:540
 msgid "Earthquake zone"
 msgstr "Erdbebenzone"
 
-#: ../KUBA.py:322 ../KUBA.py:572 ../KUBA.py:603
+#: ../KUBA.py:305 ../KUBA.py:508 ../KUBA.py:541
 msgid "Earthquake zone factor"
 msgstr "Faktor für Erdbebenzone"
 
-#: ../KUBA.py:323 ../KUBA.py:344 ../KUBA.py:574 ../KUBA.py:604
+#: ../KUBA.py:306 ../KUBA.py:510 ../KUBA.py:542 ../Plots.py:34
 msgid "Last maintenance acceptance date"
 msgstr "Datum der Abnahme der letzten Erhaltungsmaßname"
 
-#: ../KUBA.py:324 ../KUBA.py:332 ../KUBA.py:336 ../KUBA.py:340 ../KUBA.py:345
-#: ../KUBA.py:576 ../KUBA.py:606 ../KUBA.py:622 ../KUBA.py:628
+#: ../KUBA.py:307 ../KUBA.py:512 ../KUBA.py:544 ../KUBA.py:560 ../KUBA.py:566
+#: ../Plots.py:24 ../Plots.py:28 ../Plots.py:31 ../Plots.py:35 ../Plots.py:39
 msgid "Probability of collapse"
 msgstr "Einsturzwahrscheinlichkeit"
 
-#: ../KUBA.py:332 ../KUBA.py:336
-msgid "Condition class"
-msgstr "Zustandsklasse"
-
-#: ../KUBA.py:441
-msgid "none"
-msgstr "keine"
-
-#: ../KUBA.py:507 ../KUBA.py:523 ../KUBA.py:530 ../KUBA.py:533 ../KUBA.py:536
-#: ../KUBA.py:556
+#: ../KUBA.py:364 ../KUBA.py:387 ../KUBA.py:459 ../KUBA.py:466 ../KUBA.py:469
+#: ../KUBA.py:489 ../Plots.py:84
 msgid "unknown"
 msgstr "unbekannt"
 
-#: ../KUBA.py:645
+#: ../KUBA.py:418
+msgid "none"
+msgstr "keine"
+
+#: ../KUBA.py:583
 msgid "Clustered Bridges"
 msgstr "Gruppierte Brücken"
 
-#: ../KUBA.py:653
+#: ../KUBA.py:591
 msgid "Individual Bridges"
 msgstr "Individuelle Brücken"
 
-#: ../KUBA.py:661
+#: ../KUBA.py:599
 msgid "Bridges"
 msgstr "Brücken"
 
-#: ../KUBA.py:755
+#: ../KUBA.py:634
 msgid "without coordinates"
 msgstr "ohne Koordinaten"
 
-#: ../temp.py:41
+#: ../Plots.py:24 ../Plots.py:28
+msgid "Condition class"
+msgstr "Zustandsklasse"
+
+#: ../temp.py:42
 msgid ""
 "\n"
 "                <h1>Startup failed</h1>\n"

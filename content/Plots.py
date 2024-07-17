@@ -111,10 +111,13 @@ class Plots:
         # age (x) vs. condition class (y) and probability of collapse (size)
         fig, ax = plt.subplots()
         plt.yticks([1, 2, 3, 4])
+        # the circles became quite large,
+        # therefore we divide the values by this factor
+        resize = 7
         ax.scatter(
             self.ageConditionPocScatter[self.acpScatterColumns[0]],
             self.ageConditionPocScatter[self.acpScatterColumns[1]],
-            s=self.ageConditionPocScatter[self.acpScatterColumns[2]])
+            s=self.ageConditionPocScatter[self.acpScatterColumns[2]] / resize)
         ax.set_xlabel(self.acpScatterColumns[0])
         ax.set_ylabel(self.acpScatterColumns[1])
         ax.set_title(self.acpScatterColumns[2])
