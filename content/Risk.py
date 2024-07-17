@@ -143,23 +143,14 @@ class Risk:
                 (myFunctionText == 'Überquert Bahnanlage') or
                 (myFunctionText == 'Überquert Strasse / Weg') or
                 (myFunctionText == 'Überquert übrige Infrastruktur') or
-                (myFunctionText == 'Überquert Verkehrsweg')):
+                (myFunctionText == 'Überquert Verkehrsweg') or
+                (myFunctionText == 'Überquert anderes')):
             return 5
 
         elif ((myFunctionText == 'Überquert Fluss') or
               (myFunctionText == 'Überquert Gewässer') or
               (myFunctionText == 'Überquert Kanal')):
-            # TODO: where is the information about
-            # Einfeldträger or Mehrfeldträger?
-            # if Mehrfeldträger:
-            #     return 8.7
-            # elif Einfeldträger:
-            #     return 6
             return 8.7
-
-        elif (myFunctionText == 'Überquert anderes'):
-            # TODO: move up to first elif?
-            return 5
 
         elif ((myFunctionText == 'Überquert Natur') or
               (myFunctionText == 'Überquert Leitungen')):
@@ -182,8 +173,6 @@ class Risk:
     @staticmethod
     def getStaticCalculationFactor(span):
         # factor K_7 ("Statische Berechnung")
-
-        # TODO: middle column in table 3.26 is not used in calculation?
 
         # If the span is unknown we use the minimal H3 value
         if span is None or span < 6:
