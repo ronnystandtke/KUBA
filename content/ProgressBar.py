@@ -1,6 +1,6 @@
 import string
 from inspect import cleandoc
-from IPython.display import display, HTML
+from IPython.display import clear_output, display, HTML
 from random import choices
 
 
@@ -78,6 +78,12 @@ class ProgressBar:
                 packageName.innerText = "{description}";
             </script>
         """
+        # Output areas auto-collapse after maxNumberOutputs, see:
+        # https://github.com/jupyterlab/jupyterlab/blob/main/packages/outputarea/src/widget.ts
+        # Therefore we have to clear the output for every update, even though
+        # it flickers...
+        clear_output(wait=True)
+        display(HTML(self.progress_bar_template))
         display(HTML(js_code))
         self.step += 1
 
