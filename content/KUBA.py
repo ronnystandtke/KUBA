@@ -13,11 +13,11 @@ from functools import cache
 from ipyleaflet import (basemaps, basemap_to_tiles, Choropleth, CircleMarker,
                         LayerGroup, LayersControl, LegendControl, Map,
                         MarkerCluster, WidgetControl)
-from IPython.display import clear_output
 from IPython.display import display
 from itables import show
 from json import JSONDecodeError
 from Plots import Plots
+from ProgressBar import ProgressBar
 from Risk import Risk
 from shapely.geometry import Point
 
@@ -57,14 +57,12 @@ class KUBA:
     markerCluster = None
     markerGroup = None
 
-    def __init__(self):
-        statusText = widgets.Text(
-            value='', layout=widgets.Layout(width='95%'), disabled=True)
-        clear_output()
-        display(statusText)
+    def __init__(self, progress_bar: ProgressBar) -> None:
+        self.progress_bar = progress_bar
 
         # read file with data
-        statusText.value = _('Loading building data, please wait...')
+        self.progress_bar.update_progress(
+            description=_('Loading building data'))
 
         # dfAllBuildings = pd.read_excel(
         #     open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
@@ -125,8 +123,8 @@ class KUBA:
         # print(self.dfBuildings.columns.values)
 
         # convert to GeoDataFrame
-        statusText.value = _(
-            'Converting points to GeoDataFrames, please wait...')
+        self.progress_bar.update_progress(
+            description=_('Converting points to GeoDataFrames'))
         points = []
         for i in dfBridges.index:
             x = dfBridges[Labels.X_LABEL][i]
@@ -135,17 +133,19 @@ class KUBA:
         self.bridges = gpd.GeoDataFrame(
             dfBridges, geometry=points, crs='EPSG:2056')
 
-        statusText.value = _('Loading earthquake zones, please wait...')
+        self.progress_bar.update_progress(
+            description=_('Loading earthquake zones'))
         self.earthquakeZones = gpd.read_file(
             "zip://data/erdbebenzonen.zip!Erdbebenzonen")
 
         # Leaflet always works in EPSG:4326
         # therefore we have to convert the CRS here
-        statusText.value = _('Converting CRS, please wait...')
+        self.progress_bar.update_progress(
+            description=_('Converting coordinate reference systems'))
         self.bridges.to_crs('EPSG:4326', inplace=True)
         self.earthquakeZones.to_crs(crs="EPSG:4326", inplace=True)
 
-        statusText.value = _('Creating base map, please wait...')
+        self.progress_bar.update_progress(description=_('Creating base map'))
         worldImagery = basemap_to_tiles(basemaps.Esri.WorldImagery)
         worldImagery.base = True
         mapnik = basemap_to_tiles(basemaps.OpenStreetMap.Mapnik)
@@ -228,26 +228,6 @@ class KUBA:
             layout=buttonLayout
         )
 
-        # create a progress bar
-        self.progressBar = widgets.IntProgress(
-            value=0,
-            min=0,
-            max=self.bridges.index.stop,
-            description=(
-                _('Bridges are being loaded') +
-                ': ' + str(0) + '/' + str(self.bridges.index.stop)),
-            description_width=200,
-            # bar_style can be 'success', 'info', 'warning', 'danger' or ''
-            bar_style='success',
-            style={'bar_color': 'green', 'description_width': 'initial'},
-            orientation='horizontal',
-            layout=widgets.Layout(width='auto')
-        )
-
-        clear_output()
-        # display(self.sliderHBox)
-        # display(self.loadButton)
-        display(self.output)
         self.loadBridges()
 
     def updateReadout(self):
@@ -262,7 +242,6 @@ class KUBA:
             self.map.remove_layer(self.markerCluster)
             self.map.add_layer(self.markerGroup)
 
-    @output.capture()
     def loadBridges(self):
 
         newDict = len(self.earthquakeZonesDict) == 0
@@ -272,15 +251,10 @@ class KUBA:
             self.bridgesIntText.disabled = True
             self.loadButton.disabled = True
 
-            self.progressBar.value = 0
-            self.progressBar.max = self.bridgesSlider.value
-            self.progressBar.description = (
-                _('Bridges are being loaded') + ': ' +
-                str(self.progressBar.value) + '/' + str(self.progressBar.max))
-
-            self.output.clear_output(wait=True)
-            with self.output:
-                display(self.progressBar)
+            self.progress_bar.reset(self.bridgesSlider.value)
+            self.progressBarValue = 0
+            self.bridgesWithoutCoordinates = 0
+            self.lastProgressBarUpdate = 0
 
             markers = []
             self.dataFrame = pd.DataFrame({
@@ -304,10 +278,6 @@ class KUBA:
                 _('Earthquake zone factor'): [],
                 _('Last maintenance acceptance date'): [],
                 _('Probability of collapse'): []})
-
-            self.bridgesWithoutCoordinates = 0
-            self.lastProgressBarUpdate = 0
-            self.progressBarValue = 0
 
             self.plots = Plots()
 
@@ -590,6 +560,7 @@ class KUBA:
                 layers=markers, name=_("Individual Bridges"))
             self.map.add(self.markerGroup)
 
+            display(self.output)
             with self.output:
                 display(self.map)
                 show(self.dataFrame,
@@ -606,6 +577,7 @@ class KUBA:
             self.loadButton.disabled = False
 
         except Exception:
+            print(traceback.format_exc())
             with self.output:
                 print(traceback.format_exc())
 
@@ -620,15 +592,12 @@ class KUBA:
             self.lastProgressBarUpdate = now
 
     def __updateProgressBar(self):
-        # update value
-        self.progressBar.value = self.progressBarValue
-
-        # update description
         description = (
             _('Bridges are being loaded') + ': ' +
-            str(self.progressBar.value) + '/' +
-            str(self.progressBar.max))
+            str(self.progressBarValue) + '/' +
+            str(self.bridgesSlider.value))
         if self.bridgesWithoutCoordinates > 0:
             description += (' (' + str(self.bridgesWithoutCoordinates) +
                             ' ' + _("without coordinates") + ')')
-        self.progressBar.description = description
+        self.progress_bar.update_progress(
+            step=self.progressBarValue, description=description)
