@@ -36,6 +36,9 @@ class ProgressBar:
         )
         display(self.int_progress)
 
+        self.description_widget = widgets.HTML()
+        display(self.description_widget)
+
     def update_progress(self,
                         step: int = None,
                         description: str = None) -> None:
@@ -58,7 +61,7 @@ class ProgressBar:
         self.step += 1
 
         self.int_progress.value = value
-        self.int_progress.description = description
+        self.__set_description(description)
 
     def reset(self, steps: int = None) -> None:
         """Resets the ProgressBar with a new known number of steps.
@@ -71,4 +74,8 @@ class ProgressBar:
         self.step = 0
         self.int_progress.value = 0
         self.int_progress.max = steps
-        self.int_progress.description = ''
+        self.__set_description("")
+
+    def __set_description(self, description):
+        self.description_widget.value = (
+            f"<div style='text-align: center;'>{description}</div>")
