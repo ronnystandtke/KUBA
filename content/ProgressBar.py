@@ -1,12 +1,9 @@
-import string
-from inspect import cleandoc
-from IPython.display import clear_output, display, HTML
-from random import choices
+import ipywidgets as widgets
+from IPython.display import display
 
 
 class ProgressBar:
-    """A progress bar that only needs IPython and therefore can be used
-    immediately in Jupyter notebooks.
+    """A progress bar that handles updates and resets.
 
     Methods
     -------
@@ -26,28 +23,18 @@ class ProgressBar:
         """
 
         self.step = 0
-        self.steps = steps
-        # create random ID so that the progress bar can be used in several tabs
-        # at the same time
-        self.random_ID = ''.join(choices(
-            string.ascii_letters + string.digits, k=64))
-        self.progress_bar_template = f"""
-            <div style="border: 1px solid #ddd;
-                        border-radius: 4px;
-                        padding: 3px;
-                        width: 100%;
-                        margin: 10px 0;">
-                <div id="progress-bar_{self.random_ID}"
-                     style="background: #4caf50;
-                            width: 0%;
-                            height: 20px;
-                            border-radius: 2px;"></div>
-            </div>
-            <p id="package-name_{self.random_ID}"
-               style="text-align: center; font-weight: bold;"/>
-            """
-        self.progress_bar_template = cleandoc(self.progress_bar_template)
-        display(HTML(self.progress_bar_template))
+        self.int_progress = widgets.IntProgress(
+            value=0,
+            min=0,
+            max=steps,
+            description_width=200,
+            # bar_style can be 'success', 'info', 'warning', 'danger' or ''
+            bar_style='success',
+            style={'bar_color': 'green', 'description_width': 'initial'},
+            orientation='horizontal',
+            layout=widgets.Layout(width='auto')
+        )
+        display(self.int_progress)
 
     def update_progress(self,
                         step: int = None,
@@ -64,28 +51,14 @@ class ProgressBar:
         """
 
         if step is None:
-            progress = self.__get_progress(self.step)
+            value = self.step
         else:
-            progress = self.__get_progress(step)
+            value = step
             self.step = step
-        js_code = f"""
-            <script>
-                var bar = document.getElementById(
-                    "progress-bar_{self.random_ID}");
-                bar.style.width = {progress} + "%";
-                var packageName = document.getElementById(
-                    "package-name_{self.random_ID}");
-                packageName.innerText = "{description}";
-            </script>
-        """
-        # Output areas auto-collapse after maxNumberOutputs, see:
-        # https://github.com/jupyterlab/jupyterlab/blob/main/packages/outputarea/src/widget.ts
-        # Therefore we have to clear the output for every update, even though
-        # it flickers...
-        clear_output(wait=True)
-        display(HTML(self.progress_bar_template))
-        display(HTML(js_code))
         self.step += 1
+
+        self.int_progress.value = value
+        self.int_progress.description = description
 
     def reset(self, steps: int = None) -> None:
         """Resets the ProgressBar with a new known number of steps.
@@ -96,12 +69,6 @@ class ProgressBar:
             The new known number of steps (default is None)
         """
         self.step = 0
-        self.steps = steps
-
-    def __get_progress(self, step: int) -> int:
-        if (step > self.steps):
-            print((f"Warning: only {self.steps} steps defined "
-                   f"but already at step {step}."))
-            return 100
-        else:
-            return ((step * 100) / self.steps)
+        self.int_progress.value = 0
+        self.int_progress.max = steps
+        self.int_progress.description = ''
