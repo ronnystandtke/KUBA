@@ -333,14 +333,24 @@ class KUBA:
                         functionText = _('unknown')
 
                     # K_7
-                    # TODO: There are bridges where the span is smaller than
-                    # the largest span, e.g. N13 154, Averserrhein Brücke.
-                    # What does this actually mean, physically?
-                    span = Risk.getSpan(self.bridges[Labels.SPAN_LABEL][i])
+                    # The dataset is is quite chaotic. There are bridges where
+                    # the span is smaller than the largest span,
+                    # e.g. N13 154, Averserrhein Brücke.
+                    # Therefore we use the following fallback strategy:
+                    # We start with the largest span.
+                    span = Risk.getSpan(
+                        self.bridges[Labels.LARGEST_SPAN_LABEL][i])
                     if span is None:
+                        # If the largest span is unknown, use the span.
                         span = Risk.getSpan(
-                            self.bridges[Labels.LARGEST_SPAN_LABEL][i])
-                    Risk.getSpan(self.bridges[Labels.SPAN_LABEL][i])
+                            self.bridges[Labels.SPAN_LABEL][i])
+                        if span is None:
+                            # If the span is unknown, use the length.
+                            span = Risk.getSpan(
+                                self.bridges[Labels.LENGTH_LABEL][i])
+                            if span is None:
+                                # If the length is unknown, assume 25 m.
+                                span = 25
                     staticCalculationFactor = Risk.getStaticCalculationFactor(
                         span)
 
