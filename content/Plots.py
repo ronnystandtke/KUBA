@@ -69,14 +69,18 @@ class Plots:
             self.spanPocScatter = pd.concat(
                 [self.spanPocScatter, newDataFrame])
 
-        # TODO: There are bridges where the maintenance acceptance
-        # date is 01.01.1900 and the kind of maintenance is
-        # "Abbruch", e.g. S5731, BRÜCKE Gabi 4 N9S and
-        # S5191, BRÜCKE Eggamatt N9S.
-        # There are even obvious errors like the support wall
+        # TODO: There are obvious errors like the support wall
         # 52.303.13, SM Oben Nordportal Tunnel Ried FBNO where the
         # maintenance acceptance date is 31.12.3013.
         # How do we deal with these dates?
+
+        # There are bridges where the maintenance acceptance
+        # date is 01.01.1900 and the kind of maintenance is
+        # "Abbruch", e.g. S5731, BRÜCKE Gabi 4 N9S and
+        # S5191, BRÜCKE Eggamatt N9S.
+        # We ignore entries with such a silly date.
+        silly_date = datetime(1900, 1, 1, 0, 0)
+
         bridgeNumber = kuba.bridges[Labels.NUMBER_LABEL][index]
         maintenance = kuba.dfMaintenance[
             kuba.dfMaintenance[Labels.NUMBER_LABEL] == bridgeNumber]
@@ -85,7 +89,8 @@ class Plots:
         if not maintenance.empty:
             maintenanceAcceptanceDate = maintenance[
                 Labels.MAINTENANCE_ACCEPTANCE_DATE_LABEL].iloc[0]
-            if isinstance(maintenanceAcceptanceDate, datetime):
+            if (isinstance(maintenanceAcceptanceDate, datetime) and
+                    (maintenanceAcceptanceDate != silly_date)):
                 newDataFrame = pd.DataFrame(
                     [[maintenanceAcceptanceDate, probabilityOfCollapse]],
                     columns=self.maintenancePocScatterColumns)
