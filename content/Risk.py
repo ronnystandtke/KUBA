@@ -38,17 +38,17 @@ class Risk:
             relevantYear = normYear
 
         if (relevantYear is None) or (relevantYear < 1967):
-            return 90
+            return 9
         elif relevantYear < 1973:
-            return 60
+            return 6
         elif relevantYear < 1979:
-            return 40
+            return 4
         elif relevantYear < 1985:
-            return 20
+            return 2
         elif relevantYear < 2003:
-            return 10
+            return 1
         else:
-            return 5
+            return 0.5
 
     @staticmethod
     def getStaticalDeterminacyFactor(type):
@@ -184,7 +184,7 @@ class Risk:
         else:
             h1 = 0.0238
 
-        return 0.9 + 0.1 * h1
+        return 0.1 * (0.9 + 0.1 * h1)
 
     @staticmethod
     def getBridgeTypeFactor(type):
@@ -195,7 +195,7 @@ class Risk:
             # 1193: "Plattenbrücke"
             # document:
             # "Plattenbalken"
-            return 1
+            return 0.6
 
         elif (type == 1111) or (type == 1112) or (type == 1113):
             # table:
@@ -204,7 +204,7 @@ class Risk:
             # 1113: "Brücke mit Gerberträger"
             # document:
             # "Balkenbrücke"
-            return 0.6
+            return 0.36
 
         elif ((type == 1123) or
               (type == 1124) or
@@ -219,7 +219,7 @@ class Risk:
             # 112: "Rahmen-, Bogenbrücken"
             # document:
             # "Bogen"
-            return 1.6
+            return 0.96
 
         elif ((type == 1192) or
               (type == 1131) or
@@ -234,7 +234,7 @@ class Risk:
             # 119: "Spezielle Brücke"
             # document:
             # "Andere"
-            return 5
+            return 3
 
         elif (type == 1121) or (type == 1122):
             # table:
@@ -242,11 +242,11 @@ class Risk:
             # 1122: "Brücke mit Sprengwerk"
             # document:
             # "Rahmen"
-            return 0.4
+            return 0.24
 
         elif type == 1132:
             # both: "Hängebrücke"
-            return 17.5
+            return 3
 
         else:
             # default value for unknown types
@@ -263,6 +263,26 @@ class Risk:
     @staticmethod
     def getMaterialFactor(materialCode):
         # factor K_9 ("Baustoff")
+
+        # TODO:
+        # There are unhandled materials:
+        # "Seilkonstruktion"
+        # (code: 1161, e.g. 1.043-1, UEF FG Mühlematt Liestal)
+        # "Spannbetonkonstruktion (ohne Verbund)"
+        # (code: 1126, e.g. S0161, BRÜCKE Bachhalden)
+        # "Trockensteinmauer mit behauenen Steinen aufgebaut"
+        # (code: 1114, e.g. S5811, BRÜCKE Hohsteg U57)
+        # "Verkleidete Betonkonstruktion"
+        # (code: 1122, e.g. 6A - AK 1, BRÜCKE AK Herbizug Sisikon)
+        #
+        # TODO:
+        # "Erd- und Wellblechkonstruktion" doesn't appear as one in the table
+        # only as separated materials
+        # 1133: "Wellblechkonstruktion"
+        # 1135: "Erdkonstruktion"
+        #
+        # TODO:
+        # "alte Stahlfachwerkbrücken" is not in the table...
 
         if (
                 (materialCode == 1123) or
@@ -304,10 +324,13 @@ class Risk:
             # "Verbund"
             return 1
 
-        elif (materialCode == 1162) or (materialCode == 1133):
+        elif ((materialCode == 1162) or
+              (materialCode == 1133) or
+              (materialCode == 1135)):
             # table:
             # 1162: "Vorgespannte Seilkonstruktion"
             # 1133: "Wellblechkonstruktion"
+            # 1135: "Erdkonstruktion"
             # document:
             # "Sonstiges"
             return 6.67
@@ -322,29 +345,47 @@ class Risk:
 
         if math.isnan(yearOfConstruction):
             # if year of construction is unkown we use the maximum value
+            # TODO: the max value is now 1, keep it at 5?
             return 5
         else:
-            if yearOfConstruction < 1968:
-                return 5
-            elif yearOfConstruction < 1973:
-                return 4.5
-            elif yearOfConstruction < 1980:
-                return 3.3
-            elif yearOfConstruction < 1986:
-                return 1.4
-            elif yearOfConstruction < 2003:
-                return 1.2
-            else:
-                return 1
+            # changed after meeting of 2024-07-22
+            # if yearOfConstruction < 1968:
+            #     return 5
+            # elif yearOfConstruction < 1973:
+            #     return 4.5
+            # elif yearOfConstruction < 1980:
+            #     return 3.3
+            # elif yearOfConstruction < 1986:
+            #     return 1.4
+            # elif yearOfConstruction < 2003:
+            #     return 1.2
+            # else:
+            #     return 1
+            return 1
 
     @staticmethod
     def getEarthQuakeZoneFactor(zoneName, yearOfConstruction, type):
         # factor K_13 ("Erdbeben")
-        collapseProbabilityIncreasingFactor = (
-            Risk.__getCollapseProbabilityIncreasingFactor(
-                zoneName, yearOfConstruction))
-        earthQuakeFactorH2 = Risk.__getEarthQuakeFactorH2(type)
-        return collapseProbabilityIncreasingFactor * earthQuakeFactorH2
+
+        # if a successful earthquake test is available, the factor 1 is used
+        # TODO:
+        # In the table "Bauwerke mitErdbebenüberprüfung" are many buildings
+        # where the column "Erdbebenbeurteilung Datum der Überprüfung" is
+        # empty. Treat them as "no test available?"
+        # There are buildings with a date but without any
+        # "Erdbebenbeurteilung erfüllt XXX". How to treat them?
+
+        successfull_earthquake_test_available = False
+
+        if successfull_earthquake_test_available:
+            return 1
+
+        earthQuakeFactorH4 = Risk.__getEarthQuakeFactorH4(type)
+        if earthQuakeFactorH4 is not None:
+            return earthQuakeFactorH4
+
+        return Risk.__getCollapseProbabilityIncreasingFactor(
+                zoneName, yearOfConstruction)
 
     @staticmethod
     def __getCollapseProbabilityIncreasingFactor(zoneName, yearOfConstruction):
@@ -375,13 +416,23 @@ class Risk:
             return 1
 
     @staticmethod
-    def __getEarthQuakeFactorH2(type):
-        # see table 3.31 ("Faktor H 2 basierend auf Wenk, Basöz et al.")
+    def __getEarthQuakeFactorH4(type):
+        # see table 3.31 ("Faktor H 4 basierend auf Wenk, Basöz et al.")
         if (type == 1121) or (type == 1122):
             # 1121: "Brücke mit Rahmentragwerk"
             # 1122: "Brücke mit Sprengwerk"
             # simplified formula (0.25 / 0.6 == 5/12)
             return 5 / 12
-        else:
+        elif (type == 1113):
+            # 1113: "Brücke mit Gerberträger"
+            #
+            # TODO:
+            # "Rampen": string search in name?
+            #
+            # TODO: Schief > 30°
+            # There are bridges with strange values (N01Z34: 78031)
+            #
             # simplified formula (5 * 0.6 == 3)
             return 3
+        else:
+            return None
