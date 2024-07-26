@@ -21,23 +21,6 @@ _ = cached_gettext
 
 class InteractiveMap:
     """An interactive map for exploring the KUBA dataset.
-
-    Methods
-    -------
-    add_marker(point, bridge_name, norm_year, year_of_construction,
-            human_error_factor, bridge_type, statical_determinacy_factor, age,
-            condition_factor, span, bridge_function, overpass_factor,
-            static_calculation_factor, bridge_type_factor, building_material,
-            material_factor, robustness_factor, earthquake_zone_name,
-            earthquake_zone_factor, maintenance_acceptance_date,
-            probability_of_collapse)
-        Adds a marker to the internal list of markers.
-
-    add_marker_layer(bridges)
-        Adds the marker layer to the map.
-
-    toggle_marker_layers()
-        Switches between the layers with clustered and Individual bridges.
     """
 
     def __init__(self, progress_bar: ProgressBar,

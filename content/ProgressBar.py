@@ -4,13 +4,6 @@ from IPython.display import display
 
 class ProgressBar:
     """A progress bar that handles updates and resets.
-
-    Methods
-    -------
-    update_progress(description=None)
-        Updates the ProgressBar with the description of the current step.
-    reset(steps=None)
-        Resets the ProgressBar with a new known number of steps.
     """
 
     def __init__(self, steps: int = None) -> None:
