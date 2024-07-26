@@ -32,6 +32,12 @@ class InteractiveMap:
             earthquake_zone_factor, maintenance_acceptance_date,
             probability_of_collapse)
         Adds a marker to the internal list of markers.
+
+    add_marker_layer(bridges)
+        Adds the marker layer to the map.
+
+    toggle_marker_layers()
+        Switches between the layers with clustered and Individual bridges.
     """
 
     def __init__(self, progress_bar: ProgressBar,
