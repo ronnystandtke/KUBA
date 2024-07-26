@@ -176,15 +176,15 @@ class Risk:
 
         # If the span is unknown we use the minimal H3 value
         if span is None or span < 6:
-            h1 = 0.0023
+            h3 = 0.0023
         elif span < 12:
-            h1 = 0.0047
+            h3 = 0.0047
         elif span < 18:
-            h1 = 0.0291
+            h3 = 0.0291
         else:
-            h1 = 0.0238
+            h3 = 0.0238
 
-        return 0.1 * (0.9 + 0.1 * h1)
+        return 0.7 + 5 * h3
 
     @staticmethod
     def getBridgeTypeFactor(type):
@@ -250,8 +250,7 @@ class Risk:
 
         else:
             # default value for unknown types
-            # (smallest possible value)
-            return 0.4
+            return 0.36
 
     @staticmethod
     def getMaterialCode(codeText):
@@ -343,25 +342,25 @@ class Risk:
     def getRobustnessFactor(yearOfConstruction):
         # factor K_11 ("Baustoff")
 
-        if math.isnan(yearOfConstruction):
-            # if year of construction is unkown we use the maximum value
-            # TODO: the max value is now 1, keep it at 5?
-            return 5
-        else:
-            # changed after meeting of 2024-07-22
-            # if yearOfConstruction < 1968:
-            #     return 5
-            # elif yearOfConstruction < 1973:
-            #     return 4.5
-            # elif yearOfConstruction < 1980:
-            #     return 3.3
-            # elif yearOfConstruction < 1986:
-            #     return 1.4
-            # elif yearOfConstruction < 2003:
-            #     return 1.2
-            # else:
-            #     return 1
-            return 1
+        # changed after meeting of 2024-07-22
+        return 1
+
+        # if math.isnan(yearOfConstruction):
+        #     # if year of construction is unkown we use the maximum value
+        #     return 5
+        # else:
+        #     if yearOfConstruction < 1968:
+        #         return 5
+        #     elif yearOfConstruction < 1973:
+        #         return 4.5
+        #     elif yearOfConstruction < 1980:
+        #         return 3.3
+        #     elif yearOfConstruction < 1986:
+        #         return 1.4
+        #     elif yearOfConstruction < 2003:
+        #         return 1.2
+        #     else:
+        #         return 1
 
     @staticmethod
     def getEarthQuakeZoneFactor(zoneName, yearOfConstruction, type):
