@@ -8,11 +8,10 @@ import time
 import pandas as pd
 import ipywidgets as widgets
 import traceback
-from branca.colormap import linear
+from babel.dates import format_date
+from datetime import datetime
 from functools import cache
-from ipyleaflet import (basemaps, basemap_to_tiles, Choropleth, CircleMarker,
-                        LayerGroup, LayersControl, LegendControl, Map,
-                        MarkerCluster, WidgetControl)
+from InteractiveMap import InteractiveMap
 from IPython.display import display
 from itables import show
 from json import JSONDecodeError
@@ -145,52 +144,8 @@ class KUBA:
         self.bridges.to_crs('EPSG:4326', inplace=True)
         self.earthquakeZones.to_crs(crs="EPSG:4326", inplace=True)
 
-        self.progress_bar.update_progress(description=_('Creating base map'))
-        worldImagery = basemap_to_tiles(basemaps.Esri.WorldImagery)
-        worldImagery.base = True
-        mapnik = basemap_to_tiles(basemaps.OpenStreetMap.Mapnik)
-        mapnik.base = True
-        self.map = Map(
-            layers=[worldImagery, mapnik],
-            center=(46.988, 8.17),
-            scroll_wheel_zoom=True,
-            zoom=8)
-        self.map.layout.height = '800px'
-
-        choro_data = {
-            '0': 0,
-            '1': 1,
-            '2': 2,
-            '3': 3,
-            '4': 4
-        }
-
-        choropleth = Choropleth(
-            geo_data=json.loads(self.earthquakeZones.to_json()),
-            choro_data=choro_data,
-            colormap=linear.YlOrRd_04,
-            border_color='black',
-            style={'fillOpacity': 0.5, 'dashArray': '5, 5'},
-            name='Erdbebenzonen')
-        self.map.add(choropleth)
-
-        legend = LegendControl(
-            {"Z1a": choropleth.colormap(0),
-             "Z1b": choropleth.colormap(0.25),
-             "Z2": choropleth.colormap(0.5),
-             "Z3a": choropleth.colormap(0.75),
-             "Z3b": choropleth.colormap(1)},
-            title="Erdbebenzonen",
-            position="topright")
-        self.map.add(legend)
-
-        self.clusterButton = widgets.ToggleButton(
-            description=_("Cluster bridges"))
-        widgetControl = WidgetControl(
-            widget=self.clusterButton, position='topleft')
-        self.map.add_control(widgetControl)
-
-        self.map.add(LayersControl())
+        self.interactive_map = InteractiveMap(
+            self.progress_bar, self.earthquakeZones)
 
         initialWidthStyle = {'description_width': 'initial'}
 
@@ -234,14 +189,6 @@ class KUBA:
         self.sliderReadout.value = '{} / {}'.format(
             self.bridgesSlider.value, self.bridgesSlider.max)
 
-    def toggleMarkerLayers(self):
-        if self.clusterButton.value:
-            self.map.remove_layer(self.markerGroup)
-            self.map.add_layer(self.markerCluster)
-        else:
-            self.map.remove_layer(self.markerCluster)
-            self.map.add_layer(self.markerGroup)
-
     def loadBridges(self):
 
         newDict = len(self.earthquakeZonesDict) == 0
@@ -256,7 +203,6 @@ class KUBA:
             self.bridgesWithoutCoordinates = 0
             self.lastProgressBarUpdate = 0
 
-            markers = []
             self.dataFrame = pd.DataFrame({
                 _('Name'): [],
                 _('Year of the norm'): [],
@@ -427,13 +373,6 @@ class KUBA:
                          else earthQuakeZoneFactor)
                         )
 
-                    # fill dataframes for later plots
-                    self.plots.fillData(i, conditionClass,
-                                        probabilityOfCollapse, age, span,
-                                        buildingMaterialString,
-                                        yearOfConstruction, self)
-
-                    # create HTML for marker
                     if age is None:
                         ageText = _('unknown')
                     else:
@@ -448,55 +387,46 @@ class KUBA:
                         _('unknown') if yearOfConstruction is None
                         else str(yearOfConstruction))
 
-                    message = widgets.HTML()
-                    message.value = (
-                        '<b>' + _('Name') + '</b>: ' + bridgeName + '<br>' +
-                        '<b>' + _('Year of the norm') + '</b>: ' +
-                        normYearString + '<br>' +
-                        '<b>' + _('Year of construction') + '</b>: ' +
-                        yearOfConstructionString + '<br>' +
-                        '<b><i>K<sub>1</sub>: ' + _('Human error factor') +
-                        '</b>: ' + str(humanErrorFactor) + '</i><br>' +
-                        '<b>' + _('Type') + '</b>: ' + typeText + '<br>' +
-                        '<b><i>K<sub>3</sub>: ' +
-                        _('Statical determinacy factor') + '</b>: ' +
-                        str(staticalDeterminacyFactor) + '</i><br>' +
-                        '<b>' + _('Age') + '</b>: ' + ageText + '<br>' +
-                        '<b><i>P<sub>f</sub>&times;K<sub>4</sub>: ' +
-                        _('Condition factor') + '</b>: ' +
-                        str(conditionFactor) + '</i><br><b>' + _('Span') +
-                        '</b>: ' + (_('unknown') if span is None
-                                    else (str(span) + ' m')) +
-                        '<br><b>' + _('Function') + '</b>: ' + functionText +
-                        '<br><b><i>K<sub>6</sub>: ' +
-                        _('Overpass factor') + '</b>: ' + str(overpassFactor) +
-                        '</i><br><b><i>K<sub>7</sub>: ' +
-                        _('Static calculation factor') + '</b>: ' +
-                        str(staticCalculationFactor) + '</i><br>' +
-                        '<b><i>K<sub>8</sub>: ' + _('Bridge type factor') +
-                        '</b>: ' + str(bridgeTypeFactor) + '</i><br>' +
-                        '<b>' + _('Building material') + '</b>: ' +
-                        buildingMaterialString + '<br>' +
-                        '<b><i>K<sub>9</sub>: ' +
-                        _('Building material factor') + '</b>: ' +
-                        str(materialFactor) + '</i><br>' +
-                        '<b><i>K<sub>11</sub>: ' + _('Robustness factor') +
-                        '</b>: ' + str(robustnessFactor) + '</i><br>' +
-                        '<b>' + _('Earthquake zone') + '</b>: ' + zoneName +
-                        '<br>' + '<b><i>K<sub>13</sub>: ' +
-                        _('Earthquake zone factor') + '</b>: ' +
-                        str(earthQuakeZoneFactor) + '</i><br><b>' +
-                        _('Last maintenance acceptance date') + '</b>: ' +
-                        self.maintenanceAcceptanceDateString + '<br><b>' +
-                        _('Probability of collapse') + '</b>: ' +
-                        str(probabilityOfCollapse) + '<br>')
+                    # TODO: There are obvious errors like the support wall
+                    # 52.303.13, SM Oben Nordportal Tunnel Ried FBNO where the
+                    # maintenance acceptance date is 31.12.3013.
+                    # How do we deal with these dates?
 
-                    circle_marker = CircleMarker()
-                    circle_marker.location = [point.xy[1][0], point.xy[0][0]]
-                    circle_marker.popup = message
+                    # There are bridges where the maintenance acceptance
+                    # date is 01.01.1900 and the kind of maintenance is
+                    # "Abbruch", e.g. S5731, BRÜCKE Gabi 4 N9S and
+                    # S5191, BRÜCKE Eggamatt N9S.
+                    # We ignore entries with such a silly date.
+                    silly_date = datetime(1900, 1, 1, 0, 0)
 
-                    markers.append(circle_marker)
+                    maintenanceAcceptanceDate = None
+                    maintenanceAcceptanceDateString = _('unknown')
+                    maintenance = self.dfMaintenance[
+                        self.dfMaintenance[Labels.NUMBER_LABEL] ==
+                        bridgeNumber]
+                    if not maintenance.empty:
+                        maintenanceAcceptanceDate = maintenance[
+                            Labels.MAINTENANCE_ACCEPTANCE_DATE_LABEL].iloc[0]
+                        if (isinstance(maintenanceAcceptanceDate, datetime) and
+                                (maintenanceAcceptanceDate != silly_date)):
+                            maintenanceAcceptanceDateString = format_date(
+                                maintenanceAcceptanceDate)
+                        else:
+                            maintenanceAcceptanceDate = None
 
+                    # add new marker to interactive map
+                    self.interactive_map.add_marker(
+                        point, bridgeName, normYearString,
+                        yearOfConstructionString, humanErrorFactor, typeText,
+                        staticalDeterminacyFactor, ageText, conditionFactor,
+                        span, functionText, overpassFactor,
+                        staticCalculationFactor, bridgeTypeFactor,
+                        buildingMaterialString, materialFactor,
+                        robustnessFactor, zoneName, earthQuakeZoneFactor,
+                        maintenanceAcceptanceDateString,
+                        probabilityOfCollapse)
+
+                    # add dataframe to interactive table
                     newDataFrame = pd.DataFrame({
                         _('Name'): [bridgeName],
                         _('Year of the norm'): [normYearString],
@@ -519,11 +449,16 @@ class KUBA:
                         _('Earthquake zone'): [zoneName],
                         _('Earthquake zone factor'): [earthQuakeZoneFactor],
                         _('Last maintenance acceptance date'): [
-                            self.maintenanceAcceptanceDateString],
+                            maintenanceAcceptanceDateString],
                         _('Probability of collapse'): [probabilityOfCollapse]})
-
                     self.dataFrame = pd.concat(
                         [self.dataFrame, newDataFrame], ignore_index=True)
+
+                    # add data to plots
+                    self.plots.fillData(
+                        i, conditionClass, probabilityOfCollapse, age, span,
+                        buildingMaterialString, yearOfConstruction,
+                        maintenanceAcceptanceDate)
 
                 self.__updateProgressBarAfterTimeout()
 
@@ -535,44 +470,11 @@ class KUBA:
                 with open(earthquakeZonesDictFileName, 'w') as file:
                     json.dump(self.earthquakeZonesDict, file, indent=4)
 
-            # apply probybility color map to all markers
-            maxProbability = self.dataFrame[_('Probability of collapse')].max()
-            # probabilityColormap = linear.YlOrRd_04
-            # probabilityColormap = linear.RdYlGn_10
-            probabilityColormap = linear.Spectral_11
-            probabilityColormap = probabilityColormap.scale(0, maxProbability)
-            for i in range(0, len(markers)):
-                probability = self.dataFrame[_('Probability of collapse')][i]
-                probabilityColor = probabilityColormap(
-                    maxProbability - probability)
-                marker = markers[i]
-                marker.probability = probability
-                marker.radius = 5 + round(10 * probability / maxProbability)
-                marker.color = probabilityColor
-                marker.fill_color = probabilityColor
-
-            # sort list by probability
-            markers.sort(key=lambda markers: markers.probability)
-
-            # update markerCluster
-            if ((self.markerCluster is not None) and
-                    (self.markerCluster in self.map.layers)):
-                self.map.remove(self.markerCluster)
-            self.markerCluster = MarkerCluster(
-                markers=markers, name=_("Clustered Bridges"))
-            # self.map.add(self.markerCluster)
-
-            # update marker layer
-            if ((self.markerGroup is not None) and
-                    (self.markerGroup in self.map.layers)):
-                self.map.remove(self.markerGroup)
-            self.markerGroup = LayerGroup(
-                layers=markers, name=_("Individual Bridges"))
-            self.map.add(self.markerGroup)
+            self.interactive_map.add_marker_layer(self.dataFrame)
 
             display(self.output)
             with self.output:
-                display(self.map)
+                display(self.interactive_map.map)
                 show(self.dataFrame,
                      buttons=[
                          "pageLength",

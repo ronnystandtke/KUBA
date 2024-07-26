@@ -1,10 +1,7 @@
 import gettext
-import Labels
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 import pandas as pd
-from babel.dates import format_date
-from datetime import datetime
 from functools import cache
 
 
@@ -44,8 +41,9 @@ class Plots:
         self.yearMaterialStack = pd.DataFrame(
             columns=self.yearMaterialStackColumns)
 
-    def fillData(self, index, conditionClass, probabilityOfCollapse,
-                 age, span, buildingMaterialString, yearOfConstruction, kuba):
+    def fillData(self, index, conditionClass, probabilityOfCollapse, age, span,
+                 buildingMaterialString, yearOfConstruction,
+                 maintenanceAcceptanceDate):
 
         if conditionClass is not None and conditionClass < 9:
 
@@ -69,35 +67,12 @@ class Plots:
             self.spanPocScatter = pd.concat(
                 [self.spanPocScatter, newDataFrame])
 
-        # TODO: There are obvious errors like the support wall
-        # 52.303.13, SM Oben Nordportal Tunnel Ried FBNO where the
-        # maintenance acceptance date is 31.12.3013.
-        # How do we deal with these dates?
-
-        # There are bridges where the maintenance acceptance
-        # date is 01.01.1900 and the kind of maintenance is
-        # "Abbruch", e.g. S5731, BRÜCKE Gabi 4 N9S and
-        # S5191, BRÜCKE Eggamatt N9S.
-        # We ignore entries with such a silly date.
-        silly_date = datetime(1900, 1, 1, 0, 0)
-
-        bridgeNumber = kuba.bridges[Labels.NUMBER_LABEL][index]
-        maintenance = kuba.dfMaintenance[
-            kuba.dfMaintenance[Labels.NUMBER_LABEL] == bridgeNumber]
-        maintenanceAcceptanceDate = None
-        kuba.maintenanceAcceptanceDateString = _('unknown')
-        if not maintenance.empty:
-            maintenanceAcceptanceDate = maintenance[
-                Labels.MAINTENANCE_ACCEPTANCE_DATE_LABEL].iloc[0]
-            if (isinstance(maintenanceAcceptanceDate, datetime) and
-                    (maintenanceAcceptanceDate != silly_date)):
-                newDataFrame = pd.DataFrame(
-                    [[maintenanceAcceptanceDate, probabilityOfCollapse]],
-                    columns=self.maintenancePocScatterColumns)
-                self.maintenancePocScatter = pd.concat(
-                    [self.maintenancePocScatter, newDataFrame])
-                kuba.maintenanceAcceptanceDateString = format_date(
-                    maintenanceAcceptanceDate)
+        if maintenanceAcceptanceDate is not None:
+            newDataFrame = pd.DataFrame(
+                [[maintenanceAcceptanceDate, probabilityOfCollapse]],
+                columns=self.maintenancePocScatterColumns)
+            self.maintenancePocScatter = pd.concat(
+                [self.maintenancePocScatter, newDataFrame])
 
         newDataFrame = pd.DataFrame(
             [[buildingMaterialString, probabilityOfCollapse]],
@@ -118,7 +93,7 @@ class Plots:
         plt.yticks([1, 2, 3, 4])
         # the circles became quite small,
         # therefore we multiply the values by this factor
-        resize = 300
+        resize = 50
         ax.scatter(
             self.ageConditionPocScatter[self.acpScatterColumns[0]],
             self.ageConditionPocScatter[self.acpScatterColumns[1]],
