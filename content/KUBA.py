@@ -12,6 +12,7 @@ from babel.dates import format_date
 from datetime import datetime
 from functools import cache
 from InteractiveMap import InteractiveMap
+from InteractiveTable import InteractiveTable
 from IPython.display import display
 from itables import show
 from json import JSONDecodeError
@@ -146,6 +147,8 @@ class KUBA:
 
         self.interactive_map = InteractiveMap(
             self.progress_bar, self.earthquakeZones)
+        self.interactive_table = InteractiveTable()
+        self.plots = Plots()
 
         initialWidthStyle = {'description_width': 'initial'}
 
@@ -191,7 +194,7 @@ class KUBA:
 
     def loadBridges(self):
 
-        newDict = len(self.earthquakeZonesDict) == 0
+        self.newDict = len(self.earthquakeZonesDict) == 0
 
         try:
             self.bridgesSlider.disabled = True
@@ -203,279 +206,24 @@ class KUBA:
             self.bridgesWithoutCoordinates = 0
             self.lastProgressBarUpdate = 0
 
-            self.dataFrame = pd.DataFrame({
-                _('Name'): [],
-                _('Year of the norm'): [],
-                _('Year of construction'): [],
-                _('Human error factor'): [],
-                _('Type'): [],
-                _('Statical determinacy factor'): [],
-                _('Age'): [],
-                _('Condition factor'): [],
-                _('Function'): [],
-                _('Overpass factor'): [],
-                _('Span'): [],
-                _('Static calculation factor'): [],
-                _('Bridge type factor'): [],
-                _('Building material'): [],
-                _('Building material factor'): [],
-                _('Robustness factor'): [],
-                _('Earthquake zone'): [],
-                _('Earthquake zone factor'): [],
-                _('Last maintenance acceptance date'): [],
-                _('Probability of collapse'): []})
-
-            self.plots = Plots()
-
             for i in range(0, self.bridgesSlider.value):
-                point = self.bridges['geometry'][i]
-
-                # there ARE empty coordinates in the table! :-(
-                if point.is_empty:
-                    self.bridgesWithoutCoordinates += 1
-
-                else:
-                    self.progressBarValue += 1
-
-                    bridgeName = str(self.bridges['Name'][i])
-
-                    # K_1
-                    normYear = Risk.getNormYear(
-                        self.bridges[Labels.NORM_YEAR_LABEL][i])
-                    yearOfConstruction = (
-                        self.bridges[Labels.YEAR_OF_CONSTRUCTION_LABEL][i])
-                    if not math.isnan(yearOfConstruction):
-                        yearOfConstruction = int(yearOfConstruction)
-                    humanErrorFactor = Risk.getHumanErrorFactor(
-                        normYear, yearOfConstruction)
-
-                    # K_3
-                    typeCode = self.bridges[Labels.TYPE_CODE_LABEL][i]
-                    typeText = self.bridges[Labels.TYPE_TEXT_LABEL][i]
-                    staticalDeterminacyFactor = (
-                        Risk.getStaticalDeterminacyFactor(typeCode))
-
-                    # P_f * K_4
-                    conditionClass = self.bridges[
-                        Labels.CONDITION_CLASS_LABEL][i]
-                    age = Risk.getAge(yearOfConstruction)
-                    conditionFactor = Risk.getConditionFactor(
-                        conditionClass, age)
-
-                    # K_6
-                    bridgeNumber = self.bridges[Labels.NUMBER_LABEL][i]
-                    building = self.dfBuildings[
-                        (self.dfBuildings[Labels.NUMBER_LABEL] ==
-                         bridgeNumber) &
-                        (self.dfBuildings[Labels.FUNCTION_TEXT_LABEL]
-                         .str.startswith('Überquert'))]
-                    if building.empty:
-                        functionText = None
-                    else:
-                        functionText = (
-                            building[Labels.FUNCTION_TEXT_LABEL].iat[0])
-                    overpassFactor = Risk.getOverpassFactor(functionText)
-                    if functionText is None:
-                        functionText = _('unknown')
-
-                    # K_7
-                    # The dataset is is quite chaotic. There are bridges where
-                    # the span is smaller than the largest span,
-                    # e.g. N13 154, Averserrhein Brücke.
-                    # Therefore we use the following fallback strategy:
-                    # We start with the largest span.
-                    span = Risk.getSpan(
-                        self.bridges[Labels.LARGEST_SPAN_LABEL][i])
-                    if span is None:
-                        # If the largest span is unknown, use the span.
-                        span = Risk.getSpan(
-                            self.bridges[Labels.SPAN_LABEL][i])
-                        if span is None:
-                            # If the span is unknown, use the length.
-                            span = Risk.getSpan(
-                                self.bridges[Labels.LENGTH_LABEL][i])
-                            if span is None:
-                                # If the length is unknown, assume 25 m.
-                                span = 25
-                    staticCalculationFactor = Risk.getStaticCalculationFactor(
-                        span)
-
-                    # K_8
-                    bridgeTypeFactor = Risk.getBridgeTypeFactor(typeCode)
-
-                    # K_9
-                    materialCode = Risk.getMaterialCode(
-                        self.bridges[Labels.MATERIAL_CODE_LABEL][i])
-                    materialText = self.bridges[Labels.MATERIAL_TEXT_LABEL][i]
-                    materialFactor = Risk.getMaterialFactor(materialCode)
-                    buildingMaterialString = (
-                        _('unknown') if not isinstance(materialText, str)
-                        else materialText)
-
-                    # K_11
-                    robustnessFactor = Risk.getRobustnessFactor(
-                        yearOfConstruction)
-
-                    # K_13
-                    if newDict:
-                        zone = self.earthquakeZones[
-                            self.earthquakeZones.contains(point)]['ZONE']
-                        if zone.empty:
-                            # The earthquake zones don't cover bodies of water.
-                            # Therefore we have some coordinates of bridges
-                            # outside of any earthquake zone.
-                            # Our workaround is to create a 1000 m circle
-                            # around the coordinates of the bridge to find an
-                            # intersecting earthquake zone (1000m should be
-                            # large enough to catch all such cases).
-                            circle = gpd.GeoDataFrame(
-                                {'geometry': [point]}, crs='EPSG:4326')
-                            # map to CRS 'EPSG:3857', so that we can give the
-                            # parameter to buffer() below in meters
-                            circle.to_crs('EPSG:3857', inplace=True)
-                            circle.geometry = circle.buffer(1000)
-                            # map back to the Leaflet default of EPSG:4326
-                            circle = circle.to_crs('EPSG:4326')
-                            intersections = self.earthquakeZones.intersects(
-                                circle.iloc[0, 0])
-                            zone = self.earthquakeZones[intersections]['ZONE']
-                        if zone.empty:
-                            zoneName = _("none")
-                        else:
-                            zoneName = zone.iloc[0]
-                        self.earthquakeZonesDict[
-                            str(point.x) + ' ' + str(point.y)] = zoneName
-                    else:
-                        zoneName = self.earthquakeZonesDict[
-                            str(point.x) + ' ' + str(point.y)]
-
-                    earthQuakeZoneFactor = Risk.getEarthQuakeZoneFactor(
-                        zoneName, yearOfConstruction, type)
-
-                    probabilityOfCollapse = (
-                        (1 if humanErrorFactor is None
-                         else humanErrorFactor) *
-                        (1 if staticalDeterminacyFactor is None
-                         else staticalDeterminacyFactor) *
-                        (1 if conditionFactor is None
-                         else conditionFactor) *
-                        (1 if overpassFactor is None
-                         else overpassFactor) *
-                        (1 if staticCalculationFactor is None
-                         else staticCalculationFactor) *
-                        (1 if bridgeTypeFactor is None
-                         else bridgeTypeFactor) *
-                        (1 if materialFactor is None
-                         else materialFactor) *
-                        (1 if robustnessFactor is None
-                         else robustnessFactor) *
-                        (1 if earthQuakeZoneFactor is None
-                         else earthQuakeZoneFactor)
-                        )
-
-                    if age is None:
-                        ageText = _('unknown')
-                    else:
-                        ageText = cached_ngettext(
-                            '{0} year', '{0} years', age)
-                        ageText = ageText.format(age)
-
-                    normYearString = (
-                        _('unknown') if normYear is None
-                        else str(normYear))
-                    yearOfConstructionString = (
-                        _('unknown') if yearOfConstruction is None
-                        else str(yearOfConstruction))
-
-                    # TODO: There are obvious errors like the support wall
-                    # 52.303.13, SM Oben Nordportal Tunnel Ried FBNO where the
-                    # maintenance acceptance date is 31.12.3013.
-                    # How do we deal with these dates?
-
-                    # There are bridges where the maintenance acceptance
-                    # date is 01.01.1900 and the kind of maintenance is
-                    # "Abbruch", e.g. S5731, BRÜCKE Gabi 4 N9S and
-                    # S5191, BRÜCKE Eggamatt N9S.
-                    # We ignore entries with such a silly date.
-                    silly_date = datetime(1900, 1, 1, 0, 0)
-
-                    maintenanceAcceptanceDate = None
-                    maintenanceAcceptanceDateString = _('unknown')
-                    maintenance = self.dfMaintenance[
-                        self.dfMaintenance[Labels.NUMBER_LABEL] ==
-                        bridgeNumber]
-                    if not maintenance.empty:
-                        maintenanceAcceptanceDate = maintenance[
-                            Labels.MAINTENANCE_ACCEPTANCE_DATE_LABEL].iloc[0]
-                        if (isinstance(maintenanceAcceptanceDate, datetime) and
-                                (maintenanceAcceptanceDate != silly_date)):
-                            maintenanceAcceptanceDateString = format_date(
-                                maintenanceAcceptanceDate)
-                        else:
-                            maintenanceAcceptanceDate = None
-
-                    # add new marker to interactive map
-                    self.interactive_map.add_marker(
-                        point, bridgeName, normYearString,
-                        yearOfConstructionString, humanErrorFactor, typeText,
-                        staticalDeterminacyFactor, ageText, conditionFactor,
-                        span, functionText, overpassFactor,
-                        staticCalculationFactor, bridgeTypeFactor,
-                        buildingMaterialString, materialFactor,
-                        robustnessFactor, zoneName, earthQuakeZoneFactor,
-                        maintenanceAcceptanceDateString,
-                        probabilityOfCollapse)
-
-                    # add dataframe to interactive table
-                    newDataFrame = pd.DataFrame({
-                        _('Name'): [bridgeName],
-                        _('Year of the norm'): [normYearString],
-                        _('Year of construction'): [yearOfConstructionString],
-                        _('Human error factor'): [humanErrorFactor],
-                        _('Type'): [typeText],
-                        _('Statical determinacy factor'): [
-                            staticalDeterminacyFactor],
-                        _('Age'): [ageText],
-                        _('Condition factor'): [conditionFactor],
-                        _('Function'): [functionText],
-                        _('Overpass factor'): [overpassFactor],
-                        _('Span'): [span],
-                        _('Static calculation factor'): [
-                            staticCalculationFactor],
-                        _('Bridge type factor'): [bridgeTypeFactor],
-                        _('Building material'): [buildingMaterialString],
-                        _('Building material factor'): [materialFactor],
-                        _('Robustness factor'): [robustnessFactor],
-                        _('Earthquake zone'): [zoneName],
-                        _('Earthquake zone factor'): [earthQuakeZoneFactor],
-                        _('Last maintenance acceptance date'): [
-                            maintenanceAcceptanceDateString],
-                        _('Probability of collapse'): [probabilityOfCollapse]})
-                    self.dataFrame = pd.concat(
-                        [self.dataFrame, newDataFrame], ignore_index=True)
-
-                    # add data to plots
-                    self.plots.fillData(
-                        i, conditionClass, probabilityOfCollapse, age, span,
-                        buildingMaterialString, yearOfConstruction,
-                        maintenanceAcceptanceDate)
-
-                self.__updateProgressBarAfterTimeout()
+                self.__load_bridge_details(i)
 
             # final update of the progress bar
             self.__updateProgressBar()
 
             # save earthquakeZonesDict if just created
-            if newDict:
+            if self.newDict:
                 with open(earthquakeZonesDictFileName, 'w') as file:
                     json.dump(self.earthquakeZonesDict, file, indent=4)
 
-            self.interactive_map.add_marker_layer(self.dataFrame)
+            self.interactive_map.add_marker_layer(
+                self.interactive_table.data_frame)
 
             display(self.output)
             with self.output:
                 display(self.interactive_map.map)
-                show(self.dataFrame,
+                show(self.interactive_table.data_frame,
                      buttons=[
                          "pageLength",
                          {"extend": "csvHtml5", "title": _("Bridges")}],
@@ -492,6 +240,205 @@ class KUBA:
             print(traceback.format_exc())
             with self.output:
                 print(traceback.format_exc())
+
+    def __load_bridge_details(self, i):
+        point = self.bridges['geometry'][i]
+
+        # there ARE empty coordinates in the table! :-(
+        if point.is_empty:
+            self.bridgesWithoutCoordinates += 1
+            return
+
+        self.progressBarValue += 1
+
+        bridgeName = str(self.bridges['Name'][i])
+
+        # K_1
+        normYear = Risk.getNormYear(self.bridges[Labels.NORM_YEAR_LABEL][i])
+        yearOfConstruction = self.bridges[Labels.YEAR_OF_CONSTRUCTION_LABEL][i]
+        if not math.isnan(yearOfConstruction):
+            yearOfConstruction = int(yearOfConstruction)
+        humanErrorFactor = Risk.getHumanErrorFactor(
+            normYear, yearOfConstruction)
+
+        # K_3
+        typeCode = self.bridges[Labels.TYPE_CODE_LABEL][i]
+        typeText = self.bridges[Labels.TYPE_TEXT_LABEL][i]
+        staticalDeterminacyFactor = (
+            Risk.getStaticalDeterminacyFactor(typeCode))
+
+        # P_f * K_4
+        conditionClass = self.bridges[Labels.CONDITION_CLASS_LABEL][i]
+        age = Risk.getAge(yearOfConstruction)
+        conditionFactor = Risk.getConditionFactor(conditionClass, age)
+
+        # K_6
+        bridgeNumber = self.bridges[Labels.NUMBER_LABEL][i]
+        building = self.dfBuildings[
+            (self.dfBuildings[Labels.NUMBER_LABEL] == bridgeNumber) &
+            (self.dfBuildings[Labels.FUNCTION_TEXT_LABEL]
+             .str.startswith('Überquert'))]
+        if building.empty:
+            functionText = None
+        else:
+            functionText = building[Labels.FUNCTION_TEXT_LABEL].iat[0]
+        overpassFactor = Risk.getOverpassFactor(functionText)
+        if functionText is None:
+            functionText = _('unknown')
+
+        # K_7
+        # The dataset is is quite chaotic. There are bridges where
+        # the span is smaller than the largest span,
+        # e.g. N13 154, Averserrhein Brücke.
+        # Therefore we use the following fallback strategy:
+        # We start with the largest span.
+        span = Risk.getSpan(self.bridges[Labels.LARGEST_SPAN_LABEL][i])
+        if span is None:
+            # If the largest span is unknown, use the span.
+            span = Risk.getSpan(self.bridges[Labels.SPAN_LABEL][i])
+            if span is None:
+                # If the span is unknown, use the length.
+                span = Risk.getSpan(self.bridges[Labels.LENGTH_LABEL][i])
+                if span is None:
+                    # If the length is unknown, assume 25 m.
+                    span = 25
+        staticCalculationFactor = Risk.getStaticCalculationFactor(span)
+
+        # K_8
+        bridgeTypeFactor = Risk.getBridgeTypeFactor(typeCode)
+
+        # K_9
+        materialCode = Risk.getMaterialCode(
+            self.bridges[Labels.MATERIAL_CODE_LABEL][i])
+        materialText = self.bridges[Labels.MATERIAL_TEXT_LABEL][i]
+        materialFactor = Risk.getMaterialFactor(materialCode)
+        buildingMaterialString = (
+            _('unknown') if not isinstance(materialText, str)
+            else materialText)
+
+        # K_11
+        robustnessFactor = Risk.getRobustnessFactor(yearOfConstruction)
+
+        # K_13
+        if self.newDict:
+            zone = self.earthquakeZones[
+                self.earthquakeZones.contains(point)]['ZONE']
+            if zone.empty:
+                # The earthquake zones don't cover bodies of water.
+                # Therefore we have some coordinates of bridges
+                # outside of any earthquake zone.
+                # Our workaround is to create a 1000 m circle
+                # around the coordinates of the bridge to find an
+                # intersecting earthquake zone (1000m should be
+                # large enough to catch all such cases).
+                circle = gpd.GeoDataFrame(
+                    {'geometry': [point]}, crs='EPSG:4326')
+                # map to CRS 'EPSG:3857', so that we can give the
+                # parameter to buffer() below in meters
+                circle.to_crs('EPSG:3857', inplace=True)
+                circle.geometry = circle.buffer(1000)
+                # map back to the Leaflet default of EPSG:4326
+                circle = circle.to_crs('EPSG:4326')
+                intersections = self.earthquakeZones.intersects(
+                    circle.iloc[0, 0])
+                zone = self.earthquakeZones[intersections]['ZONE']
+            if zone.empty:
+                zoneName = _("none")
+            else:
+                zoneName = zone.iloc[0]
+            self.earthquakeZonesDict[
+                str(point.x) + ' ' + str(point.y)] = zoneName
+        else:
+            zoneName = self.earthquakeZonesDict[
+                str(point.x) + ' ' + str(point.y)]
+
+        earthQuakeZoneFactor = Risk.getEarthQuakeZoneFactor(
+            zoneName, yearOfConstruction, type)
+
+        probabilityOfCollapse = (
+            (1 if humanErrorFactor is None
+                else humanErrorFactor) *
+            (1 if staticalDeterminacyFactor is None
+                else staticalDeterminacyFactor) *
+            (1 if conditionFactor is None
+                else conditionFactor) *
+            (1 if overpassFactor is None
+                else overpassFactor) *
+            (1 if staticCalculationFactor is None
+                else staticCalculationFactor) *
+            (1 if bridgeTypeFactor is None
+                else bridgeTypeFactor) *
+            (1 if materialFactor is None
+                else materialFactor) *
+            (1 if robustnessFactor is None
+                else robustnessFactor) *
+            (1 if earthQuakeZoneFactor is None
+                else earthQuakeZoneFactor)
+            )
+
+        if age is None:
+            ageText = _('unknown')
+        else:
+            ageText = cached_ngettext('{0} year', '{0} years', age)
+            ageText = ageText.format(age)
+
+        normYearString = (
+            _('unknown') if normYear is None
+            else str(normYear))
+        yearOfConstructionString = (
+            _('unknown') if yearOfConstruction is None
+            else str(yearOfConstruction))
+
+        # TODO: There are obvious errors like the support wall
+        # 52.303.13, SM Oben Nordportal Tunnel Ried FBNO where the
+        # maintenance acceptance date is 31.12.3013.
+        # How do we deal with these dates?
+
+        # There are bridges where the maintenance acceptance
+        # date is 01.01.1900 and the kind of maintenance is
+        # "Abbruch", e.g. S5731, BRÜCKE Gabi 4 N9S and
+        # S5191, BRÜCKE Eggamatt N9S.
+        # We ignore entries with such a silly date.
+        silly_date = datetime(1900, 1, 1, 0, 0)
+
+        maintenanceAcceptanceDate = None
+        maintenanceAcceptanceDateString = _('unknown')
+        maintenance = self.dfMaintenance[
+            self.dfMaintenance[Labels.NUMBER_LABEL] == bridgeNumber]
+        if not maintenance.empty:
+            maintenanceAcceptanceDate = maintenance[
+                Labels.MAINTENANCE_ACCEPTANCE_DATE_LABEL].iloc[0]
+            if (isinstance(maintenanceAcceptanceDate, datetime) and
+                    (maintenanceAcceptanceDate != silly_date)):
+                maintenanceAcceptanceDateString = format_date(
+                    maintenanceAcceptanceDate)
+            else:
+                maintenanceAcceptanceDate = None
+
+        # add new marker to interactive map
+        self.interactive_map.add_marker(
+            point, bridgeName, normYearString, yearOfConstructionString,
+            humanErrorFactor, typeText, staticalDeterminacyFactor, ageText,
+            conditionFactor, span, functionText, overpassFactor,
+            staticCalculationFactor, bridgeTypeFactor, buildingMaterialString,
+            materialFactor, robustnessFactor, zoneName, earthQuakeZoneFactor,
+            maintenanceAcceptanceDateString, probabilityOfCollapse)
+
+        # add dataframe to interactive table
+        self.interactive_table.add_entry(
+            bridgeName, normYearString, yearOfConstructionString,
+            humanErrorFactor, typeText, staticalDeterminacyFactor, ageText,
+            conditionFactor, functionText, overpassFactor, span,
+            staticCalculationFactor, bridgeTypeFactor, buildingMaterialString,
+            materialFactor, robustnessFactor, zoneName, earthQuakeZoneFactor,
+            maintenanceAcceptanceDateString, probabilityOfCollapse)
+
+        # add data to plots
+        self.plots.fillData(i, conditionClass, probabilityOfCollapse, age,
+                            span, buildingMaterialString, yearOfConstruction,
+                            maintenanceAcceptanceDate)
+
+        self.__updateProgressBarAfterTimeout()
 
     def __updateProgressBarAfterTimeout(self):
         # updating the progressbar is a very time consuming operation
