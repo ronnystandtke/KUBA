@@ -8,6 +8,7 @@ from functools import cache
 from ipyleaflet import (basemaps, basemap_to_tiles, Choropleth, CircleMarker,
                         Layer, LayerGroup, LayersControl, LegendControl, Map,
                         MarkerCluster, WidgetControl)
+from IPython.display import display, HTML
 from ProgressBar import ProgressBar
 
 
@@ -62,7 +63,7 @@ class InteractiveMap:
             colormap=linear.YlOrRd_04,
             border_color='black',
             style={'fillOpacity': 0.5, 'dashArray': '5, 5'},
-            name=_('Erdbebenzonen'))
+            name=_('Earthquake zones'))
         self.map.add(earthquake_zones_choropleth)
 
         # add control to enable or disable the base and earthquake layers
@@ -75,7 +76,7 @@ class InteractiveMap:
              "Z2": earthquake_zones_choropleth.colormap(0.5),
              "Z3a": earthquake_zones_choropleth.colormap(0.75),
              "Z3b": earthquake_zones_choropleth.colormap(1)},
-            title=_('Erdbebenzonen'),
+            title=_('Earthquake zones'),
             position="topright"))
 
         # add toggle button to switch between clustered and single markers
@@ -236,6 +237,11 @@ class InteractiveMap:
         self.single_markers = LayerGroup(
             layers=self.markers, name=_("Individual Bridges"))
         self.map.add(self.single_markers)
+
+    def display(self):
+        display(HTML("<hr><div style='text-align: center;'><h1>" +
+                     _("Interactive map") + "</h1></div>"))
+        display(self.map)
 
     def toggle_marker_layers(self):
         """Switches between the layers with clustered and Individual bridges.

@@ -14,7 +14,6 @@ from functools import cache
 from InteractiveMap import InteractiveMap
 from InteractiveTable import InteractiveTable
 from IPython.display import display
-from itables import show
 from json import JSONDecodeError
 from Plots import Plots
 from ProgressBar import ProgressBar
@@ -222,15 +221,9 @@ class KUBA:
 
             display(self.output)
             with self.output:
-                display(self.interactive_map.map)
-                show(self.interactive_table.data_frame,
-                     buttons=[
-                         "pageLength",
-                         {"extend": "csvHtml5", "title": _("Bridges")}],
-                     column_filters="footer",
-                     layout={"top": "searchBuilder"},
-                     maxBytes=0)
-                self.plots.showPlots()
+                self.interactive_map.display()
+                self.interactive_table.display()
+                self.plots.display()
 
             self.bridgesSlider.disabled = False
             self.bridgesIntText.disabled = False

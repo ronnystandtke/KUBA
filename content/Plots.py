@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 import pandas as pd
 from functools import cache
+from IPython.display import display, HTML
 
 
 @cache
@@ -87,7 +88,11 @@ class Plots:
             self.yearMaterialStack = pd.concat(
                 [self.yearMaterialStack, newDataFrame])
 
-    def showPlots(self):
+    def display(self):
+
+        display(HTML("<hr><div style='text-align: center;'><h1>" +
+                     _("Diagrams") + "</h1></div>"))
+
         # age (x) vs. condition class (y) and probability of collapse (size)
         fig, ax = plt.subplots()
         plt.yticks([1, 2, 3, 4])

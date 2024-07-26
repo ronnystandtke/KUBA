@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-23 19:56+0200\n"
+"POT-Creation-Date: 2024-07-26 21:20+0200\n"
 "PO-Revision-Date: 2024-04-14 20:08+0200\n"
 "Last-Translator: Ronny Standtke <ronny.standtke@gmx.net>\n"
 "Language-Team: DE <DE@li.org>\n"
@@ -17,158 +17,194 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
-#: ../KUBA.py:65
-msgid "Loading building data"
-msgstr "Lade Bauwerksdaten"
-
-#: ../KUBA.py:127
-msgid "Converting points to GeoDataFrames"
-msgstr "Konvertiere Punkte zu GeoDataFrames"
-
-#: ../KUBA.py:137
-msgid "Loading earthquake zones"
-msgstr "Lade Erdbebenzonen"
-
-#: ../KUBA.py:144
-msgid "Converting coordinate reference systems"
-msgstr "Konvertiere Koordinatenreferenzsysteme"
-
-#: ../KUBA.py:148
+#: ../InteractiveMap.py:39
 msgid "Creating base map"
 msgstr "Erzeuge Basiskarte"
 
-#: ../KUBA.py:188
+#: ../InteractiveMap.py:66 ../InteractiveMap.py:79
+msgid "Earthquake zones"
+msgstr "Erdbebenzonen"
+
+#: ../InteractiveMap.py:84
 msgid "Cluster bridges"
 msgstr "Brücken gruppieren"
 
-#: ../KUBA.py:198
-msgid "Number of bridges"
-msgstr "Anzahl der Brücken"
-
-#: ../KUBA.py:227
-msgid "Load selected number of bridges"
-msgstr "Lade ausgewählte Anzahl von Brücken"
-
-#: ../KUBA.py:261 ../KUBA.py:443 ../KUBA.py:491
+#: ../InteractiveMap.py:161 ../InteractiveTable.py:22
+#: ../InteractiveTable.py:110
 msgid "Name"
 msgstr ""
 
-#: ../KUBA.py:262 ../KUBA.py:444 ../KUBA.py:492
+#: ../InteractiveMap.py:162 ../InteractiveTable.py:23
+#: ../InteractiveTable.py:111
 msgid "Year of the norm"
 msgstr "Jahr der Norm"
 
-#: ../KUBA.py:263 ../KUBA.py:446 ../KUBA.py:493 ../Plots.py:43
+#: ../InteractiveMap.py:163 ../InteractiveTable.py:24
+#: ../InteractiveTable.py:112 ../Plots.py:41
 msgid "Year of construction"
 msgstr "Baujahr"
 
-#: ../KUBA.py:264 ../KUBA.py:448 ../KUBA.py:494
+#: ../InteractiveMap.py:164 ../InteractiveTable.py:25
+#: ../InteractiveTable.py:113
 msgid "Human error factor"
 msgstr "Faktor für menschliche Fehler"
 
-#: ../KUBA.py:265 ../KUBA.py:450 ../KUBA.py:495
+#: ../InteractiveMap.py:165 ../InteractiveTable.py:26
+#: ../InteractiveTable.py:114
 msgid "Type"
 msgstr "Typ"
 
-#: ../KUBA.py:266 ../KUBA.py:452 ../KUBA.py:496
+#: ../InteractiveMap.py:167 ../InteractiveTable.py:27
+#: ../InteractiveTable.py:115
 msgid "Statical determinacy factor"
 msgstr "Faktor für statische Bestimmtheit"
 
-#: ../KUBA.py:267 ../KUBA.py:454 ../KUBA.py:498 ../Plots.py:24
+#: ../InteractiveMap.py:168 ../InteractiveTable.py:28
+#: ../InteractiveTable.py:117 ../Plots.py:22
 msgid "Age"
 msgstr "Alter"
 
-#: ../KUBA.py:268 ../KUBA.py:456 ../KUBA.py:499
+#: ../InteractiveMap.py:170 ../InteractiveTable.py:29
+#: ../InteractiveTable.py:118
 msgid "Condition factor"
 msgstr "Faktor für die Zustandsklasse"
 
-#: ../KUBA.py:269 ../KUBA.py:460 ../KUBA.py:500
-msgid "Function"
-msgstr "Funktion"
-
-#: ../KUBA.py:270 ../KUBA.py:462 ../KUBA.py:501
-msgid "Overpass factor"
-msgstr "Faktor für die Überführung"
-
-#: ../KUBA.py:271 ../KUBA.py:457 ../KUBA.py:502 ../Plots.py:31
+#: ../InteractiveMap.py:171 ../InteractiveTable.py:32
+#: ../InteractiveTable.py:121 ../Plots.py:29
 msgid "Span"
 msgstr "Spannweite"
 
-#: ../KUBA.py:272 ../KUBA.py:464 ../KUBA.py:503
-msgid "Static calculation factor"
-msgstr "Faktor für statische Berechnung"
-
-#: ../KUBA.py:273 ../KUBA.py:466 ../KUBA.py:505
-msgid "Bridge type factor"
-msgstr "Faktor für Brückentyp"
-
-#: ../KUBA.py:274 ../KUBA.py:468 ../KUBA.py:506 ../Plots.py:39 ../Plots.py:43
-msgid "Building material"
-msgstr "Baumaterial"
-
-#: ../KUBA.py:275 ../KUBA.py:471 ../KUBA.py:507
-msgid "Building material factor"
-msgstr "Faktor für den Baustoff"
-
-#: ../KUBA.py:276 ../KUBA.py:473 ../KUBA.py:508
-msgid "Robustness factor"
-msgstr "Faktor für Robustheit"
-
-#: ../KUBA.py:277 ../KUBA.py:475 ../KUBA.py:509
-msgid "Earthquake zone"
-msgstr "Erdbebenzone"
-
-#: ../KUBA.py:278 ../KUBA.py:477 ../KUBA.py:510
-msgid "Earthquake zone factor"
-msgstr "Faktor für Erdbebenzone"
-
-#: ../KUBA.py:279 ../KUBA.py:479 ../KUBA.py:511 ../Plots.py:34
-msgid "Last maintenance acceptance date"
-msgstr "Datum der Abnahme der letzten Erhaltungsmaßname"
-
-#: ../KUBA.py:280 ../KUBA.py:481 ../KUBA.py:513 ../KUBA.py:529 ../KUBA.py:535
-#: ../Plots.py:24 ../Plots.py:28 ../Plots.py:31 ../Plots.py:35 ../Plots.py:39
-msgid "Probability of collapse"
-msgstr "Einsturzwahrscheinlichkeit"
-
-#: ../KUBA.py:333 ../KUBA.py:356 ../KUBA.py:428 ../KUBA.py:435 ../KUBA.py:438
-#: ../KUBA.py:458 ../Plots.py:84
+#: ../InteractiveMap.py:172 ../KUBA.py:280 ../KUBA.py:309 ../KUBA.py:373
+#: ../KUBA.py:379 ../KUBA.py:382 ../KUBA.py:398
 msgid "unknown"
 msgstr "unbekannt"
 
-#: ../KUBA.py:387
-msgid "none"
-msgstr "keine"
+#: ../InteractiveMap.py:173 ../InteractiveTable.py:30
+#: ../InteractiveTable.py:119
+msgid "Function"
+msgstr "Funktion"
 
-#: ../KUBA.py:552
+#: ../InteractiveMap.py:174 ../InteractiveTable.py:31
+#: ../InteractiveTable.py:120
+msgid "Overpass factor"
+msgstr "Faktor für die Überführung"
+
+#: ../InteractiveMap.py:176 ../InteractiveTable.py:33
+#: ../InteractiveTable.py:122
+msgid "Static calculation factor"
+msgstr "Faktor für statische Berechnung"
+
+#: ../InteractiveMap.py:178 ../InteractiveTable.py:34
+#: ../InteractiveTable.py:124
+msgid "Bridge type factor"
+msgstr "Faktor für Brückentyp"
+
+#: ../InteractiveMap.py:179 ../InteractiveTable.py:35
+#: ../InteractiveTable.py:125 ../Plots.py:37 ../Plots.py:41
+msgid "Building material"
+msgstr "Baumaterial"
+
+#: ../InteractiveMap.py:181 ../InteractiveTable.py:36
+#: ../InteractiveTable.py:126
+msgid "Building material factor"
+msgstr "Faktor für den Baustoff"
+
+#: ../InteractiveMap.py:182 ../InteractiveTable.py:37
+#: ../InteractiveTable.py:127
+msgid "Robustness factor"
+msgstr "Faktor für Robustheit"
+
+#: ../InteractiveMap.py:184 ../InteractiveTable.py:38
+#: ../InteractiveTable.py:128
+msgid "Earthquake zone"
+msgstr "Erdbebenzone"
+
+#: ../InteractiveMap.py:185 ../InteractiveTable.py:39
+#: ../InteractiveTable.py:129
+msgid "Earthquake zone factor"
+msgstr "Faktor für Erdbebenzone"
+
+#: ../InteractiveMap.py:187 ../InteractiveTable.py:40
+#: ../InteractiveTable.py:130 ../Plots.py:32
+msgid "Last maintenance acceptance date"
+msgstr "Datum der Abnahme der letzten Erhaltungsmaßname"
+
+#: ../InteractiveMap.py:189 ../InteractiveMap.py:208 ../InteractiveMap.py:216
+#: ../InteractiveTable.py:41 ../InteractiveTable.py:132 ../Plots.py:22
+#: ../Plots.py:26 ../Plots.py:29 ../Plots.py:33 ../Plots.py:37
+msgid "Probability of collapse"
+msgstr "Einsturzwahrscheinlichkeit"
+
+#: ../InteractiveMap.py:233
 msgid "Clustered Bridges"
 msgstr "Gruppierte Brücken"
 
-#: ../KUBA.py:560
+#: ../InteractiveMap.py:238
 msgid "Individual Bridges"
 msgstr "Individuelle Brücken"
 
-#: ../KUBA.py:569
+#: ../InteractiveMap.py:243
+msgid "Interactive map"
+msgstr "Interaktive Karte"
+
+#: ../InteractiveTable.py:138
+msgid "Interactive table"
+msgstr "Interaktive Tabelle"
+
+#: ../InteractiveTable.py:142
 msgid "Bridges"
 msgstr "Brücken"
 
-#: ../KUBA.py:596
+#: ../KUBA.py:64
+msgid "Loading building data"
+msgstr "Lade Bauwerksdaten"
+
+#: ../KUBA.py:126
+msgid "Converting points to GeoDataFrames"
+msgstr "Konvertiere Punkte zu GeoDataFrames"
+
+#: ../KUBA.py:136
+msgid "Loading earthquake zones"
+msgstr "Lade Erdbebenzonen"
+
+#: ../KUBA.py:143
+msgid "Converting coordinate reference systems"
+msgstr "Konvertiere Koordinatenreferenzsysteme"
+
+#: ../KUBA.py:155
+msgid "Number of bridges"
+msgstr "Anzahl der Brücken"
+
+#: ../KUBA.py:184
+msgid "Load selected number of bridges"
+msgstr "Lade ausgewählte Anzahl von Brücken"
+
+#: ../KUBA.py:339
+msgid "none"
+msgstr "keine"
+
+#: ../KUBA.py:448
 msgid "Bridges are being loaded"
 msgstr "Brücken werden geladen"
 
-#: ../KUBA.py:601
+#: ../KUBA.py:453
 msgid "without coordinates"
 msgstr "ohne Koordinaten"
 
-#: ../Plots.py:24 ../Plots.py:28
+#: ../Plots.py:22 ../Plots.py:26
 msgid "Condition class"
 msgstr "Zustandsklasse"
 
-#: ../temp.py:38
+#: ../Plots.py:94
+msgid "Diagrams"
+msgstr "Diagramme"
+
+#: ../temp.py:22
 #, python-brace-format
 msgid "Installing package {package}"
 msgstr "Installiere Paket {package}"
 
-#: ../temp.py:68
+#: ../temp.py:74
 msgid ""
 "\n"
 "                <h1>Startup failed</h1>\n"

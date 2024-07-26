@@ -1,6 +1,8 @@
 import gettext
 import pandas as pd
 from functools import cache
+from IPython.display import display, HTML
+from itables import show
 
 
 @cache
@@ -13,17 +15,6 @@ _ = cached_gettext
 
 class InteractiveTable:
     """An interactive table for exploring the KUBA dataset.
-
-    Methods
-    -------
-    add_entry(bridge_name, norm_year, year_of_construction,
-              human_error_factor, bridge_type, statical_determinacy_factor,
-              age, condition_factor, span, bridge_function, overpass_factor,
-              static_calculation_factor, bridge_type_factor, building_material,
-              material_factor, robustness_factor, earthquake_zone_name,
-              earthquake_zone_factor, maintenance_acceptance_date,
-              probability_of_collapse)
-        Adds an entry to the table.
     """
 
     def __init__(self) -> None:
@@ -141,3 +132,14 @@ class InteractiveTable:
             _('Probability of collapse'): [probability_of_collapse]})
         self.data_frame = pd.concat(
             [self.data_frame, new_data_frame], ignore_index=True)
+
+    def display(self):
+        display(HTML("<hr><div style='text-align: center;'><h1>" +
+                     _("Interactive table") + "</h1></div>"))
+        show(self.data_frame,
+             buttons=[
+                 "pageLength",
+                 {"extend": "csvHtml5", "title": _("Bridges")}],
+             column_filters="footer",
+             layout={"top": "searchBuilder"},
+             maxBytes=0)
