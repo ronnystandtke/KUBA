@@ -67,11 +67,15 @@ class KUBA:
         #     open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
         #     sheet_name='Alle Bauwerke mit Zusatzinfo')
 
+        self.dfBuildings = pd.read_excel(
+            open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
+            sheet_name='Alle Bauwerke mit Zusatzinfo')
+
         dfBridges = pd.read_excel(
             open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
             sheet_name='Alle Brücken mit Zusatzinfos')
 
-        self.dfBuildings = pd.read_excel(
+        self.dfEarthquakeCheck = pd.read_excel(
             open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
             sheet_name='Bauwerke mitErdbebenüberprüfung')
 
@@ -268,13 +272,14 @@ class KUBA:
         # K_6
         bridgeNumber = self.bridges[Labels.NUMBER_LABEL][i]
         building = self.dfBuildings[
-            (self.dfBuildings[Labels.NUMBER_LABEL] == bridgeNumber) &
-            (self.dfBuildings[Labels.FUNCTION_TEXT_LABEL]
+            (self.dfBuildings[Labels.ALL_BUILDINGS_NUMBER_LABEL]
+             == bridgeNumber) &
+            (self.dfBuildings[Labels.FUNCTION_LABEL]
              .str.startswith('Überquert'))]
         if building.empty:
             functionText = None
         else:
-            functionText = building[Labels.FUNCTION_TEXT_LABEL].iat[0]
+            functionText = building[Labels.FUNCTION_LABEL].iat[0]
         overpassFactor = Risk.getOverpassFactor(functionText)
         if functionText is None:
             functionText = _('unknown')
@@ -345,8 +350,25 @@ class KUBA:
             zoneName = self.earthquakeZonesDict[
                 str(point.x) + ' ' + str(point.y)]
 
+        earthQuakeCheckEntry = self.dfEarthquakeCheck[
+            self.dfEarthquakeCheck[Labels.NUMBER_LABEL] == bridgeNumber]
+        if earthQuakeCheckEntry.empty:
+            earthQuakeCheckValue = False
+        else:
+            earthQuakeCheckValue = earthQuakeCheckEntry[
+                Labels.EARTHQUAKE_CHECK_LABEL].iloc[0]
+
+        skewEntry = self.dfBuildings[
+            self.dfBuildings[Labels.ALL_BUILDINGS_NUMBER_LABEL]
+            == bridgeNumber]
+        if skewEntry.empty:
+            skewValue = None
+        else:
+            skewValue = skewEntry[Labels.SKEW_LABEL].iloc[0]
+
         earthQuakeZoneFactor = Risk.getEarthQuakeZoneFactor(
-            zoneName, yearOfConstruction, type)
+            earthQuakeCheckValue, typeCode, bridgeName, skewValue,
+            zoneName, yearOfConstruction)
 
         probabilityOfCollapse = (
             (1 if humanErrorFactor is None

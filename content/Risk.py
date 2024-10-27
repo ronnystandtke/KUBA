@@ -53,11 +53,12 @@ class Risk:
     @staticmethod
     def getStaticalDeterminacyFactor(type):
         # factor K_3 ("statische Bestimmtheit")
-        if type == 1111:
-            # Brücke mit Einfeldträger
+        if (type == 1111) or (type == 1113):
+            # 1111: "Brücke mit Einfeldträger"
+            # 1113: "Brücke mit Gerberträger"
             return 1
         elif type == 1112:
-            # Brücke mit Durchlaufträger
+            # 1112: Brücke mit Durchlaufträger
             return 0.014
         else:
             return None
@@ -96,35 +97,35 @@ class Risk:
         # see table 3.24 ("Festlegung H2")
         if age is None:
             # use worst value if age is unknown
-            return 1.019e-4 * 90.31
+            return 1.019e-4
         if age <= 1:
             return 1.128e-6
         if age <= 2:
-            return 2.112e-6 * 1.87
+            return 2.112e-6
         if age <= 5:
-            return 5.067e-6 * 4.49
+            return 5.067e-6
         if age <= 10:
-            return 9.712e-6 * 8.61
+            return 9.712e-6
         if age <= 15:
-            return 1.612e-5 * 14.29
+            return 1.612e-5
         if age <= 20:
-            return 2.066e-5 * 18.31
+            return 2.066e-5
         if age <= 30:
-            return 3.148e-5 * 27.91
+            return 3.148e-5
         if age <= 40:
-            return 4.025e-5 * 35.68
+            return 4.025e-5
         if age <= 50:
-            return 5.102e-5 * 45.22
+            return 5.102e-5
         if age <= 60:
-            return 6.079e-5 * 53.89
+            return 6.079e-5
         if age <= 70:
-            return 7.235e-5 * 64.13
+            return 7.235e-5
         if age <= 80:
-            return 8.117e-5 * 71.95
+            return 8.117e-5
         if age <= 90:
-            return 9.095e-5 * 80.62
+            return 9.095e-5
         else:
-            return 1.019e-4 * 90.31
+            return 1.019e-4
 
     @staticmethod
     def getOverpassFactor(functionText):
@@ -195,16 +196,27 @@ class Risk:
             # 1193: "Plattenbrücke"
             # document:
             # "Plattenbalken"
-            return 0.6
+            return 0.5
 
         elif (type == 1111) or (type == 1112) or (type == 1113):
+            # TODO:
+            # Laut letztem Berechnungsablauf wird "Gerberträger" nicht
+            # berücksichtigt.
+            # (Text durchgestrichen, Wert auf 1.0 gesetzt)
+            # Fragen:
+            # - Welcher Wert soll verwendet werden?
+            #     - 1.0 wie in Tabelle
+            #     - 0.4 für "unbekannt"
+            # - Warum sind "Brücke mit Einfeldträger" und
+            #   "Brücke mit Gerberträger" auch durchgestrichen?
+
             # table:
             # 1111: "Brücke mit Einfeldträger"
             # 1112: "Brücke mit Durchlaufträger"
             # 1113: "Brücke mit Gerberträger"
             # document:
             # "Balkenbrücke"
-            return 0.36
+            return 1
 
         elif ((type == 1123) or
               (type == 1124) or
@@ -219,7 +231,7 @@ class Risk:
             # 112: "Rahmen-, Bogenbrücken"
             # document:
             # "Bogen"
-            return 0.96
+            return 2
 
         elif ((type == 1192) or
               (type == 1131) or
@@ -242,7 +254,7 @@ class Risk:
             # 1122: "Brücke mit Sprengwerk"
             # document:
             # "Rahmen"
-            return 0.24
+            return 0.5
 
         elif type == 1132:
             # both: "Hängebrücke"
@@ -250,7 +262,7 @@ class Risk:
 
         else:
             # default value for unknown types
-            return 0.36
+            return 0.4
 
     @staticmethod
     def getMaterialCode(codeText):
@@ -262,80 +274,75 @@ class Risk:
     @staticmethod
     def getMaterialFactor(materialCode):
         # factor K_9 ("Baustoff")
-
-        # TODO:
-        # There are unhandled materials:
-        # "Seilkonstruktion"
-        # (code: 1161, e.g. 1.043-1, UEF FG Mühlematt Liestal)
-        # "Spannbetonkonstruktion (ohne Verbund)"
-        # (code: 1126, e.g. S0161, BRÜCKE Bachhalden)
-        # "Trockensteinmauer mit behauenen Steinen aufgebaut"
-        # (code: 1114, e.g. S5811, BRÜCKE Hohsteg U57)
-        # "Verkleidete Betonkonstruktion"
-        # (code: 1122, e.g. 6A - AK 1, BRÜCKE AK Herbizug Sisikon)
-        #
-        # TODO:
-        # "Erd- und Wellblechkonstruktion" doesn't appear as one in the table
-        # only as separated materials
-        # 1133: "Wellblechkonstruktion"
-        # 1135: "Erdkonstruktion"
-        #
-        # TODO:
-        # "alte Stahlfachwerkbrücken" is not in the table...
-
-        if (
+        if ((materialCode == 1121) or
+                (materialCode == 1122) or
                 (materialCode == 1123) or
+                (materialCode == 1124) or
                 (materialCode == 1125) or
-                (materialCode == 1121) or
-                (materialCode == 1124)):
+                (materialCode == 1126)):
+            # document: "Beton"
+            #
             # table:
-            # 1123: "Stahlbetonkonstruktion"
-            # 1125: "Spannbetonkonstruktion"
             # 1121: "Betonkonstruktion"
+            # 1122: "Verkleidete Betonkonstruktion"
+            #       e.g. 6A - AK 1, BRÜCKE AK Herbizug Sisikon
+            # 1123: "Stahlbetonkonstruktion"
             # 1124: "Verkleidete Stahlbetonkonstruktion"
-            # document:
-            # "Beton"
+            # 1125: "Spannbetonkonstruktion"
+            # 1126: "Spannbetonkonstruktion (ohne Verbund)"
+            #        e.g. S0161, BRÜCKE Bachhalden
             return 1
 
         elif materialCode == 1141:
+            # document: "Stahl"
+            #
             # table:
             # 1141: "Stahlkonstruktion"
-            # document:
-            # "Stahl"
             return 5.67
 
-        elif ((materialCode == 1112) or
-              (materialCode == 117) or
-              (materialCode == 1111)):
+        elif ((materialCode == 117) or
+              (materialCode == 1111) or
+              (materialCode == 1112) or
+              (materialCode == 1114)):
+            # document: "Holz/Mauerwerk"
+            #
             # table:
-            # 1112: "Ausbetoniertes Mauerwerk"
             # 117: "Holzkonstruktion"
             # 1111: "Mauerwerk"
-            # document:
-            # "Holz/Mauerwerk"
+            # 1112: "Ausbetoniertes Mauerwerk"
+            # 1114: "Trockensteinmauer mit behauenen Steinen aufgebaut"
+            #       e.g. S5811, BRÜCKE Hohsteg U57
             return 6.67
 
         elif (materialCode == 1152) or (materialCode == 1153):
+            # document: "Verbund"
+            #
             # table:
             # 1152: "Verbundkonstruktion"
             # 1153: "Verbundkonstruktion mit Vorspannung"
-            # document:
-            # "Verbund"
             return 1
 
-        elif ((materialCode == 1162) or
-              (materialCode == 1133) or
-              (materialCode == 1135)):
+        elif ((materialCode == 1133) or
+              (materialCode == 1135) or
+              (materialCode == 1161) or
+              (materialCode == 1162)):
+            # document: "Sonstiges"
+            #
+            # TODO:
+            #     - "Bewehrte Erdkonstruktion" nicht in Tabelle
+            #       "Alle Brücken mit Zusatzinfos" gefunden
+            #     - "Wellblechkonstruktion" kommt jetzt 2x in Dokument vor...
             # table:
-            # 1162: "Vorgespannte Seilkonstruktion"
             # 1133: "Wellblechkonstruktion"
             # 1135: "Erdkonstruktion"
-            # document:
-            # "Sonstiges"
+            # 1161: "Seilkonstruktion"
+            #       e.g. 1.043-1, UEF FG Mühlematt Liestal
+            # 1162: "Vorgespannte Seilkonstruktion"
             return 6.67
 
         else:
-            # default value is larges value in list
+            # default value is largest value in list
+            # (also for empty fields or "Andere Bauart")
             return 6.67
 
     @staticmethod
@@ -363,26 +370,27 @@ class Risk:
         #         return 1
 
     @staticmethod
-    def getEarthQuakeZoneFactor(zoneName, yearOfConstruction, type):
+    def getEarthQuakeZoneFactor(earthQuakeCheckValue,
+                                bridgeType, bridgeName, skewValue,
+                                zoneName, yearOfConstruction):
         # factor K_13 ("Erdbeben")
 
         # if a successful earthquake test is available, the factor 1 is used
-        # TODO:
-        # In the table "Bauwerke mitErdbebenüberprüfung" are many buildings
-        # where the column "Erdbebenbeurteilung Datum der Überprüfung" is
-        # empty. Treat them as "no test available?"
-        # There are buildings with a date but without any
-        # "Erdbebenbeurteilung erfüllt XXX". How to treat them?
-
-        successfull_earthquake_test_available = False
-
-        if successfull_earthquake_test_available:
+        # TODO: contradicts Beispiel 2 (zweite Version mit "Verstärkung")
+        if earthQuakeCheckValue:
             return 1
 
-        earthQuakeFactorH4 = Risk.__getEarthQuakeFactorH4(type)
+        # if H4 can be determined, return this value
+        # TODO: contradicts
+        #     - Beispiel 1: K13 = 5 (should be 5 * 0.6 == 3)
+        #     - Beispiel 2: K13 = 4 * 0.6 = 2.4 (should be just 4)
+        earthQuakeFactorH4 = Risk.__getEarthQuakeFactorH4(
+            bridgeType, bridgeName, skewValue)
         if earthQuakeFactorH4 is not None:
             return earthQuakeFactorH4
 
+        # if H4 can NOT be determined,
+        # return the collapse probability increasing factor
         return Risk.__getCollapseProbabilityIncreasingFactor(
                 zoneName, yearOfConstruction)
 
@@ -415,23 +423,26 @@ class Risk:
             return 1
 
     @staticmethod
-    def __getEarthQuakeFactorH4(type):
+    def __getEarthQuakeFactorH4(bridgeType, bridgeName, skewValue):
         # see table 3.31 ("Faktor H 4 basierend auf Wenk, Basöz et al.")
-        if (type == 1121) or (type == 1122):
+        if (bridgeType == 1121) or (bridgeType == 1122):
             # 1121: "Brücke mit Rahmentragwerk"
             # 1122: "Brücke mit Sprengwerk"
             # simplified formula (0.25 / 0.6 == 5/12)
-            return 5 / 12
-        elif (type == 1113):
+            return (5 / 12)
+
+        elif ((bridgeType == 1113) or
+              ("rampe" in bridgeName.lower()) or
+              ("rampa" in bridgeName.lower()) or
+              ((skewValue is not None) and (skewValue > 30))):
             # 1113: "Brücke mit Gerberträger"
-            #
-            # TODO:
-            # "Rampen": string search in name?
-            #
-            # TODO: Schief > 30°
-            # There are bridges with strange values (N01Z34: 78031)
+            # multilingual string search in name: "Rampen"
+            # Schief > 30°
+            # TODO: What exactly to do with bridges with strange values
+            #       e.g. (N01Z34: 78031)?
             #
             # simplified formula (5 * 0.6 == 3)
             return 3
+
         else:
             return None
