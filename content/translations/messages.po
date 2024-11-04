@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-26 21:20+0200\n"
+"POT-Creation-Date: 2024-11-04 01:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,133 +17,137 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../InteractiveMap.py:39
+#: ../InteractiveMap.py:40
 msgid "Creating base map"
 msgstr ""
 
-#: ../InteractiveMap.py:66 ../InteractiveMap.py:79
+#: ../InteractiveMap.py:67 ../InteractiveMap.py:103
 msgid "Earthquake zones"
 msgstr ""
 
-#: ../InteractiveMap.py:84
+#: ../InteractiveMap.py:87
+msgid "Precipitation zones"
+msgstr ""
+
+#: ../InteractiveMap.py:108
 msgid "Cluster bridges"
 msgstr ""
 
-#: ../InteractiveMap.py:161 ../InteractiveTable.py:22
+#: ../InteractiveMap.py:185 ../InteractiveTable.py:22
 #: ../InteractiveTable.py:110
 msgid "Name"
 msgstr ""
 
-#: ../InteractiveMap.py:162 ../InteractiveTable.py:23
+#: ../InteractiveMap.py:186 ../InteractiveTable.py:23
 #: ../InteractiveTable.py:111
 msgid "Year of the norm"
 msgstr ""
 
-#: ../InteractiveMap.py:163 ../InteractiveTable.py:24
+#: ../InteractiveMap.py:187 ../InteractiveTable.py:24
 #: ../InteractiveTable.py:112 ../Plots.py:41
 msgid "Year of construction"
 msgstr ""
 
-#: ../InteractiveMap.py:164 ../InteractiveTable.py:25
+#: ../InteractiveMap.py:188 ../InteractiveTable.py:25
 #: ../InteractiveTable.py:113
 msgid "Human error factor"
 msgstr ""
 
-#: ../InteractiveMap.py:165 ../InteractiveTable.py:26
+#: ../InteractiveMap.py:189 ../InteractiveTable.py:26
 #: ../InteractiveTable.py:114
 msgid "Type"
 msgstr ""
 
-#: ../InteractiveMap.py:167 ../InteractiveTable.py:27
+#: ../InteractiveMap.py:191 ../InteractiveTable.py:27
 #: ../InteractiveTable.py:115
 msgid "Statical determinacy factor"
 msgstr ""
 
-#: ../InteractiveMap.py:168 ../InteractiveTable.py:28
+#: ../InteractiveMap.py:192 ../InteractiveTable.py:28
 #: ../InteractiveTable.py:117 ../Plots.py:22
 msgid "Age"
 msgstr ""
 
-#: ../InteractiveMap.py:170 ../InteractiveTable.py:29
+#: ../InteractiveMap.py:194 ../InteractiveTable.py:29
 #: ../InteractiveTable.py:118
 msgid "Condition factor"
 msgstr ""
 
-#: ../InteractiveMap.py:171 ../InteractiveTable.py:32
+#: ../InteractiveMap.py:195 ../InteractiveTable.py:32
 #: ../InteractiveTable.py:121 ../Plots.py:29
 msgid "Span"
 msgstr ""
 
-#: ../InteractiveMap.py:172 ../KUBA.py:280 ../KUBA.py:309 ../KUBA.py:373
-#: ../KUBA.py:379 ../KUBA.py:382 ../KUBA.py:398
+#: ../InteractiveMap.py:196 ../KUBA.py:289 ../KUBA.py:318 ../KUBA.py:399
+#: ../KUBA.py:405 ../KUBA.py:408 ../KUBA.py:424
 msgid "unknown"
 msgstr ""
 
-#: ../InteractiveMap.py:173 ../InteractiveTable.py:30
+#: ../InteractiveMap.py:197 ../InteractiveTable.py:30
 #: ../InteractiveTable.py:119
 msgid "Function"
 msgstr ""
 
-#: ../InteractiveMap.py:174 ../InteractiveTable.py:31
+#: ../InteractiveMap.py:198 ../InteractiveTable.py:31
 #: ../InteractiveTable.py:120
 msgid "Overpass factor"
 msgstr ""
 
-#: ../InteractiveMap.py:176 ../InteractiveTable.py:33
+#: ../InteractiveMap.py:200 ../InteractiveTable.py:33
 #: ../InteractiveTable.py:122
 msgid "Static calculation factor"
 msgstr ""
 
-#: ../InteractiveMap.py:178 ../InteractiveTable.py:34
+#: ../InteractiveMap.py:202 ../InteractiveTable.py:34
 #: ../InteractiveTable.py:124
 msgid "Bridge type factor"
 msgstr ""
 
-#: ../InteractiveMap.py:179 ../InteractiveTable.py:35
+#: ../InteractiveMap.py:203 ../InteractiveTable.py:35
 #: ../InteractiveTable.py:125 ../Plots.py:37 ../Plots.py:41
 msgid "Building material"
 msgstr ""
 
-#: ../InteractiveMap.py:181 ../InteractiveTable.py:36
+#: ../InteractiveMap.py:205 ../InteractiveTable.py:36
 #: ../InteractiveTable.py:126
 msgid "Building material factor"
 msgstr ""
 
-#: ../InteractiveMap.py:182 ../InteractiveTable.py:37
+#: ../InteractiveMap.py:206 ../InteractiveTable.py:37
 #: ../InteractiveTable.py:127
 msgid "Robustness factor"
 msgstr ""
 
-#: ../InteractiveMap.py:184 ../InteractiveTable.py:38
+#: ../InteractiveMap.py:208 ../InteractiveTable.py:38
 #: ../InteractiveTable.py:128
 msgid "Earthquake zone"
 msgstr ""
 
-#: ../InteractiveMap.py:185 ../InteractiveTable.py:39
+#: ../InteractiveMap.py:209 ../InteractiveTable.py:39
 #: ../InteractiveTable.py:129
 msgid "Earthquake zone factor"
 msgstr ""
 
-#: ../InteractiveMap.py:187 ../InteractiveTable.py:40
+#: ../InteractiveMap.py:211 ../InteractiveTable.py:40
 #: ../InteractiveTable.py:130 ../Plots.py:32
 msgid "Last maintenance acceptance date"
 msgstr ""
 
-#: ../InteractiveMap.py:189 ../InteractiveMap.py:208 ../InteractiveMap.py:216
+#: ../InteractiveMap.py:213 ../InteractiveMap.py:232 ../InteractiveMap.py:240
 #: ../InteractiveTable.py:41 ../InteractiveTable.py:132 ../Plots.py:22
 #: ../Plots.py:26 ../Plots.py:29 ../Plots.py:33 ../Plots.py:37
 msgid "Probability of collapse"
 msgstr ""
 
-#: ../InteractiveMap.py:233
+#: ../InteractiveMap.py:257
 msgid "Clustered Bridges"
 msgstr ""
 
-#: ../InteractiveMap.py:238
+#: ../InteractiveMap.py:262
 msgid "Individual Bridges"
 msgstr ""
 
-#: ../InteractiveMap.py:243
+#: ../InteractiveMap.py:267
 msgid "Interactive map"
 msgstr ""
 
@@ -159,35 +163,35 @@ msgstr ""
 msgid "Loading building data"
 msgstr ""
 
-#: ../KUBA.py:126
+#: ../KUBA.py:130
 msgid "Converting points to GeoDataFrames"
 msgstr ""
 
-#: ../KUBA.py:136
+#: ../KUBA.py:140
 msgid "Loading earthquake zones"
 msgstr ""
 
-#: ../KUBA.py:143
+#: ../KUBA.py:150
 msgid "Converting coordinate reference systems"
 msgstr ""
 
-#: ../KUBA.py:155
+#: ../KUBA.py:163
 msgid "Number of bridges"
 msgstr ""
 
-#: ../KUBA.py:184
+#: ../KUBA.py:192
 msgid "Load selected number of bridges"
 msgstr ""
 
-#: ../KUBA.py:339
+#: ../KUBA.py:348
 msgid "none"
 msgstr ""
 
-#: ../KUBA.py:448
+#: ../KUBA.py:474
 msgid "Bridges are being loaded"
 msgstr ""
 
-#: ../KUBA.py:453
+#: ../KUBA.py:479
 msgid "without coordinates"
 msgstr ""
 

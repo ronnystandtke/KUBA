@@ -25,7 +25,8 @@ class InteractiveMap:
     """
 
     def __init__(self, progress_bar: ProgressBar,
-                 earthquake_zones: gpd.geodataframe.GeoDataFrame) -> None:
+                 earthquake_zones: gpd.geodataframe.GeoDataFrame,
+                 precipitation: gpd.geodataframe.GeoDataFrame) -> None:
         """Initialize the InteractiveMap with the known number of steps.
 
         Parameters
@@ -66,8 +67,31 @@ class InteractiveMap:
             name=_('Earthquake zones'))
         self.map.add(earthquake_zones_choropleth)
 
-        # add control to enable or disable the base and earthquake layers
-        self.map.add(LayersControl())
+        # add layer for precipitation zones
+        # replace NaN values with '0'
+        precipitation.loc[precipitation['DN'].isna(), 'DN'] = 0
+        # we have to simplify the geometry, otherwise we get a MemoryError
+        precipitation['geometry'] = precipitation['geometry'].simplify(
+            tolerance=0.0001)
+        precipitation_geo_data = json.loads(precipitation.to_json())
+        # create dictionary of "id":"DN" as choro_data
+        precipitation_choro_data = {
+            str(feature["id"]): feature["properties"]["DN"] for feature in (
+                precipitation_geo_data["features"])}
+        precipitation_choropleth = Choropleth(
+            geo_data=precipitation_geo_data,
+            choro_data=precipitation_choro_data,
+            colormap=linear.Spectral_10,
+            border_color='black',
+            style={'fillOpacity': 0.5, 'dashArray': '5, 5'},
+            name=_('Precipitation zones'))
+        self.map.add(precipitation_choropleth)
+
+        # add control to enable or disable the
+        # base, earthquake and precipitation layers
+        layers_control = LayersControl()
+        layers_control.collapsed = False
+        self.map.add(layers_control)
 
         # add legend for earthquake zones
         self.map.add(LegendControl(

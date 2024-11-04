@@ -141,15 +141,19 @@ class KUBA:
         self.earthquakeZones = gpd.read_file(
             "zip://data/erdbebenzonen.zip!Erdbebenzonen")
 
+        self.precipitation = gpd.read_file(
+            "zip://data/niederschlag.zip!niederschlag")
+
         # Leaflet always works in EPSG:4326
         # therefore we have to convert the CRS here
         self.progress_bar.update_progress(
             description=_('Converting coordinate reference systems'))
         self.bridges.to_crs('EPSG:4326', inplace=True)
         self.earthquakeZones.to_crs(crs="EPSG:4326", inplace=True)
+        self.precipitation.to_crs(crs="EPSG:4326", inplace=True)
 
         self.interactive_map = InteractiveMap(
-            self.progress_bar, self.earthquakeZones)
+            self.progress_bar, self.earthquakeZones, self.precipitation)
         self.interactive_table = InteractiveTable()
         self.plots = Plots()
 
