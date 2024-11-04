@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-04 01:17+0100\n"
+"POT-Creation-Date: 2024-11-04 16:31+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -78,8 +78,8 @@ msgstr ""
 msgid "Span"
 msgstr ""
 
-#: ../InteractiveMap.py:196 ../KUBA.py:289 ../KUBA.py:318 ../KUBA.py:399
-#: ../KUBA.py:405 ../KUBA.py:408 ../KUBA.py:424
+#: ../InteractiveMap.py:196 ../KUBA.py:291 ../KUBA.py:320 ../KUBA.py:401
+#: ../KUBA.py:407 ../KUBA.py:410 ../KUBA.py:426
 msgid "unknown"
 msgstr ""
 
@@ -171,27 +171,31 @@ msgstr ""
 msgid "Loading earthquake zones"
 msgstr ""
 
-#: ../KUBA.py:150
+#: ../KUBA.py:145
+msgid "Loading precipitation zones"
+msgstr ""
+
+#: ../KUBA.py:152
 msgid "Converting coordinate reference systems"
 msgstr ""
 
-#: ../KUBA.py:163
+#: ../KUBA.py:165
 msgid "Number of bridges"
 msgstr ""
 
-#: ../KUBA.py:192
+#: ../KUBA.py:194
 msgid "Load selected number of bridges"
 msgstr ""
 
-#: ../KUBA.py:348
+#: ../KUBA.py:350
 msgid "none"
 msgstr ""
 
-#: ../KUBA.py:474
+#: ../KUBA.py:476
 msgid "Bridges are being loaded"
 msgstr ""
 
-#: ../KUBA.py:479
+#: ../KUBA.py:481
 msgid "without coordinates"
 msgstr ""
 
