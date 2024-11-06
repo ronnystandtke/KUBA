@@ -446,11 +446,12 @@ class KUBA:
         # add dataframe to interactive table
         self.interactive_table.add_entry(
             bridgeName, normYearString, yearOfConstructionString,
-            humanErrorFactor, typeText, staticalDeterminacyFactor, ageText,
-            conditionFactor, functionText, overpassFactor, span,
-            staticCalculationFactor, bridgeTypeFactor, buildingMaterialString,
-            materialFactor, robustnessFactor, zoneName, earthQuakeZoneFactor,
-            maintenanceAcceptanceDateString, probabilityOfCollapse)
+            humanErrorFactor, typeText, staticalDeterminacyFactor,
+            conditionClass, ageText, conditionFactor, functionText, span,
+            overpassFactor, staticCalculationFactor, bridgeTypeFactor,
+            buildingMaterialString, materialFactor, robustnessFactor, zoneName,
+            earthQuakeZoneFactor, maintenanceAcceptanceDateString,
+            probabilityOfCollapse)
 
         # add data to plots
         self.plots.fillData(i, conditionClass, probabilityOfCollapse, age,
