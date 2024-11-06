@@ -141,6 +141,8 @@ class KUBA:
         self.earthquakeZones = gpd.read_file(
             "zip://data/erdbebenzonen.zip!Erdbebenzonen")
 
+        self.progress_bar.update_progress(
+            description=_('Loading precipitation zones'))
         self.precipitation = gpd.read_file(
             "zip://data/niederschlag.zip!niederschlag")
 
