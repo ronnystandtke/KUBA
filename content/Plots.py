@@ -51,42 +51,49 @@ class Plots:
             newDataFrame = pd.DataFrame(
                 [[conditionClass, probabilityOfCollapse]],
                 columns=self.cpScatterColumns)
-            self.conditionPocScatter = pd.concat(
-                [self.conditionPocScatter, newDataFrame])
+
+            self.conditionPocScatter = pd.concat([
+                None if self.conditionPocScatter.empty
+                else self.conditionPocScatter, newDataFrame])
 
             if age is not None:
                 newDataFrame = pd.DataFrame(
                     [[age, conditionClass, probabilityOfCollapse]],
                     columns=self.acpScatterColumns)
-                self.ageConditionPocScatter = pd.concat(
-                    [self.ageConditionPocScatter, newDataFrame])
+                self.ageConditionPocScatter = pd.concat([
+                    None if self.ageConditionPocScatter.empty
+                    else self.ageConditionPocScatter, newDataFrame])
 
         if span is not None:
             newDataFrame = pd.DataFrame(
                 [[span, probabilityOfCollapse]],
                 columns=self.spScatterColumns)
-            self.spanPocScatter = pd.concat(
-                [self.spanPocScatter, newDataFrame])
+            self.spanPocScatter = pd.concat([
+                None if self.spanPocScatter.empty
+                else self.spanPocScatter, newDataFrame])
 
         if maintenanceAcceptanceDate is not None:
             newDataFrame = pd.DataFrame(
                 [[maintenanceAcceptanceDate, probabilityOfCollapse]],
                 columns=self.maintenancePocScatterColumns)
-            self.maintenancePocScatter = pd.concat(
-                [self.maintenancePocScatter, newDataFrame])
+            self.maintenancePocScatter = pd.concat([
+                None if self.maintenancePocScatter.empty
+                else self.maintenancePocScatter, newDataFrame])
 
         newDataFrame = pd.DataFrame(
             [[buildingMaterialString, probabilityOfCollapse]],
             columns=self.materialPocBoxColumns)
-        self.materialPocBox = pd.concat(
-            [self.materialPocBox, newDataFrame])
+        self.materialPocBox = pd.concat([
+            None if self.materialPocBox.empty
+            else self.materialPocBox, newDataFrame])
 
         if yearOfConstruction != -1:
             newDataFrame = pd.DataFrame(
                 [[yearOfConstruction, buildingMaterialString]],
                 columns=self.yearMaterialStackColumns)
-            self.yearMaterialStack = pd.concat(
-                [self.yearMaterialStack, newDataFrame])
+            self.yearMaterialStack = pd.concat([
+                None if self.yearMaterialStack.empty
+                else self.yearMaterialStack, newDataFrame])
 
     def display(self):
 

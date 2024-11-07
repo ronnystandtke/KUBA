@@ -1,4 +1,5 @@
 import gettext
+import warnings
 import pandas as pd
 from functools import cache
 from IPython.display import display, HTML
@@ -18,49 +19,28 @@ class InteractiveTable:
     """
 
     def __init__(self) -> None:
-        self.data_frame = pd.DataFrame({
-            _('Name'): [],
-            _('Year of the norm'): [],
-            _('Year of construction'): [],
-            _('Human error factor'): [], # K1
-            _('Type'): [],
-            _('Statical determinacy factor'): [], # K3
-            _('Condition class'): [],
-            _('Age'): [],
-            _('Condition factor'): [], # K4
-            _('Function'): [],
-            _('Span'): [],
-            _('Overpass factor'): [], # K6
-            _('Static calculation factor'): [], # K7
-            _('Bridge type factor'): [], # K8
-            _('Building material'): [],
-            _('Building material factor'): [], # K9
-            _('Robustness factor'): [], # K11
-            _('Earthquake zone'): [],
-            _('Earthquake zone factor'): [], # K13
-            _('Last maintenance acceptance date'): [],
-            _('Probability of collapse'): []})
+        self.data_frame = None
 
     def add_entry(self,
                   bridge_name: str,
                   year_of_norm: str,
                   year_of_construction: str,
-                  human_error_factor: int, # K1
+                  human_error_factor: int,  # K1
                   bridge_type: str,
-                  statical_determinacy_factor: int, # K3
+                  statical_determinacy_factor: int,  # K3
                   condition_class: int,
                   age: str,
-                  condition_factor: int, # K4
+                  condition_factor: int,  # K4
                   bridge_function: str,
                   span: int,
-                  overpass_factor: int, # K6
-                  static_calculation_factor: int, # K7
-                  bridge_type_factor: int, # K8
+                  overpass_factor: int,  # K6
+                  static_calculation_factor: int,  # K7
+                  bridge_type_factor: int,  # K8
                   building_material: str,
-                  building_material_factor: int, # K9
-                  robustness_factor: int, # K11
+                  building_material_factor: int,  # K9
+                  robustness_factor: int,  # K11
                   earthquake_zone_name: str,
-                  earthquake_zone_factor: int, # K13
+                  earthquake_zone_factor: int,  # K13
                   maintenance_acceptance_date: str,
                   probability_of_collapse: float) -> None:
         """Adds an entry to the table.
@@ -135,8 +115,15 @@ class InteractiveTable:
             _('Last maintenance acceptance date'): [
                 maintenance_acceptance_date],
             _('Probability of collapse'): [probability_of_collapse]})
-        self.data_frame = pd.concat(
-            [self.data_frame, new_data_frame], ignore_index=True)
+        if self.data_frame is None:
+            self.data_frame = new_data_frame
+        else:
+            with warnings.catch_warnings():
+                # TODO: pandas 2.1.0 has a FutureWarning for concatenating
+                # DataFrames with Null entries
+                warnings.filterwarnings("ignore", category=FutureWarning)
+                self.data_frame = pd.concat(
+                    [self.data_frame, new_data_frame], ignore_index=True)
 
     def display(self):
         display(HTML("<hr><div style='text-align: center;'><h1>" +
