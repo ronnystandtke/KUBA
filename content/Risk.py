@@ -65,7 +65,7 @@ class Risk:
 
     @staticmethod
     def getAge(yearOfConstruction):
-        if math.isnan(yearOfConstruction) or yearOfConstruction == -1:
+        if (math.isnan(yearOfConstruction) or yearOfConstruction == -1):
             return None
         else:
             return CURRENT_YEAR - int(yearOfConstruction)
@@ -95,8 +95,9 @@ class Risk:
     @staticmethod
     def __getConditionFactorH2(age):
         # see table 3.24 ("Festlegung H2")
-        if age is None:
-            # use worst value if age is unknown
+        if ((age is None) or (age < 0)):
+            # use worst value if age is unknown or
+            # year of construction is in the future
             return 1.019e-4
         if age <= 1:
             return 1.128e-6
@@ -328,10 +329,6 @@ class Risk:
               (materialCode == 1162)):
             # document: "Sonstiges"
             #
-            # TODO:
-            #     - "Bewehrte Erdkonstruktion" nicht in Tabelle
-            #       "Alle Brücken mit Zusatzinfos" gefunden
-            #     - "Wellblechkonstruktion" kommt jetzt 2x in Dokument vor...
             # table:
             # 1133: "Wellblechkonstruktion"
             # 1135: "Erdkonstruktion"
@@ -376,14 +373,10 @@ class Risk:
         # factor K_13 ("Erdbeben")
 
         # if a successful earthquake test is available, the factor 1 is used
-        # TODO: contradicts Beispiel 2 (zweite Version mit "Verstärkung")
         if earthQuakeCheckValue:
             return 1
 
         # if H4 can be determined, return this value
-        # TODO: contradicts
-        #     - Beispiel 1: K13 = 5 (should be 5 * 0.6 == 3)
-        #     - Beispiel 2: K13 = 4 * 0.6 = 2.4 (should be just 4)
         earthQuakeFactorH4 = Risk.__getEarthQuakeFactorH4(
             bridgeType, bridgeName, skewValue)
         if earthQuakeFactorH4 is not None:
@@ -438,11 +431,13 @@ class Risk:
             # 1113: "Brücke mit Gerberträger"
             # multilingual string search in name: "Rampen"
             # Schief > 30°
-            # TODO: What exactly to do with bridges with strange values
-            #       e.g. (N01Z34: 78031)?
-            #
+            # bridges with strange skew values get a penalty factor of 2
+            #   (e.g. N01Z34: 78031)
+            strange_skew_penalty_factor = 1
+            if ((skewValue is not None) and (skewValue > 100)):
+                strange_skew_penalty_factor = 2
             # simplified formula (5 * 0.6 == 3)
-            return 3
+            return 3 * strange_skew_penalty_factor
 
         else:
             return None
