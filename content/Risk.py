@@ -200,17 +200,6 @@ class Risk:
             return 0.5
 
         elif (type == 1111) or (type == 1112) or (type == 1113):
-            # TODO:
-            # Laut letztem Berechnungsablauf wird "Gerberträger" nicht
-            # berücksichtigt.
-            # (Text durchgestrichen, Wert auf 1.0 gesetzt)
-            # Fragen:
-            # - Welcher Wert soll verwendet werden?
-            #     - 1.0 wie in Tabelle
-            #     - 0.4 für "unbekannt"
-            # - Warum sind "Brücke mit Einfeldträger" und
-            #   "Brücke mit Gerberträger" auch durchgestrichen?
-
             # table:
             # 1111: "Brücke mit Einfeldträger"
             # 1112: "Brücke mit Durchlaufträger"
