@@ -20,3 +20,6 @@ MAINTENANCE_ACCEPTANCE_DATE_LABEL = (
     'Erhaltungsmassnahme\xa0Datum\xa0der\xa0Abnahme')
 EARTHQUAKE_CHECK_LABEL = (
     'Erdbebenbeurteilung\xa0Erfüllung\xa0Erdbebenbeurteilung')
+AXIS_LABEL = 'Achse'
+TRAFFIC_AXIS_LABEL = 'Unnamed: 4'
+TRAFFIC_AADT_LABEL = 'Unnamed: 18'

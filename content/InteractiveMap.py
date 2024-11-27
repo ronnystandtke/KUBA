@@ -195,8 +195,6 @@ class InteractiveMap:
             (construction costs)
         victim_costs: int
             The costs of fatalities and injuries
-            TODO: In the document this is called
-            "Kosten zur Vermeidung von ..." -> Vermeidung?
         vehicle_lost_costs: int
             The loss costs from vehicles etc.
         downtime_costs: int

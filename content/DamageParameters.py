@@ -3,20 +3,6 @@ import math
 
 class DamageParameters:
 
-    # TODO: "3.5.2 -> Maximalter der Brücken" Typo?
-
-    @staticmethod
-    def get_damage_costs(length, width, bridge_type, bridge_function):
-        replacement_costs = DamageParameters.get_replacement_costs(
-            length, width)
-        victim_costs = DamageParameters.get_victim_costs(
-            bridge_type, bridge_function)
-        # TODO
-        vehicle_loss_costs = DamageParameters.get_vehicle_loss_costs()
-        downtime_costs = 0
-        return (replacement_costs + victim_costs + vehicle_loss_costs +
-                downtime_costs)
-
     @staticmethod
     def get_replacement_costs(length, width):
 
@@ -30,13 +16,14 @@ class DamageParameters:
             # if the width is unknown, assume 30 m
             width = 30
 
-        # TODO: there are bridges where only the length is unknown, e.g.
+        # There are bridges where only the length is unknown, e.g.
         # ZH_230-007: UEF Zürcherstrasse Süd, Töss
-        # still use the given width?
+        # We still use the given width here!
 
-        # TODO: There are bridges with nonsensical data:
-        # ZH_242-023: UEF Rampe Einfahrt Wettswil, Birmensdorf: width of 1045 m!
-        # How to deal with that???
+        # There are bridges with nonsensical data:
+        # ZH_242-023: UEF Rampe Einfahrt Wettswil, Birmensdorf:
+        #     width of 1045 m!
+        # Decision: keep values as is, ASTRA needs to fix the data themselves.
 
         return length * width * cost_per_square_meter
 
@@ -131,7 +118,7 @@ class DamageParameters:
         return number_of_deaths
 
     @staticmethod
-    def get_vehicle_loss_costs(aadt, percentage_of_cars):
+    def get_vehicle_loss_costs(length, aadt, percentage_of_cars):
         # aadt: average annual daily traffic
 
         # cost of vehicles
@@ -140,10 +127,8 @@ class DamageParameters:
 
         percentage_of_trucks = 1 - percentage_of_cars
 
-        # TODO: Besetzungsgrad P_f is still not in the formula
-
-        return (percentage_of_cars * car_value +
-                percentage_of_trucks * truck_value)
+        return length / 30 * (percentage_of_cars * car_value +
+                              percentage_of_trucks * truck_value)
 
     @staticmethod
     def get_downtime_costs(aadt, percentage_of_cars):
@@ -156,7 +141,7 @@ class DamageParameters:
         percentage_of_trucks = 1 - percentage_of_cars
 
         # road type factor ("S_t" in document)
-        # TODO: there is none in the document...
+        # decision: will stay "1" for the time being
         road_type_factor = 1
 
         # difference of detour to standard tour
