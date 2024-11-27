@@ -1,7 +1,6 @@
 import geopandas as gpd
 import gettext
 import json
-import Labels
 import math
 import os.path
 import time
@@ -11,14 +10,17 @@ import traceback
 from babel.dates import format_date
 from datetime import datetime
 from functools import cache
-from InteractiveMap import InteractiveMap
-from InteractiveTable import InteractiveTable
 from IPython.display import display
 from json import JSONDecodeError
+from shapely.geometry import Point
+import Labels
+from DamageParameters import DamageParameters
+from InteractiveMap import InteractiveMap
+from InteractiveTable import InteractiveTable
 from Plots import Plots
 from ProgressBar import ProgressBar
 from Risk import Risk
-from shapely.geometry import Point
+
 
 from warnings import simplefilter
 simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
@@ -82,6 +84,10 @@ class KUBA:
         self.dfMaintenance = pd.read_excel(
             open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
             sheet_name='BW letzte Erhaltungsmassnahme')
+
+        self.dfTrafficDate = pd.read_excel(
+            open('data/Bulletin_2023_de.xlsx', 'rb'),
+            sheet_name='DTV')
 
         # load pre-calculated earthquake zone data
         self.earthquakeZonesDict = {}
@@ -195,7 +201,14 @@ class KUBA:
             layout=buttonLayout
         )
 
-        self.loadBridges()
+        display(self.output)
+
+        # uncomment for test runs with a low number of bridges
+        with self.output:
+            display(self.sliderHBox)
+            display(self.loadButton)
+
+        # self.loadBridges()
 
     def updateReadout(self):
         self.sliderReadout.value = '{} / {}'.format(
@@ -229,7 +242,6 @@ class KUBA:
             self.interactive_map.add_marker_layer(
                 self.interactive_table.data_frame)
 
-            display(self.output)
             with self.output:
                 self.interactive_map.display()
                 self.interactive_table.display()
@@ -436,6 +448,24 @@ class KUBA:
             else:
                 maintenanceAcceptanceDate = None
 
+        # TODO: get AADT and percentages for bridge from other document
+        # average annual daily traffic
+        aadt = 5000
+        percentage_of_cars = 0.95
+
+        length = self.bridges[Labels.LENGTH_LABEL][i]
+        width = self.bridges[Labels.WIDTH_LABEL][i]
+        replacement_costs = DamageParameters.get_replacement_costs(
+            length, width)
+        victim_costs = DamageParameters.get_victim_costs(
+            typeText, functionText)
+        vehicle_lost_costs = DamageParameters.get_vehicle_loss_costs(
+            aadt, percentage_of_cars)
+        downtime_costs = DamageParameters.get_downtime_costs(
+            aadt, percentage_of_cars)
+        damage_costs = (replacement_costs + victim_costs +
+                        vehicle_lost_costs + downtime_costs)
+
         # add new marker to interactive map
         self.interactive_map.add_marker(
             point, bridgeName, normYearString, yearOfConstructionString,
@@ -443,7 +473,9 @@ class KUBA:
             conditionFactor, span, functionText, overpassFactor,
             staticCalculationFactor, bridgeTypeFactor, buildingMaterialString,
             materialFactor, robustnessFactor, zoneName, earthQuakeZoneFactor,
-            maintenanceAcceptanceDateString, probabilityOfCollapse)
+            maintenanceAcceptanceDateString, probabilityOfCollapse, length,
+            width, replacement_costs, victim_costs, vehicle_lost_costs,
+            downtime_costs, damage_costs)
 
         # add dataframe to interactive table
         self.interactive_table.add_entry(
@@ -453,7 +485,8 @@ class KUBA:
             overpassFactor, staticCalculationFactor, bridgeTypeFactor,
             buildingMaterialString, materialFactor, robustnessFactor, zoneName,
             earthQuakeZoneFactor, maintenanceAcceptanceDateString,
-            probabilityOfCollapse)
+            probabilityOfCollapse, length, width, replacement_costs,
+            victim_costs, vehicle_lost_costs, downtime_costs, damage_costs)
 
         # add data to plots
         self.plots.fillData(i, conditionClass, probabilityOfCollapse, age,

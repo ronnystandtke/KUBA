@@ -2,7 +2,9 @@ import geopandas as gpd
 import gettext
 import ipywidgets as widgets
 import json
+import math
 import pandas as pd
+from babel.numbers import format_currency
 from branca.colormap import linear
 from functools import cache
 from ipyleaflet import (basemaps, basemap_to_tiles, Choropleth, CircleMarker,
@@ -55,7 +57,7 @@ class InteractiveMap:
             center=(46.988, 8.17),
             scroll_wheel_zoom=True,
             zoom=8)
-        self.map.layout.height = '800px'
+        self.map.layout.height = '1200px'
 
         # add layer for earthquake zones (as a choropleth)
         earthquake_zones_choropleth = Choropleth(
@@ -130,7 +132,14 @@ class InteractiveMap:
                    earthquake_zone_name: str,
                    earthquake_zone_factor: int,
                    maintenance_acceptance_date: str,
-                   probability_of_collapse: float) -> None:
+                   probability_of_collapse: float,
+                   length: int,
+                   width: int,
+                   replacement_costs: int,
+                   victim_costs: int,
+                   vehicle_lost_costs: int,
+                   downtime_costs: int,
+                   damage_costs: int) -> None:
         """Adds a marker to the internal list of markers.
 
         Parameters
@@ -177,6 +186,23 @@ class InteractiveMap:
             The date of the latest maintenance acceptance of the bridge
         probability_of_collapse : float
             The probability of collapse of the bridge
+        length: int,
+            The length of the bridge
+        width: int,
+            The width of the bridge
+        replacement_costs: int
+            The costs that will be incurred if the bridge has to be rebuilt
+            (construction costs)
+        victim_costs: int
+            The costs of fatalities and injuries
+            TODO: In the document this is called
+            "Kosten zur Vermeidung von ..." -> Vermeidung?
+        vehicle_lost_costs: int
+            The loss costs from vehicles etc.
+        downtime_costs: int
+            The costs from business interruption
+        damage_costs: int
+            The sum of replacement, victim, vehicle and downtime costs
         """
 
         message = widgets.HTML()
@@ -193,7 +219,7 @@ class InteractiveMap:
             '</b>: ' + age + '<br><b><i>P<sub>f</sub>&times;K<sub>4</sub>: ' +
             _('Condition factor') + '</b>: ' + str(condition_factor) +
             '</i><br><b>' + _('Span') + '</b>: ' +
-            (_('unknown') if span is None else (str(span) + ' m')) +
+            self.__get_dimension_string(span) +
             '<br><b>' + _('Function') + '</b>: ' + bridge_function +
             '<br><b><i>K<sub>6</sub>: ' + _('Overpass factor') + '</b>: ' +
             str(overpass_factor) + '</i><br><b><i>K<sub>7</sub>: ' +
@@ -211,7 +237,21 @@ class InteractiveMap:
             _('Last maintenance acceptance date') + '</b>: ' +
             maintenance_acceptance_date + '<br><b>' +
             _('Probability of collapse') + '</b>: ' +
-            str(probability_of_collapse))
+            str(probability_of_collapse) +
+            '<br><b>' + _('Length') + '</b>: ' +
+            self.__get_dimension_string(length) +
+            '<br><b>' + _('Width') + '</b>: ' +
+            self.__get_dimension_string(width) +
+            '<br><b>' + _('Replacement costs') + '</b>: ' +
+            format_currency(replacement_costs, 'CHF') +
+            '<br><b>' + _('Victim costs') + '</b>: ' +
+            format_currency(victim_costs, 'CHF') +
+            '<br><b>' + _('Vehicle lost costs') + '</b>: ' +
+            format_currency(vehicle_lost_costs, 'CHF') +
+            '<br><b>' + _('Downtime costs') + '</b>: ' +
+            format_currency(downtime_costs, 'CHF') +
+            '<br><b>' + _('Damage costs') + '</b>: ' +
+            format_currency(damage_costs, 'CHF'))
 
         circle_marker = CircleMarker()
         circle_marker.location = [point.xy[1][0], point.xy[0][0]]
@@ -280,3 +320,9 @@ class InteractiveMap:
     def __remove_layer(self, layer: Layer) -> None:
         if ((layer is not None) and (layer in self.map.layers)):
             self.map.remove(layer)
+
+    def __get_dimension_string(self, dimension) -> str:
+        if ((dimension is None) or (math.isnan(dimension))):
+            return _('unknown')
+        else:
+            return (str(dimension) + ' m')

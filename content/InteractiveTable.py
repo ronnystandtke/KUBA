@@ -42,7 +42,14 @@ class InteractiveTable:
                   earthquake_zone_name: str,
                   earthquake_zone_factor: int,  # K13
                   maintenance_acceptance_date: str,
-                  probability_of_collapse: float) -> None:
+                  probability_of_collapse: float,
+                  length: int,
+                  width: int,
+                  replacement_costs: int,
+                  victim_costs: int,
+                  vehicle_lost_costs: int,
+                  downtime_costs: int,
+                  damage_costs: int) -> None:
         """Adds an entry to the table.
 
         Parameters
@@ -89,6 +96,23 @@ class InteractiveTable:
             The date of the latest maintenance acceptance of the bridge
         probability_of_collapse : float
             The probability of collapse of the bridge
+        length: int,
+            The length of the bridge
+        width: int,
+            The width of the bridge
+        replacement_costs: int
+            The costs that will be incurred if the bridge has to be rebuilt
+            (construction costs)
+        victim_costs: int
+            The costs of fatalities and injuries
+            TODO: In the document this is called
+            "Kosten zur Vermeidung von ..." -> Vermeidung?
+        vehicle_lost_costs: int
+            The loss costs from vehicles etc.
+        downtime_costs: int
+            The costs from business interruption
+        damage_costs: int
+            The sum of replacement, victim, vehicle and downtime costs
         """
         new_data_frame = pd.DataFrame({
             _('Name'): [bridge_name],
@@ -114,7 +138,14 @@ class InteractiveTable:
             _('Earthquake zone factor'): [earthquake_zone_factor],
             _('Last maintenance acceptance date'): [
                 maintenance_acceptance_date],
-            _('Probability of collapse'): [probability_of_collapse]})
+            _('Probability of collapse'): [probability_of_collapse],
+            _('Length'): [length],
+            _('Width'): [width],
+            _('Replacement costs'): [replacement_costs],
+            _('Victim costs'): [victim_costs],
+            _('Vehicle lost costs'): [vehicle_lost_costs],
+            _('Downtime costs'): [downtime_costs],
+            _('Damage costs'): [damage_costs]})
         if self.data_frame is None:
             self.data_frame = new_data_frame
         else:
