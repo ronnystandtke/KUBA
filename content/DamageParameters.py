@@ -34,6 +34,10 @@ class DamageParameters:
         # ZH_230-007: UEF Zürcherstrasse Süd, Töss
         # still use the given width?
 
+        # TODO: There are bridges with nonsensical data:
+        # ZH_242-023: UEF Rampe Einfahrt Wettswil, Birmensdorf: width of 1045 m!
+        # How to deal with that???
+
         return length * width * cost_per_square_meter
 
     @staticmethod
