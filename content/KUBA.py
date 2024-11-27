@@ -204,11 +204,11 @@ class KUBA:
         display(self.output)
 
         # uncomment for test runs with a low number of bridges
-        with self.output:
-            display(self.sliderHBox)
-            display(self.loadButton)
+        # with self.output:
+        #     display(self.sliderHBox)
+        #     display(self.loadButton)
 
-        # self.loadBridges()
+        self.loadBridges()
 
     def updateReadout(self):
         self.sliderReadout.value = '{} / {}'.format(
