@@ -550,6 +550,9 @@ class KUBA:
                 percentage_of_trucks = (heavy_duty_mean * 100) / aadt
                 percentage_of_cars = 1 - percentage_of_trucks
 
+                # convert aadt from float to int (the values are large enough)
+                aadt = int(aadt)
+
         else:
             aadt = 5000
             percentage_of_cars = 0.95
