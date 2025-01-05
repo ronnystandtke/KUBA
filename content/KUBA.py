@@ -455,43 +455,50 @@ class KUBA:
         #       decision: "N20" will always be mapped to "A20"
         # TODO:
         #   - mapping is not from sheet "Alle Brücken mit Zusatzinfos"???
-        #   - double mapping of "N02" to "A 2/3"
+        #       - not found in document "Bauwerksdaten aus KUBA":
+        #           - "N=2 CHS"
+        #           - "6 Delémont - Biel -"
+        #   - still missing in Dirks table:
+        #       - "N13+ e N13-" (French)
+        #       - "N01a" (lower case a)
+        # ATTENTION!
+        #   - there are non-breaking spaces in the KUBA database keys
+        #   - they might not be visible in your editor but they are important
         traffic_mapping = {
             "N01": "A 1", "N1": "A 1", "N1-": "A 1", "N1+": "A 1",
             "N1=BEW": "A 1",
             "A51": "A 11",
             "N12": "A 12", "N12-": "A 12", "N12+": "A 12",
             "N13": "A 13", "N13-": "A 13", "N13+": "A 13",
-            "N13+ und N13-": "A 13",
+            "N13+ und N13-": "A 13", "N13+ e N13-": "A 13",
             "N14": "A 14",
             "N15": "A 15",
             "N16": "A 16",
             "N17": "A 17",
             "N18": "A 18", "N18=": "A 18",
-            "N1A": "A 1a", "N01A": "A 1a",
+            "N1A": "A 1a", "N01A": "A 1a", "N01a": "A 1a",
             "N1H": "A 1H",
             "N1R": "A 1R",
-            "N02": "A 2", "N02 BAL": "A 2", "N=2 CHS": "A 2", "N02 FA": "A 2",
-            "N02 LUN": "A 2", "N02 RI": "A 2", "N02P": "A 2",
+            "N02": "A 2", "N02 BAL": "A 2", "N=2 CHS": "A 2", "N02 FA": "A 2",
+            "N02 LUN": "A 2", "N02 LUS": "A 2", "N02 RI": "A 2", "N02P": "A 2",
             "N20": "A 20",
-            "A21": "A 21", "A21 Martigny-GD St B": "A 21",
+            "A21": "A 21", "A21 Martigny-Gd St B": "A 21",
             "N22": "A 22",
             "N23": "A 23",
             "N28": "A 28",
             "N03": "A 3",
             "N04": "A 4",
             "N05": "A 5", "N5": "A 5",
-            "N06": "A 6", "N06+": "A 6", "N 06": "A 6", "N06.56": "A 6",
+            "N06": "A 6", "N06+": "A 6", "N 06": "A 6", "N06.56": "A 6",
             "N6+": "A 6", "N6-": "A 6", "6": "A 6",
             "6 Delémont - Biel -": "A 6",
             "N07": "A 7",
             "N08": "A 8", "N8": "A 8", "N8+": "A 8", "N8-": "A 8",
-            "N09": "A 9", "N9": "A 9", "N9/6025 Rue de debo.": "A 9",
+            "N09": "A 9", "N9": "A 9", "N9/6025 Rue de débo.": "A 9",
             "N9_GDS": "A 9", "N09_GDSB": "A 9", "N9+": "A 9", "N9S": "A 9",
             "N9S=": "A 9",
-            # "N02": "A 2/3",
             "H1": "H 1",
-            "H 20+": "H 20",
+            "H 20+": "H 20",
             "H21": "H21"
         }
 
