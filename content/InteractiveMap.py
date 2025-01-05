@@ -137,6 +137,7 @@ class InteractiveMap:
                    width: int,
                    replacement_costs: int,
                    victim_costs: int,
+                   aadt: int,
                    vehicle_lost_costs: int,
                    downtime_costs: int,
                    damage_costs: int) -> None:
@@ -195,6 +196,8 @@ class InteractiveMap:
             (construction costs)
         victim_costs: int
             The costs of fatalities and injuries
+        aadt: int
+            The average annual daily traffic
         vehicle_lost_costs: int
             The loss costs from vehicles etc.
         downtime_costs: int
@@ -235,20 +238,19 @@ class InteractiveMap:
             _('Last maintenance acceptance date') + '</b>: ' +
             maintenance_acceptance_date + '<br><b>' +
             _('Probability of collapse') + '</b>: ' +
-            str(probability_of_collapse) +
-            '<br><b>' + _('Length') + '</b>: ' +
-            self.__get_dimension_string(length) +
-            '<br><b>' + _('Width') + '</b>: ' +
-            self.__get_dimension_string(width) +
-            '<br><b>' + _('Replacement costs') + '</b>: ' +
-            format_currency(replacement_costs, 'CHF') +
-            '<br><b>' + _('Victim costs') + '</b>: ' +
-            format_currency(victim_costs, 'CHF') +
+            str(probability_of_collapse) + '<br><b>' + _('Length') + '</b>: ' +
+            self.__get_dimension_string(length) + '<br><b>' + _('Width') +
+            '</b>: ' + self.__get_dimension_string(width) + '<br><b>' +
+            _('Replacement costs') + '</b>: ' +
+            format_currency(replacement_costs, 'CHF') + '<br><b>' +
+            _('Victim costs') + '</b>: ' +
+            format_currency(victim_costs, 'CHF') + '<br><b>' +
+            _('Average annual daily traffic') + '</b>: ' + str(aadt) +
             '<br><b>' + _('Vehicle lost costs') + '</b>: ' +
-            format_currency(vehicle_lost_costs, 'CHF') +
-            '<br><b>' + _('Downtime costs') + '</b>: ' +
-            format_currency(downtime_costs, 'CHF') +
-            '<br><b>' + _('Damage costs') + '</b>: ' +
+            format_currency(vehicle_lost_costs, 'CHF') + '<br><b>' +
+            _('Downtime costs') + '</b>: ' +
+            format_currency(downtime_costs, 'CHF') + '<br><b>' +
+            _('Damage costs') + '</b>: ' +
             format_currency(damage_costs, 'CHF'))
 
         circle_marker = CircleMarker()

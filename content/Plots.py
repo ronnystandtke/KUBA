@@ -22,17 +22,21 @@ class Plots:
             _('Age'), _('Condition class'), _('Probability of collapse')]
         self.ageConditionPocScatter = pd.DataFrame(
             columns=self.acpScatterColumns)
+
         self.cpScatterColumns = [
             _('Condition class'), _('Probability of collapse')]
         self.conditionPocScatter = pd.DataFrame(
             columns=self.cpScatterColumns)
+
         self.spScatterColumns = [_('Span'), _('Probability of collapse')]
         self.spanPocScatter = pd.DataFrame(columns=self.spScatterColumns)
+
         self.maintenancePocScatterColumns = [
             _('Last maintenance acceptance date'),
             _('Probability of collapse')]
         self.maintenancePocScatter = pd.DataFrame(
             columns=self.maintenancePocScatterColumns)
+
         self.materialPocBoxColumns = [
             _('Building material'), _('Probability of collapse')]
         self.materialPocBox = pd.DataFrame(columns=self.materialPocBoxColumns)
@@ -42,9 +46,13 @@ class Plots:
         self.yearMaterialStack = pd.DataFrame(
             columns=self.yearMaterialStackColumns)
 
+        self.aadtScatterColumns = [
+            _('Average annual daily traffic'), _('Probability of collapse')]
+        self.aadtPocScatter = pd.DataFrame(columns=self.aadtScatterColumns)
+
     def fillData(self, index, conditionClass, probabilityOfCollapse, age, span,
                  buildingMaterialString, yearOfConstruction,
-                 maintenanceAcceptanceDate):
+                 maintenanceAcceptanceDate, aadt):
 
         if conditionClass is not None and conditionClass < 9:
 
@@ -94,6 +102,13 @@ class Plots:
             self.yearMaterialStack = pd.concat([
                 None if self.yearMaterialStack.empty
                 else self.yearMaterialStack, newDataFrame])
+
+        newDataFrame = pd.DataFrame(
+            [[aadt, probabilityOfCollapse]],
+            columns=self.aadtScatterColumns)
+        self.aadtPocScatter = pd.concat([
+            None if self.aadtPocScatter.empty
+            else self.aadtPocScatter, newDataFrame])
 
     def display(self):
 
@@ -208,3 +223,19 @@ class Plots:
         ax.set_ylabel(self.yearMaterialStackColumns[1])
         ax.legend(loc='upper left')
         plt.show()
+
+        # aadt vs. probability of collapse
+        fig, ax = plt.subplots()
+        ax.scatter(
+            self.aadtPocScatter[self.aadtScatterColumns[0]],
+            self.aadtPocScatter[self.aadtScatterColumns[1]])
+        ax.set_xlabel(self.aadtScatterColumns[0])
+        ax.set_ylabel(self.aadtScatterColumns[1])
+        ax.grid(True)
+        fig.tight_layout()
+        plt.show()
+
+        # TODO:
+        #    - Normierte Schadensanteile (normiert auf den Wiederbeschaffungswert der Brücke, Beispiel anbei)
+        #    - Bild: 3D: x-Achse Versagenswahrscheinlichkeit, y-Achse Schadensumfang, z-Achse: Risiko oder Zustandsklasse, Farbcodierung: Risiko oder Zustandsklasse
+        #    - Bild: 3D: x-Achse Versagenswahrscheinlichkeit (Spannweite), y-Achse Schadensumfang (Spannweite), z-Achse: Risiko (Spannweite)

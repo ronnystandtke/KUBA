@@ -47,6 +47,7 @@ class InteractiveTable:
                   width: int,
                   replacement_costs: int,
                   victim_costs: int,
+                  aadt: int,
                   vehicle_lost_costs: int,
                   downtime_costs: int,
                   damage_costs: int) -> None:
@@ -105,6 +106,8 @@ class InteractiveTable:
             (construction costs)
         victim_costs: int
             The costs of fatalities and injuries
+        aadt: int
+            The average annual daily traffic
         vehicle_lost_costs: int
             The loss costs from vehicles etc.
         downtime_costs: int
@@ -141,6 +144,7 @@ class InteractiveTable:
             _('Width'): [width],
             _('Replacement costs'): [replacement_costs],
             _('Victim costs'): [victim_costs],
+            _('Average annual daily traffic'): [aadt],
             _('Vehicle lost costs'): [vehicle_lost_costs],
             _('Downtime costs'): [downtime_costs],
             _('Damage costs'): [damage_costs]})

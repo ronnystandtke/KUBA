@@ -461,6 +461,9 @@ class KUBA:
         #   - still missing in Dirks table:
         #       - "N13+ e N13-" (French)
         #       - "N01a" (lower case a)
+        #   - missing data in Bulletin:
+        #       - whenever a month is missing, e.g. "H 17" or "H 18"
+        #       - sometimes completely empty, e.g. "A 1R"
         # ATTENTION!
         #   - there are non-breaking spaces in the KUBA database keys
         #   - they might not be visible in your editor but they are important
@@ -499,53 +502,66 @@ class KUBA:
             "N9S=": "A 9",
             "H1": "H 1",
             "H 20+": "H 20",
-            "H21": "H21"
+            "H21": "H 21"
         }
 
+        # get AADT (average annual daily traffic) and percentages
         kuba_axis = self.bridges[Labels.AXIS_LABEL][i]
         traffic_axis = traffic_mapping.get(kuba_axis, "")
-        # get AADT (average annual daily traffic) and percentages
+
         if traffic_axis:
             aadt = self.df_traffic_data[
                 (self.df_traffic_data[Labels.TRAFFIC_AXIS_LABEL] ==
                  traffic_axis)][Labels.TRAFFIC_AADT_LABEL].mean()
 
-            # get average number of heavy duty vehicles
-            # "DTV" = "Durchschnittlicher Tagesverkehr"
-            # "DWV SV" =
-            #       "Durchschnittlicher Werktagesverkehr"
-            #       "Schwerverkehr (Klassen 1, 8, 9, 10)"
-            #  is 4 lines below the line with the "DVT" value
-            dwv_sv_offset = 4
-            axis_indices = self.df_traffic_data.index[self.df_traffic_data[
-                Labels.TRAFFIC_AXIS_LABEL].notna()]
-            heavy_duty_list = []
-            for axis_index in axis_indices:
+            if math.isnan(aadt):
+                # no useful data found in Bulletin
+                aadt = 5000
+                percentage_of_cars = 0.95
 
-                if ((axis_index + dwv_sv_offset in
-                     self.df_traffic_data.index) and
-                    (pd.notna(self.df_traffic_data.at[
-                        axis_index + dwv_sv_offset,
-                        Labels.TRAFFIC_AADT_LABEL]))):
+            else:
+                # get average number of heavy duty vehicles
+                # "DTV" = "Durchschnittlicher Tagesverkehr"
+                # "DWV SV" =
+                #       "Durchschnittlicher Werktagesverkehr"
+                #       "Schwerverkehr (Klassen 1, 8, 9, 10)"
+                #  is 4 lines below the line with the "DVT" value
+                dwv_sv_offset = 4
+                axis_indices = self.df_traffic_data.index[self.df_traffic_data[
+                    Labels.TRAFFIC_AXIS_LABEL].notna()]
+                heavy_duty_list = []
+                for axis_index in axis_indices:
 
-                    heavy_duty_count = self.df_traffic_data.at[
-                        axis_index + 1, Labels.TRAFFIC_AADT_LABEL]
-                    heavy_duty_list.append(heavy_duty_count)
+                    if ((axis_index + dwv_sv_offset in
+                        self.df_traffic_data.index) and
+                        (pd.notna(self.df_traffic_data.at[
+                            axis_index + dwv_sv_offset,
+                            Labels.TRAFFIC_AADT_LABEL]))):
 
-            heavy_duty_mean = sum(heavy_duty_list) / len(heavy_duty_list)
+                        heavy_duty_count = self.df_traffic_data.at[
+                            axis_index + 1, Labels.TRAFFIC_AADT_LABEL]
+                        heavy_duty_list.append(heavy_duty_count)
 
-            # The average values are very wide spread!
-            # e.g. for "A 1", the minimum is 20'481, the maximum is 145'759
-            # Decision: we accept this like it is.
-            percentage_of_trucks = (heavy_duty_mean * 100) / aadt
-            percentage_of_cars = 1 - percentage_of_trucks
+                heavy_duty_mean = sum(heavy_duty_list) / len(heavy_duty_list)
+
+                # The average values are very wide spread!
+                # e.g. for "A 1", the minimum is 20'481, the maximum is 145'759
+                # Decision: we accept this like it is.
+                percentage_of_trucks = (heavy_duty_mean * 100) / aadt
+                percentage_of_cars = 1 - percentage_of_trucks
 
         else:
             aadt = 5000
             percentage_of_cars = 0.95
 
         length = self.bridges[Labels.LENGTH_LABEL][i]
+        if ((length is None) or (length == 0) or (math.isnan(length))):
+            # if the length is unknown, assume 200 m
+            length = 200
         width = self.bridges[Labels.WIDTH_LABEL][i]
+        if ((width is None) or (width == 0) or (math.isnan(width))):
+            # if the width is unknown, assume 30 m
+            width = 30
         replacement_costs = DamageParameters.get_replacement_costs(
             length, width)
         victim_costs = DamageParameters.get_victim_costs(
@@ -565,7 +581,7 @@ class KUBA:
             staticCalculationFactor, bridgeTypeFactor, buildingMaterialString,
             materialFactor, robustnessFactor, zoneName, earthQuakeZoneFactor,
             maintenanceAcceptanceDateString, probabilityOfCollapse, length,
-            width, replacement_costs, victim_costs, vehicle_lost_costs,
+            width, replacement_costs, victim_costs, aadt, vehicle_lost_costs,
             downtime_costs, damage_costs)
 
         # add dataframe to interactive table
@@ -577,12 +593,13 @@ class KUBA:
             buildingMaterialString, materialFactor, robustnessFactor, zoneName,
             earthQuakeZoneFactor, maintenanceAcceptanceDateString,
             probabilityOfCollapse, length, width, replacement_costs,
-            victim_costs, vehicle_lost_costs, downtime_costs, damage_costs)
+            victim_costs, aadt, vehicle_lost_costs, downtime_costs,
+            damage_costs)
 
         # add data to plots
         self.plots.fillData(i, conditionClass, probabilityOfCollapse, age,
                             span, buildingMaterialString, yearOfConstruction,
-                            maintenanceAcceptanceDate)
+                            maintenanceAcceptanceDate, aadt)
 
         self.__updateProgressBarAfterTimeout()
 

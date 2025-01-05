@@ -1,20 +1,9 @@
-import math
-
-
 class DamageParameters:
 
     @staticmethod
     def get_replacement_costs(length, width):
 
         cost_per_square_meter = 5500  # CHF
-
-        if ((length is None) or (length == 0) or (math.isnan(length))):
-            # if the length is unknown, assume 200 m
-            length = 200
-
-        if ((width is None) or (width == 0) or (math.isnan(width))):
-            # if the width is unknown, assume 30 m
-            width = 30
 
         # There are bridges where only the length is unknown, e.g.
         # ZH_230-007: UEF Zürcherstrasse Süd, Töss
