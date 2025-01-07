@@ -141,7 +141,8 @@ class InteractiveMap:
                    aadt: int,
                    vehicle_lost_costs: int,
                    downtime_costs: int,
-                   damage_costs: int) -> None:
+                   damage_costs: int,
+                   risk: float) -> None:
         """Adds a marker to the internal list of markers.
 
         Parameters
@@ -207,6 +208,9 @@ class InteractiveMap:
             The costs from business interruption
         damage_costs: int
             The sum of replacement, victim, vehicle and downtime costs
+        risk: float
+            The risk value of this bridge
+            (probability_of_collapse * damage_costs)
         """
 
         message = widgets.HTML()
@@ -254,7 +258,8 @@ class InteractiveMap:
             _('Downtime costs') + '</b>: ' +
             format_currency(downtime_costs, 'CHF') + '<br><b>' +
             _('Damage costs') + '</b>: ' +
-            format_currency(damage_costs, 'CHF'))
+            format_currency(damage_costs, 'CHF') + '<br><b>' + _('Risk') +
+            '</b>: ' + str(risk))
 
         circle_marker = CircleMarker()
         circle_marker.location = [point.xy[1][0], point.xy[0][0]]

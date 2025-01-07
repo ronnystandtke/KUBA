@@ -51,7 +51,8 @@ class InteractiveTable:
                   aadt: int,
                   vehicle_lost_costs: int,
                   downtime_costs: int,
-                  damage_costs: int) -> None:
+                  damage_costs: int,
+                  risk: float) -> None:
         """Adds an entry to the table.
 
         Parameters
@@ -117,6 +118,9 @@ class InteractiveTable:
             The costs from business interruption
         damage_costs: int
             The sum of replacement, victim, vehicle and downtime costs
+        risk: float
+            The risk value of this bridge
+            (probability_of_collapse * damage_costs)
         """
         new_data_frame = pd.DataFrame({
             _('Name'): [bridge_name],
@@ -151,7 +155,8 @@ class InteractiveTable:
             _('Average annual daily traffic'): [aadt],
             _('Vehicle lost costs'): [vehicle_lost_costs],
             _('Downtime costs'): [downtime_costs],
-            _('Damage costs'): [damage_costs]})
+            _('Damage costs'): [damage_costs],
+            _('Risk'): [risk]})
         if self.data_frame is None:
             self.data_frame = new_data_frame
         else:

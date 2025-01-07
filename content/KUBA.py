@@ -574,6 +574,8 @@ class KUBA:
         damage_costs = (replacement_costs + victim_costs +
                         vehicle_lost_costs + downtime_costs)
 
+        risk = probabilityOfCollapse * damage_costs
+
         axis_string = str(kuba_axis) + " → " + str(traffic_axis)
 
         # add new marker to interactive map
@@ -585,7 +587,7 @@ class KUBA:
             materialFactor, robustnessFactor, zoneName, earthQuakeZoneFactor,
             maintenanceAcceptanceDateString, probabilityOfCollapse, length,
             width, replacement_costs, victim_costs, axis_string, aadt,
-            vehicle_lost_costs, downtime_costs, damage_costs)
+            vehicle_lost_costs, downtime_costs, damage_costs, risk)
 
         # add dataframe to interactive table
         self.interactive_table.add_entry(
@@ -597,12 +599,12 @@ class KUBA:
             earthQuakeZoneFactor, maintenanceAcceptanceDateString,
             probabilityOfCollapse, length, width, replacement_costs,
             victim_costs, axis_string, aadt, vehicle_lost_costs,
-            downtime_costs, damage_costs)
+            downtime_costs, damage_costs, risk)
 
         # add data to plots
         self.plots.fillData(i, conditionClass, probabilityOfCollapse, age,
                             span, buildingMaterialString, yearOfConstruction,
-                            maintenanceAcceptanceDate, aadt)
+                            maintenanceAcceptanceDate, aadt, risk)
 
         self.__updateProgressBarAfterTimeout()
 

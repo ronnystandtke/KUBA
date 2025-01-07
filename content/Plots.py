@@ -46,13 +46,30 @@ class Plots:
         self.yearMaterialStack = pd.DataFrame(
             columns=self.yearMaterialStackColumns)
 
-        self.aadtScatterColumns = [
-            _('Average annual daily traffic'), _('Probability of collapse')]
-        self.aadtPocScatter = pd.DataFrame(columns=self.aadtScatterColumns)
+        self.aadtRiskScatterColumns = [
+            _('Average annual daily traffic'), _('Risk')]
+        self.aadtRiskScatter = pd.DataFrame(columns=self.aadtRiskScatterColumns)
+
+        self.spanRiskScatterColumns = [_('Span'), _('Risk')]
+        self.spanRiskScatter = pd.DataFrame(
+            columns=self.spanRiskScatterColumns)
+
+        self.ageRiskScatterColumns = [_('Age'), _('Risk')]
+        self.ageRiskScatter = pd.DataFrame(
+            columns=self.ageRiskScatterColumns)
+
+        self.maintenanceRiskScatterColumns = [
+            _('Last maintenance acceptance date'), _('Risk')]
+        self.maintenanceRiskScatter = pd.DataFrame(
+            columns=self.maintenanceRiskScatterColumns)
+
+        self.materialRiskBoxColumns = [_('Building material'), _('Risk')]
+        self.materialRiskBox = pd.DataFrame(
+            columns=self.materialRiskBoxColumns)
 
     def fillData(self, index, conditionClass, probabilityOfCollapse, age, span,
                  buildingMaterialString, yearOfConstruction,
-                 maintenanceAcceptanceDate, aadt):
+                 maintenanceAcceptanceDate, aadt, risk):
 
         if conditionClass is not None and conditionClass < 9:
 
@@ -60,55 +77,68 @@ class Plots:
                 [[conditionClass, probabilityOfCollapse]],
                 columns=self.cpScatterColumns)
 
-            self.conditionPocScatter = pd.concat([
-                None if self.conditionPocScatter.empty
-                else self.conditionPocScatter, newDataFrame])
+            self.conditionPocScatter = self.__concat_dataframe(
+                self.conditionPocScatter, newDataFrame)
 
             if age is not None:
                 newDataFrame = pd.DataFrame(
                     [[age, conditionClass, probabilityOfCollapse]],
                     columns=self.acpScatterColumns)
-                self.ageConditionPocScatter = pd.concat([
-                    None if self.ageConditionPocScatter.empty
-                    else self.ageConditionPocScatter, newDataFrame])
+                self.ageConditionPocScatter = self.__concat_dataframe(
+                    self.ageConditionPocScatter, newDataFrame)
 
         if span is not None:
-            newDataFrame = pd.DataFrame(
-                [[span, probabilityOfCollapse]],
-                columns=self.spScatterColumns)
-            self.spanPocScatter = pd.concat([
-                None if self.spanPocScatter.empty
-                else self.spanPocScatter, newDataFrame])
+            newDataFrame = pd.DataFrame([[span, probabilityOfCollapse]],
+                                        columns=self.spScatterColumns)
+            self.spanPocScatter = self.__concat_dataframe(
+                self.spanPocScatter, newDataFrame)
+
+            newDataFrame = pd.DataFrame([[span, risk]],
+                                        columns=self.spanRiskScatterColumns)
+            self.spanRiskScatter = self.__concat_dataframe(
+                self.spanRiskScatter, newDataFrame)
 
         if maintenanceAcceptanceDate is not None:
             newDataFrame = pd.DataFrame(
                 [[maintenanceAcceptanceDate, probabilityOfCollapse]],
                 columns=self.maintenancePocScatterColumns)
-            self.maintenancePocScatter = pd.concat([
-                None if self.maintenancePocScatter.empty
-                else self.maintenancePocScatter, newDataFrame])
+            self.maintenancePocScatter = self.__concat_dataframe(
+                self.maintenancePocScatter, newDataFrame)
+
+            newDataFrame = pd.DataFrame(
+                [[maintenanceAcceptanceDate, risk]],
+                columns=self.maintenanceRiskScatterColumns)
+            self.maintenanceRiskScatter = self.__concat_dataframe(
+                self.maintenanceRiskScatter, newDataFrame)
 
         newDataFrame = pd.DataFrame(
             [[buildingMaterialString, probabilityOfCollapse]],
             columns=self.materialPocBoxColumns)
-        self.materialPocBox = pd.concat([
-            None if self.materialPocBox.empty
-            else self.materialPocBox, newDataFrame])
+        self.materialPocBox = self.__concat_dataframe(
+            self.materialPocBox, newDataFrame)
 
         if yearOfConstruction != -1:
             newDataFrame = pd.DataFrame(
                 [[yearOfConstruction, buildingMaterialString]],
                 columns=self.yearMaterialStackColumns)
-            self.yearMaterialStack = pd.concat([
-                None if self.yearMaterialStack.empty
-                else self.yearMaterialStack, newDataFrame])
+            self.yearMaterialStack = self.__concat_dataframe(
+                self.yearMaterialStack, newDataFrame)
+
+        newDataFrame = pd.DataFrame([[aadt, risk]],
+                                    columns=self.aadtRiskScatterColumns)
+        self.aadtRiskScatter = self.__concat_dataframe(
+            self.aadtRiskScatter, newDataFrame)
+
+        newDataFrame = pd.DataFrame([[age, risk]],
+                                    columns=self.ageRiskScatterColumns)
+        self.ageRiskScatter = self.__concat_dataframe(
+            self.ageRiskScatter, newDataFrame)
 
         newDataFrame = pd.DataFrame(
-            [[aadt, probabilityOfCollapse]],
-            columns=self.aadtScatterColumns)
-        self.aadtPocScatter = pd.concat([
-            None if self.aadtPocScatter.empty
-            else self.aadtPocScatter, newDataFrame])
+            [[buildingMaterialString, risk]],
+            columns=self.materialRiskBoxColumns)
+        self.materialRiskBox = self.__concat_dataframe(
+            self.materialRiskBox, newDataFrame)
 
     def display(self):
 
@@ -125,23 +155,14 @@ class Plots:
             self.ageConditionPocScatter[self.acpScatterColumns[0]],
             self.ageConditionPocScatter[self.acpScatterColumns[1]],
             s=self.ageConditionPocScatter[self.acpScatterColumns[2]] * resize)
-        ax.set_xlabel(self.acpScatterColumns[0])
-        ax.set_ylabel(self.acpScatterColumns[1])
         ax.set_title(self.acpScatterColumns[2])
-        ax.grid(True)
-        fig.tight_layout()
-        plt.show()
+        self.__show_scatter_plot(
+            ax, self.acpScatterColumns[0], self.acpScatterColumns[1], fig)
 
         # age vs. probability of collapse
-        fig, ax = plt.subplots()
-        ax.scatter(
-            self.ageConditionPocScatter[self.acpScatterColumns[0]],
-            self.ageConditionPocScatter[self.acpScatterColumns[2]])
-        ax.set_xlabel(self.acpScatterColumns[0])
-        ax.set_ylabel(self.acpScatterColumns[2])
-        ax.grid(True)
-        fig.tight_layout()
-        plt.show()
+        self.__add_simple_scatter(
+            self.ageConditionPocScatter,
+            self.acpScatterColumns[0], self.acpScatterColumns[2])
 
         # condition class vs. probability of collapse
         fig, ax = plt.subplots()
@@ -149,50 +170,22 @@ class Plots:
         ax.scatter(
             self.conditionPocScatter[self.cpScatterColumns[0]],
             self.conditionPocScatter[self.cpScatterColumns[1]])
-        ax.set_xlabel(self.cpScatterColumns[0])
-        ax.set_ylabel(self.cpScatterColumns[1])
-        ax.grid(True)
-        fig.tight_layout()
-        plt.show()
+        self.__show_scatter_plot(
+            ax, self.cpScatterColumns[0], self.cpScatterColumns[1], fig)
 
         # span vs. probability of collapse
-        fig, ax = plt.subplots()
-        ax.scatter(
-            self.spanPocScatter[self.spScatterColumns[0]],
-            self.spanPocScatter[self.spScatterColumns[1]])
-        ax.set_xlabel(self.spScatterColumns[0])
-        ax.set_ylabel(self.spScatterColumns[1])
-        ax.grid(True)
-        fig.tight_layout()
-        plt.show()
+        self.__add_simple_scatter(
+            self.spanPocScatter,
+            self.spScatterColumns[0], self.spScatterColumns[1])
 
         # maintenance acceptance date vs. probability of collapse
-        fig, ax = plt.subplots()
-        ax.scatter(
-            self.maintenancePocScatter[self.maintenancePocScatterColumns[0]],
-            self.maintenancePocScatter[self.maintenancePocScatterColumns[1]])
-        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
-        ax.set_xlabel(self.maintenancePocScatterColumns[0])
-        ax.set_ylabel(self.maintenancePocScatterColumns[1])
-        ax.grid(True)
-        fig.tight_layout()
-        plt.show()
+        self.__add_date_scatter(self.maintenancePocScatter,
+                                self.maintenancePocScatterColumns[0],
+                                self.maintenancePocScatterColumns[1])
 
         # box plot of materials vs. probability of collapse
-        materials = pd.unique(self.materialPocBox[
-            self.materialPocBoxColumns[0]])
-        boxplots = []
-        for material in materials:
-            matches = self.materialPocBox[
-                self.materialPocBoxColumns[0]] == material
-            pocs = self.materialPocBox[matches][self.materialPocBoxColumns[1]]
-            boxplots.append(pocs)
-        fig, ax = plt.subplots()
-        ax.set_xlabel(self.materialPocBoxColumns[0])
-        ax.set_ylabel(self.materialPocBoxColumns[1])
-        ax.boxplot(boxplots, labels=materials)
-        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
-        plt.show()
+        self.__add_material_box_plot(
+            self.materialPocBox, self.materialPocBoxColumns)
 
         # stack plot year of construction vs. building material
         years = pd.unique(self.yearMaterialStack[
@@ -224,15 +217,65 @@ class Plots:
         ax.legend(loc='upper left')
         plt.show()
 
-        # aadt vs. probability of collapse
+        # aadt vs. risk
+        self.__add_simple_scatter(
+            self.aadtRiskScatter,
+            self.aadtRiskScatterColumns[0], self.aadtRiskScatterColumns[1])
+
+        # span vs. risk
+        self.__add_simple_scatter(
+            self.spanRiskScatter,
+            self.spanRiskScatterColumns[0], self.spanRiskScatterColumns[1])
+
+        # age vs. risk
+        self.__add_simple_scatter(
+            self.ageRiskScatter,
+            self.ageRiskScatterColumns[0], self.ageRiskScatterColumns[1])
+
+        # maintenance acceptance date vs. risk
+        self.__add_date_scatter(self.maintenanceRiskScatter,
+                                self.maintenanceRiskScatterColumns[0],
+                                self.maintenanceRiskScatterColumns[1])
+
+        # box plot of materials vs. risk
+        self.__add_material_box_plot(
+            self.materialRiskBox, self.materialRiskBoxColumns)
+
+    def __concat_dataframe(self, dataFrame, newDataFrame):
+        return pd.concat(
+            [None if dataFrame.empty else dataFrame, newDataFrame])
+
+    def __add_simple_scatter(self, dataFrame, column1, column2):
         fig, ax = plt.subplots()
-        ax.scatter(
-            self.aadtPocScatter[self.aadtScatterColumns[0]],
-            self.aadtPocScatter[self.aadtScatterColumns[1]])
-        ax.set_xlabel(self.aadtScatterColumns[0])
-        ax.set_ylabel(self.aadtScatterColumns[1])
+        ax.scatter(dataFrame[column1], dataFrame[column2])
+        self.__show_scatter_plot(ax, column1, column2, fig)
+
+    def __add_date_scatter(self, dataFrame, column1, column2):
+        fig, ax = plt.subplots()
+        ax.scatter(dataFrame[column1], dataFrame[column2])
+        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+        self.__show_scatter_plot(ax, column1, column2, fig)
+
+    def __show_scatter_plot(self, ax, column1, column2, fig):
         ax.grid(True)
         fig.tight_layout()
+        self.__show_plot(ax, column1, column2)
+
+    def __add_material_box_plot(self, dataFrame, columns):
+        materials = pd.unique(dataFrame[columns[0]])
+        boxplots = []
+        for material in materials:
+            matches = dataFrame[columns[0]] == material
+            values = dataFrame[matches][columns[1]]
+            boxplots.append(values)
+        fig, ax = plt.subplots()
+        ax.boxplot(boxplots, labels=materials)
+        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+        self.__show_plot(ax, columns[0], columns[1])
+
+    def __show_plot(self, ax, column1, column2):
+        ax.set_xlabel(column1)
+        ax.set_ylabel(column2)
         plt.show()
 
         # TODO:
