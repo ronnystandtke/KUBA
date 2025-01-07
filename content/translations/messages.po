@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-07 22:17+0100\n"
+"POT-Creation-Date: 2025-01-07 23:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,163 +17,162 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../InteractiveMap.py:42
+#: ../InteractiveMap.py:49
 msgid "Creating base map"
 msgstr ""
 
-#: ../InteractiveMap.py:69 ../InteractiveMap.py:105
+#: ../InteractiveMap.py:76 ../InteractiveMap.py:112
 msgid "Earthquake zones"
 msgstr ""
 
-#: ../InteractiveMap.py:89
+#: ../InteractiveMap.py:96
 msgid "Precipitation zones"
 msgstr ""
 
-#: ../InteractiveMap.py:110
+#: ../InteractiveMap.py:117
 msgid "Cluster bridges"
 msgstr ""
 
-#: ../InteractiveMap.py:219 ../InteractiveTable.py:126
+#: ../InteractiveMap.py:226 ../InteractiveTable.py:126
 msgid "Name"
 msgstr ""
 
-#: ../InteractiveMap.py:220 ../InteractiveTable.py:127
+#: ../InteractiveMap.py:227 ../InteractiveTable.py:127
 msgid "Year of the norm"
 msgstr ""
 
-#: ../InteractiveMap.py:221 ../InteractiveTable.py:128 ../Plots.py:45
+#: ../InteractiveMap.py:228 ../InteractiveTable.py:128 ../Plots.py:45
 msgid "Year of construction"
 msgstr ""
 
-#: ../InteractiveMap.py:222 ../InteractiveTable.py:129
+#: ../InteractiveMap.py:229 ../InteractiveTable.py:129
 msgid "Human error factor"
 msgstr ""
 
-#: ../InteractiveMap.py:223 ../InteractiveTable.py:130
+#: ../InteractiveMap.py:230 ../InteractiveTable.py:130
 msgid "Type"
 msgstr ""
 
-#: ../InteractiveMap.py:225 ../InteractiveTable.py:131
+#: ../InteractiveMap.py:232 ../InteractiveTable.py:131
 msgid "Statical determinacy factor"
 msgstr ""
 
-#: ../InteractiveMap.py:226 ../InteractiveTable.py:134 ../Plots.py:22
+#: ../InteractiveMap.py:233 ../InteractiveTable.py:134 ../Plots.py:22
 #: ../Plots.py:57
 msgid "Age"
 msgstr ""
 
-#: ../InteractiveMap.py:228 ../InteractiveTable.py:135
+#: ../InteractiveMap.py:235 ../InteractiveTable.py:135
 msgid "Condition factor"
 msgstr ""
 
-#: ../InteractiveMap.py:229 ../InteractiveTable.py:137 ../Plots.py:31
+#: ../InteractiveMap.py:236 ../InteractiveTable.py:137 ../Plots.py:31
 #: ../Plots.py:53
 msgid "Span"
 msgstr ""
 
-#: ../InteractiveMap.py:230 ../InteractiveTable.py:136
+#: ../InteractiveMap.py:237 ../InteractiveTable.py:136
 msgid "Function"
 msgstr ""
 
-#: ../InteractiveMap.py:232 ../InteractiveTable.py:138
+#: ../InteractiveMap.py:239 ../InteractiveTable.py:138
 msgid "Overpass factor"
 msgstr ""
 
-#: ../InteractiveMap.py:233 ../InteractiveTable.py:139
+#: ../InteractiveMap.py:240 ../InteractiveTable.py:139
 msgid "Static calculation factor"
 msgstr ""
 
-#: ../InteractiveMap.py:235 ../InteractiveTable.py:141
+#: ../InteractiveMap.py:242 ../InteractiveTable.py:141
 msgid "Bridge type factor"
 msgstr ""
 
-#: ../InteractiveMap.py:237 ../InteractiveTable.py:142 ../Plots.py:41
+#: ../InteractiveMap.py:244 ../InteractiveTable.py:142 ../Plots.py:41
 #: ../Plots.py:45 ../Plots.py:66
 msgid "Building material"
 msgstr ""
 
-#: ../InteractiveMap.py:238 ../InteractiveTable.py:143
+#: ../InteractiveMap.py:245 ../InteractiveTable.py:143
 msgid "Building material factor"
 msgstr ""
 
-#: ../InteractiveMap.py:240 ../InteractiveTable.py:144
+#: ../InteractiveMap.py:247 ../InteractiveTable.py:144
 msgid "Robustness factor"
 msgstr ""
 
-#: ../InteractiveMap.py:242 ../InteractiveTable.py:145
+#: ../InteractiveMap.py:249 ../InteractiveTable.py:145
 msgid "Earthquake zone"
 msgstr ""
 
-#: ../InteractiveMap.py:243 ../InteractiveTable.py:146
+#: ../InteractiveMap.py:250 ../InteractiveTable.py:146
 msgid "Earthquake zone factor"
 msgstr ""
 
-#: ../InteractiveMap.py:245 ../InteractiveTable.py:147 ../Plots.py:35
+#: ../InteractiveMap.py:252 ../InteractiveTable.py:147 ../Plots.py:35
 #: ../Plots.py:62
 msgid "Last maintenance acceptance date"
 msgstr ""
 
-#: ../InteractiveMap.py:247 ../InteractiveMap.py:280 ../InteractiveMap.py:288
-#: ../InteractiveTable.py:149 ../Plots.py:22 ../Plots.py:27 ../Plots.py:31
-#: ../Plots.py:36 ../Plots.py:41
+#: ../InteractiveMap.py:254 ../InteractiveTable.py:149 ../KUBA.py:168
+#: ../Plots.py:22 ../Plots.py:27 ../Plots.py:31 ../Plots.py:36 ../Plots.py:41
 msgid "Probability of collapse"
 msgstr ""
 
-#: ../InteractiveMap.py:248 ../InteractiveTable.py:150
+#: ../InteractiveMap.py:255 ../InteractiveTable.py:150
 msgid "Length"
 msgstr ""
 
-#: ../InteractiveMap.py:249 ../InteractiveTable.py:151
+#: ../InteractiveMap.py:256 ../InteractiveTable.py:151
 msgid "Width"
 msgstr ""
 
-#: ../InteractiveMap.py:251 ../InteractiveTable.py:152
+#: ../InteractiveMap.py:258 ../InteractiveTable.py:152
 msgid "Replacement costs"
 msgstr ""
 
-#: ../InteractiveMap.py:253 ../InteractiveTable.py:153
+#: ../InteractiveMap.py:260 ../InteractiveTable.py:153
 msgid "Victim costs"
 msgstr ""
 
-#: ../InteractiveMap.py:254 ../InteractiveTable.py:154
+#: ../InteractiveMap.py:261 ../InteractiveTable.py:154
 msgid "Axis"
 msgstr ""
 
-#: ../InteractiveMap.py:255 ../InteractiveTable.py:155 ../Plots.py:50
+#: ../InteractiveMap.py:262 ../InteractiveTable.py:155 ../Plots.py:50
 msgid "Average annual daily traffic"
 msgstr ""
 
-#: ../InteractiveMap.py:256 ../InteractiveTable.py:156
+#: ../InteractiveMap.py:263 ../InteractiveTable.py:156
 msgid "Vehicle lost costs"
 msgstr ""
 
-#: ../InteractiveMap.py:258 ../InteractiveTable.py:157
+#: ../InteractiveMap.py:265 ../InteractiveTable.py:157
 msgid "Downtime costs"
 msgstr ""
 
-#: ../InteractiveMap.py:260 ../InteractiveTable.py:158
+#: ../InteractiveMap.py:267 ../InteractiveTable.py:158
 msgid "Damage costs"
 msgstr ""
 
-#: ../InteractiveMap.py:261 ../InteractiveTable.py:159 ../Plots.py:50
-#: ../Plots.py:53 ../Plots.py:57 ../Plots.py:62 ../Plots.py:66
+#: ../InteractiveMap.py:268 ../InteractiveTable.py:159 ../KUBA.py:171
+#: ../Plots.py:50 ../Plots.py:53 ../Plots.py:57 ../Plots.py:62 ../Plots.py:66
 msgid "Risk"
 msgstr ""
 
-#: ../InteractiveMap.py:305
+#: ../InteractiveMap.py:308
 msgid "Clustered Bridges"
 msgstr ""
 
-#: ../InteractiveMap.py:310
+#: ../InteractiveMap.py:313
 msgid "Individual Bridges"
 msgstr ""
 
-#: ../InteractiveMap.py:315
-msgid "Interactive map"
+#: ../InteractiveMap.py:319
+msgid "Interactive maps"
 msgstr ""
 
-#: ../InteractiveMap.py:334 ../KUBA.py:306 ../KUBA.py:335 ../KUBA.py:416
-#: ../KUBA.py:422 ../KUBA.py:425 ../KUBA.py:441
+#: ../InteractiveMap.py:340 ../KUBA.py:313 ../KUBA.py:342 ../KUBA.py:423
+#: ../KUBA.py:429 ../KUBA.py:432 ../KUBA.py:448
 msgid "unknown"
 msgstr ""
 
@@ -213,23 +212,23 @@ msgstr ""
 msgid "Converting coordinate reference systems"
 msgstr ""
 
-#: ../KUBA.py:174
+#: ../KUBA.py:178
 msgid "Number of bridges"
 msgstr ""
 
-#: ../KUBA.py:203
+#: ../KUBA.py:207
 msgid "Load selected number of bridges"
 msgstr ""
 
-#: ../KUBA.py:365
+#: ../KUBA.py:372
 msgid "none"
 msgstr ""
 
-#: ../KUBA.py:623
+#: ../KUBA.py:640
 msgid "Bridges are being loaded"
 msgstr ""
 
-#: ../KUBA.py:628
+#: ../KUBA.py:645
 msgid "without coordinates"
 msgstr ""
 
@@ -242,7 +241,7 @@ msgstr ""
 msgid "Installing package {package}"
 msgstr ""
 
-#: ../temp.py:74
+#: ../temp.py:78
 msgid ""
 "\n"
 "                <h1>Startup failed</h1>\n"

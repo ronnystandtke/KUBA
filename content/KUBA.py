@@ -163,8 +163,12 @@ class KUBA:
         self.earthquakeZones.to_crs(crs="EPSG:4326", inplace=True)
         self.precipitation.to_crs(crs="EPSG:4326", inplace=True)
 
-        self.interactive_map = InteractiveMap(
-            self.progress_bar, self.earthquakeZones, self.precipitation)
+        self.interactive_poc_map = InteractiveMap(
+            self.progress_bar, self.earthquakeZones, self.precipitation,
+            _('Probability of collapse'), True)
+        self.interactive_risk_map = InteractiveMap(
+            self.progress_bar, self.earthquakeZones, self.precipitation,
+            _('Risk'), False)
         self.interactive_table = InteractiveTable()
         self.plots = Plots()
 
@@ -242,11 +246,14 @@ class KUBA:
                 with open(earthquakeZonesDictFileName, 'w') as file:
                     json.dump(self.earthquakeZonesDict, file, indent=4)
 
-            self.interactive_map.add_marker_layer(
+            self.interactive_poc_map.add_marker_layer(
+                self.interactive_table.data_frame)
+            self.interactive_risk_map.add_marker_layer(
                 self.interactive_table.data_frame)
 
             with self.output:
-                self.interactive_map.display()
+                self.interactive_poc_map.display()
+                self.interactive_risk_map.display()
                 self.interactive_table.display()
                 self.plots.display()
 
@@ -578,8 +585,18 @@ class KUBA:
 
         axis_string = str(kuba_axis) + " → " + str(traffic_axis)
 
-        # add new marker to interactive map
-        self.interactive_map.add_marker(
+        # add new marker to interactive maps
+        self.interactive_poc_map.add_marker(
+            point, bridgeName, normYearString, yearOfConstructionString,
+            humanErrorFactor, typeText, staticalDeterminacyFactor, ageText,
+            conditionFactor, span, functionText, overpassFactor,
+            staticCalculationFactor, bridgeTypeFactor, buildingMaterialString,
+            materialFactor, robustnessFactor, zoneName, earthQuakeZoneFactor,
+            maintenanceAcceptanceDateString, probabilityOfCollapse, length,
+            width, replacement_costs, victim_costs, axis_string, aadt,
+            vehicle_lost_costs, downtime_costs, damage_costs, risk)
+
+        self.interactive_risk_map.add_marker(
             point, bridgeName, normYearString, yearOfConstructionString,
             humanErrorFactor, typeText, staticalDeterminacyFactor, ageText,
             conditionFactor, span, functionText, overpassFactor,

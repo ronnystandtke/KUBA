@@ -28,7 +28,9 @@ class InteractiveMap:
 
     def __init__(self, progress_bar: ProgressBar,
                  earthquake_zones: gpd.geodataframe.GeoDataFrame,
-                 precipitation: gpd.geodataframe.GeoDataFrame) -> None:
+                 precipitation: gpd.geodataframe.GeoDataFrame,
+                 marker_key: str,
+                 show_headings: bool) -> None:
         """Initialize the InteractiveMap with the known number of steps.
 
         Parameters
@@ -37,7 +39,12 @@ class InteractiveMap:
             The progress bar for showing the progress while loading the map
         earthquake_zones : geopandas.geodataframe.GeoDataFrame
             The earthquake zones
+        marker_key: str
+            The key that is used for creating the markers
         """
+
+        self.marker_key = marker_key
+        self.show_headings = show_headings
 
         progress_bar.update_progress(description=_('Creating base map'))
 
@@ -276,28 +283,24 @@ class InteractiveMap:
             The data frame with all the bridges we evaluated
         """
 
-        max_probability_of_collapse = (
-            bridges[_('Probability of collapse')].max())
+        max_value = bridges[self.marker_key].max()
 
-        # probability_colormap = linear.YlOrRd_04
-        # probability_colormap = linear.RdYlGn_10
-        probability_colormap = linear.Spectral_11
-        probability_colormap = probability_colormap.scale(
-            0, max_probability_of_collapse)
+        # values_colormap = linear.YlOrRd_04
+        # values_colormap = linear.RdYlGn_10
+        values_colormap = linear.Spectral_11
+        values_colormap = values_colormap.scale(0, max_value)
         for i in range(0, len(self.markers)):
-            probability = bridges[_('Probability of collapse')][i]
-            probabilityColor = probability_colormap(
-                max_probability_of_collapse - probability)
+            value = bridges[self.marker_key][i]
+            value_color = values_colormap(max_value - value)
             marker = self.markers[i]
-            marker.probability = probability
-            marker.radius = 5 + round(
-                (10 * probability) / max_probability_of_collapse)
-            marker.color = probabilityColor
-            marker.fill_color = probabilityColor
+            marker.value = value
+            marker.radius = 5 + round((10 * value) / max_value)
+            marker.color = value_color
+            marker.fill_color = value_color
 
-        # sort list by probability, so that the bridges with the highest
-        # probability of collapse are painted at the top
-        self.markers.sort(key=lambda marker: marker.probability)
+        # sort list by value, so that the bridges with the highest
+        # value are painted at the top
+        self.markers.sort(key=lambda marker: marker.value)
 
         # update layer with clustered markers
         self.__remove_layer(self.clustered_markers)
@@ -311,8 +314,11 @@ class InteractiveMap:
         self.map.add(self.single_markers)
 
     def display(self):
-        display(HTML("<hr><div style='text-align: center;'><h1>" +
-                     _("Interactive map") + "</h1></div>"))
+        if self.show_headings:
+            display(HTML("<hr><div style='text-align: center;'><h1>" +
+                         _("Interactive maps") + "</h1></div>"))
+        display(HTML("<hr><div style='text-align: center;'><h2>" +
+                     self.marker_key + "</h2></div>"))
         display(self.map)
 
     def toggle_marker_layers(self):
