@@ -236,6 +236,6 @@ class Plots:
         plt.show()
 
         # TODO:
-        #    - Normierte Schadensanteile (normiert auf den Wiederbeschaffungswert der Brücke, Beispiel anbei)
+        #    - erst einmal aussen vor lassen: Normierte Schadensanteile (normiert auf den Wiederbeschaffungswert der Brücke, Beispiel anbei)
         #    - Bild: 3D: x-Achse Versagenswahrscheinlichkeit, y-Achse Schadensumfang, z-Achse: Risiko oder Zustandsklasse, Farbcodierung: Risiko oder Zustandsklasse
         #    - Bild: 3D: x-Achse Versagenswahrscheinlichkeit (Spannweite), y-Achse Schadensumfang (Spannweite), z-Achse: Risiko (Spannweite)

@@ -451,19 +451,16 @@ class KUBA:
             else:
                 maintenanceAcceptanceDate = None
 
-        # "N20" could be mapped to "A20" or "H 20"
-        #       decision: "N20" will always be mapped to "A20"
         # TODO:
-        #   - mapping is not from sheet "Alle Brücken mit Zusatzinfos"???
-        #       - not found in document "Bauwerksdaten aus KUBA":
+        #   - mapping is not from sheet "Alle Brücken mit Zusatzinfos", there
+        #     are mappings not found in document "Bauwerksdaten aus KUBA":
         #           - "N=2 CHS"
         #           - "6 Delémont - Biel -"
-        #   - still missing in Dirks table:
-        #       - "N13+ e N13-" (French)
-        #       - "N01a" (lower case a)
-        #   - missing data in Bulletin:
-        #       - whenever a month is missing, e.g. "H 17" or "H 18"
-        #       - sometimes completely empty, e.g. "A 1R"
+        #   - we calculate the mean value over all months by ourselves because
+        #     whenever a month is missing there is no yearly average value:
+        #       - a month is missing e.g. in "H 17" or "H 18"
+        #       - sometimes there is no data at all e.g. "A 1R"
+        # TODO: "A 21" is not in the Bulletin database!
         # ATTENTION!
         #   - there are non-breaking spaces in the KUBA database keys
         #   - they might not be visible in your editor but they are important
@@ -482,7 +479,7 @@ class KUBA:
             "N1A": "A 1a", "N01A": "A 1a", "N01a": "A 1a",
             "N1H": "A 1H",
             "N1R": "A 1R",
-            "N02": "A 2", "N02 BAL": "A 2", "N=2 CHS": "A 2", "N02 FA": "A 2",
+            "N02": "A 2", "N02 BAL": "A 2", "N=2 CHS": "A 2", "N02 FA": "A 2",
             "N02 LUN": "A 2", "N02 LUS": "A 2", "N02 RI": "A 2", "N02P": "A 2",
             "N20": "A 20",
             "A21": "A 21", "A21 Martigny-Gd St B": "A 21",
@@ -510,9 +507,17 @@ class KUBA:
         traffic_axis = traffic_mapping.get(kuba_axis, "")
 
         if traffic_axis:
-            aadt = self.df_traffic_data[
-                (self.df_traffic_data[Labels.TRAFFIC_AXIS_LABEL] ==
-                 traffic_axis)][Labels.TRAFFIC_AADT_LABEL].mean()
+            # TODO: We have two options to caclulate the mean value:
+            #   - .mean().mean(): the mean value of mean values
+            #   - .stack().mean(): the mean value of all values
+            #   What is the "better" variant?
+            dtv_lines = self.df_traffic_data[(self.df_traffic_data[
+                Labels.TRAFFIC_AXIS_LABEL] == traffic_axis)]
+            start_label = Labels.TRAFFIC_January_LABEL
+            stop_label = Labels.TRAFFIC_December_LABEL
+            # we use "axis=1" to first calculate the mean value of a certain
+            # measuring point
+            aadt = dtv_lines.loc[:, start_label:stop_label].mean(axis=1).mean()
 
             if math.isnan(aadt):
                 # no useful data found in Bulletin
@@ -526,23 +531,15 @@ class KUBA:
                 #       "Durchschnittlicher Werktagesverkehr"
                 #       "Schwerverkehr (Klassen 1, 8, 9, 10)"
                 #  is 4 lines below the line with the "DVT" value
-                dwv_sv_offset = 4
-                axis_indices = self.df_traffic_data.index[self.df_traffic_data[
-                    Labels.TRAFFIC_AXIS_LABEL].notna()]
-                heavy_duty_list = []
-                for axis_index in axis_indices:
-
-                    if ((axis_index + dwv_sv_offset in
-                        self.df_traffic_data.index) and
-                        (pd.notna(self.df_traffic_data.at[
-                            axis_index + dwv_sv_offset,
-                            Labels.TRAFFIC_AADT_LABEL]))):
-
-                        heavy_duty_count = self.df_traffic_data.at[
-                            axis_index + 1, Labels.TRAFFIC_AADT_LABEL]
-                        heavy_duty_list.append(heavy_duty_count)
-
-                heavy_duty_mean = sum(heavy_duty_list) / len(heavy_duty_list)
+                heavy_duty_offset = 4
+                aadt_indices = self.df_traffic_data[(self.df_traffic_data[
+                    Labels.TRAFFIC_AXIS_LABEL] == traffic_axis)].index
+                heavy_duty_indices = aadt_indices + heavy_duty_offset
+                heavy_duty_lines = self.df_traffic_data.iloc[
+                    heavy_duty_indices]
+                # TODO: .mean().mean() OK?
+                heavy_duty_mean = heavy_duty_lines.loc[
+                    :, start_label:stop_label].mean(axis=1).mean()
 
                 # The average values are very wide spread!
                 # e.g. for "A 1", the minimum is 20'481, the maximum is 145'759
@@ -550,8 +547,9 @@ class KUBA:
                 percentage_of_trucks = (heavy_duty_mean * 100) / aadt
                 percentage_of_cars = 1 - percentage_of_trucks
 
-                # convert aadt from float to int (the values are large enough)
-                aadt = int(aadt)
+                # convert aadt from float to the next rounded int
+                # (the values are large enough)
+                aadt = round(aadt)
 
         else:
             aadt = 5000
@@ -576,6 +574,8 @@ class KUBA:
         damage_costs = (replacement_costs + victim_costs +
                         vehicle_lost_costs + downtime_costs)
 
+        axis_string = str(kuba_axis) + " → " + str(traffic_axis)
+
         # add new marker to interactive map
         self.interactive_map.add_marker(
             point, bridgeName, normYearString, yearOfConstructionString,
@@ -584,8 +584,8 @@ class KUBA:
             staticCalculationFactor, bridgeTypeFactor, buildingMaterialString,
             materialFactor, robustnessFactor, zoneName, earthQuakeZoneFactor,
             maintenanceAcceptanceDateString, probabilityOfCollapse, length,
-            width, replacement_costs, victim_costs, aadt, vehicle_lost_costs,
-            downtime_costs, damage_costs)
+            width, replacement_costs, victim_costs, axis_string, aadt,
+            vehicle_lost_costs, downtime_costs, damage_costs)
 
         # add dataframe to interactive table
         self.interactive_table.add_entry(
@@ -596,8 +596,8 @@ class KUBA:
             buildingMaterialString, materialFactor, robustnessFactor, zoneName,
             earthQuakeZoneFactor, maintenanceAcceptanceDateString,
             probabilityOfCollapse, length, width, replacement_costs,
-            victim_costs, aadt, vehicle_lost_costs, downtime_costs,
-            damage_costs)
+            victim_costs, axis_string, aadt, vehicle_lost_costs,
+            downtime_costs, damage_costs)
 
         # add data to plots
         self.plots.fillData(i, conditionClass, probabilityOfCollapse, age,

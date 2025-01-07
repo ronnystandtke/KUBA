@@ -137,6 +137,7 @@ class InteractiveMap:
                    width: int,
                    replacement_costs: int,
                    victim_costs: int,
+                   axis: str,
                    aadt: int,
                    vehicle_lost_costs: int,
                    downtime_costs: int,
@@ -196,6 +197,8 @@ class InteractiveMap:
             (construction costs)
         victim_costs: int
             The costs of fatalities and injuries
+        axis: str
+            The traffic axis on which the bridge is located
         aadt: int
             The average annual daily traffic
         vehicle_lost_costs: int
@@ -220,16 +223,16 @@ class InteractiveMap:
             '</b>: ' + age + '<br><b><i>P<sub>f</sub>&times;K<sub>4</sub>: ' +
             _('Condition factor') + '</b>: ' + str(condition_factor) +
             '</i><br><b>' + _('Span') + '</b>: ' +
-            self.__get_dimension_string(span) +
-            '<br><b>' + _('Function') + '</b>: ' + bridge_function +
-            '<br><b><i>K<sub>6</sub>: ' + _('Overpass factor') + '</b>: ' +
-            str(overpass_factor) + '</i><br><b><i>K<sub>7</sub>: ' +
-            _('Static calculation factor') + '</b>: ' +
-            str(static_calculation_factor) + '</i><br><b><i>K<sub>8</sub>: ' +
-            _('Bridge type factor') + '</b>: ' + str(bridge_type_factor) +
-            '</i><br><b>' + _('Building material') + '</b>: ' +
-            building_material + '<br><b><i>K<sub>9</sub>: ' +
-            _('Building material factor') + '</b>: ' + str(material_factor) +
+            self.__get_dimension_string(span) + '<br><b>' + _('Function') +
+            '</b>: ' + bridge_function + '<br><b><i>K<sub>6</sub>: ' +
+            _('Overpass factor') + '</b>: ' + str(overpass_factor) +
+            '</i><br><b><i>K<sub>7</sub>: ' + _('Static calculation factor') +
+            '</b>: ' + str(static_calculation_factor) +
+            '</i><br><b><i>K<sub>8</sub>: ' + _('Bridge type factor') +
+            '</b>: ' + str(bridge_type_factor) + '</i><br><b>' +
+            _('Building material') + '</b>: ' + building_material +
+            '<br><b><i>K<sub>9</sub>: ' + _('Building material factor') +
+            '</b>: ' + str(material_factor) +
             '</i><br><b><i>K<sub>11</sub>: ' + _('Robustness factor') +
             '</b>: ' + str(robustness_factor) + '</i><br><b>' +
             _('Earthquake zone') + '</b>: ' + earthquake_zone_name +
@@ -244,10 +247,10 @@ class InteractiveMap:
             _('Replacement costs') + '</b>: ' +
             format_currency(replacement_costs, 'CHF') + '<br><b>' +
             _('Victim costs') + '</b>: ' +
-            format_currency(victim_costs, 'CHF') + '<br><b>' +
-            _('Average annual daily traffic') + '</b>: ' + str(aadt) +
-            '<br><b>' + _('Vehicle lost costs') + '</b>: ' +
-            format_currency(vehicle_lost_costs, 'CHF') + '<br><b>' +
+            format_currency(victim_costs, 'CHF') + '<br><b>' + _('Axis') +
+            '</b>: ' + axis + '<br><b>' + _('Average annual daily traffic') +
+            '</b>: ' + str(aadt) + '<br><b>' + _('Vehicle lost costs') +
+            '</b>: ' + format_currency(vehicle_lost_costs, 'CHF') + '<br><b>' +
             _('Downtime costs') + '</b>: ' +
             format_currency(downtime_costs, 'CHF') + '<br><b>' +
             _('Damage costs') + '</b>: ' +

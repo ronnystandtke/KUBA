@@ -22,4 +22,6 @@ EARTHQUAKE_CHECK_LABEL = (
     'Erdbebenbeurteilung\xa0Erfüllung\xa0Erdbebenbeurteilung')
 AXIS_LABEL = 'Achse'
 TRAFFIC_AXIS_LABEL = 'Unnamed: 4'
+TRAFFIC_January_LABEL = 'Unnamed: 6'
+TRAFFIC_December_LABEL = 'Unnamed: 17'
 TRAFFIC_AADT_LABEL = 'Unnamed: 18'

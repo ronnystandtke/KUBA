@@ -47,6 +47,7 @@ class InteractiveTable:
                   width: int,
                   replacement_costs: int,
                   victim_costs: int,
+                  axis: str,
                   aadt: int,
                   vehicle_lost_costs: int,
                   downtime_costs: int,
@@ -106,6 +107,8 @@ class InteractiveTable:
             (construction costs)
         victim_costs: int
             The costs of fatalities and injuries
+        axis: str
+            The traffic axis on which the bridge is located
         aadt: int
             The average annual daily traffic
         vehicle_lost_costs: int
@@ -144,6 +147,7 @@ class InteractiveTable:
             _('Width'): [width],
             _('Replacement costs'): [replacement_costs],
             _('Victim costs'): [victim_costs],
+            _('Axis'): [axis],
             _('Average annual daily traffic'): [aadt],
             _('Vehicle lost costs'): [vehicle_lost_costs],
             _('Downtime costs'): [downtime_costs],
