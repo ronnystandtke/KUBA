@@ -120,7 +120,7 @@ class Plots:
         plt.yticks([1, 2, 3, 4])
         # the circles became quite small,
         # therefore we multiply the values by this factor
-        resize = 50
+        resize = 750
         ax.scatter(
             self.ageConditionPocScatter[self.acpScatterColumns[0]],
             self.ageConditionPocScatter[self.acpScatterColumns[1]],
