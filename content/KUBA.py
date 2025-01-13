@@ -16,7 +16,8 @@ from shapely.geometry import Point
 import Labels
 from DamageParameters import DamageParameters
 from InteractiveMap import InteractiveMap
-from InteractiveTable import InteractiveTable
+from InteractiveBridgesTable import InteractiveBridgesTable
+from InteractiveSupportStructuresTable import InteractiveSupportStructuresTable
 from Plots import Plots
 from ProgressBar import ProgressBar
 from Risk import Risk
@@ -28,7 +29,7 @@ simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 gettext.bindtextdomain('kuba', 'translations')
 gettext.textdomain('kuba')
 
-earthquakeZonesDictFileName = "data/earthquakezones.json"
+earthquake_zonesDictFileName = "data/earthquakezones.json"
 
 
 @cache
@@ -53,7 +54,7 @@ class KUBA:
 
     bridges = None
     osmBridges = None
-    earthquakeZones = None
+    earthquake_zones = None
     markerCluster = None
     markerGroup = None
 
@@ -135,6 +136,11 @@ class KUBA:
             open('data/Bauwerksdaten aus KUBA.xlsx', 'rb'),
             sheet_name='BW letzte Erhaltungsmassnahme')
 
+        self.df_support_structures = pd.read_excel(
+            open('data/Abfrage alle Infrastrukturobj ' +
+                 'Zusatzinfos inkl Nutzung.xlsx', 'rb'),
+            sheet_name='2024-04-18 aus KUBA+Funktion')
+
         # load traffic data
         self.progress_bar.update_progress(
             description=_('Loading traffic data'))
@@ -143,11 +149,11 @@ class KUBA:
             sheet_name='DTV mit Klassen')
 
         # load pre-calculated earthquake zone data
-        self.earthquakeZonesDict = {}
+        self.earthquake_zonesDict = {}
         try:
-            if os.path.isfile(earthquakeZonesDictFileName):
-                with open(earthquakeZonesDictFileName) as file:
-                    self.earthquakeZonesDict = json.load(file)
+            if os.path.isfile(earthquake_zonesDictFileName):
+                with open(earthquake_zonesDictFileName) as file:
+                    self.earthquake_zonesDict = json.load(file)
         except JSONDecodeError:
             # This only happens when we empty earthquakezones.json to enforce a
             # recalculation.
@@ -182,27 +188,36 @@ class KUBA:
         #     'Bauwerke mitErdbebenüberprüfung':", bridgeNotInBuildings)
 
         # code to get the correct labels
-        # print(self.dfBuildings.columns.values)
+        # print(self.df_support_structures.columns.values)
 
         # convert to GeoDataFrame
         self.progress_bar.update_progress(
             description=_('Converting points to GeoDataFrames'))
-        points = []
+        bridge_points = []
         for i in dfBridges.index:
             x = dfBridges[Labels.X_LABEL][i]
             y = dfBridges[Labels.Y_LABEL][i]
-            points.append(Point(x, y))
+            bridge_points.append(Point(x, y))
         self.bridges = gpd.GeoDataFrame(
-            dfBridges, geometry=points, crs='EPSG:2056')
+            dfBridges, geometry=bridge_points, crs='EPSG:2056')
+
+        support_structure_points = []
+        for i in self.df_support_structures.index:
+            x = self.df_support_structures[Labels.SUPPORT_X_LABEL][i]
+            y = self.df_support_structures[Labels.SUPPORT_Y_LABEL][i]
+            support_structure_points.append(Point(x, y))
+        self.support_structures = gpd.GeoDataFrame(
+            self.df_support_structures, geometry=support_structure_points,
+            crs='EPSG:2056')
 
         self.progress_bar.update_progress(
             description=_('Loading earthquake zones'))
-        self.earthquakeZones = gpd.read_file(
+        self.earthquake_zones = gpd.read_file(
             "zip://data/erdbebenzonen.zip!Erdbebenzonen")
 
         self.progress_bar.update_progress(
             description=_('Loading precipitation zones'))
-        self.precipitation = gpd.read_file(
+        self.precipitation_zones = gpd.read_file(
             "zip://data/niederschlag.zip!niederschlag")
 
         # Leaflet always works in EPSG:4326
@@ -210,16 +225,32 @@ class KUBA:
         self.progress_bar.update_progress(
             description=_('Converting coordinate reference systems'))
         self.bridges.to_crs('EPSG:4326', inplace=True)
-        self.earthquakeZones.to_crs(crs="EPSG:4326", inplace=True)
-        self.precipitation.to_crs(crs="EPSG:4326", inplace=True)
+        self.earthquake_zones.to_crs(crs="EPSG:4326", inplace=True)
+        self.precipitation_zones.to_crs(crs="EPSG:4326", inplace=True)
+
+        earthquake_zones_choropleth = (
+            InteractiveMap.create_earthquake_zones_choropleth(
+                self.earthquake_zones))
+        precipitation_zones_choropleth = (
+            InteractiveMap.create_precipitation_zones_choropleth(
+                self.precipitation_zones))
 
         self.interactive_poc_map = InteractiveMap(
-            self.progress_bar, self.earthquakeZones, self.precipitation,
-            _('Probability of collapse'), True)
+            self.progress_bar, earthquake_zones_choropleth,
+            precipitation_zones_choropleth, _('Probability of collapse'), True)
+
         self.interactive_risk_map = InteractiveMap(
-            self.progress_bar, self.earthquakeZones, self.precipitation,
-            _('Risk'), False)
-        self.interactive_table = InteractiveTable()
+            self.progress_bar, earthquake_zones_choropleth,
+            precipitation_zones_choropleth, _('Risk'), False)
+
+        self.interactive_support_structure_map = InteractiveMap(
+            self.progress_bar, earthquake_zones_choropleth,
+            precipitation_zones_choropleth, _('Risk'), False)
+
+        self.interactive_bridges_table = InteractiveBridgesTable()
+        self.interactive_support_structures_table = (
+            InteractiveSupportStructuresTable())
+
         self.plots = Plots()
 
         initialWidthStyle = {'description_width': 'initial'}
@@ -266,6 +297,7 @@ class KUBA:
         #     display(self.loadButton)
 
         self.loadBridges()
+        self.load_support_structures()
 
     def updateReadout(self):
         self.sliderReadout.value = '{} / {}'.format(
@@ -273,7 +305,7 @@ class KUBA:
 
     def loadBridges(self):
 
-        self.newDict = len(self.earthquakeZonesDict) == 0
+        self.newDict = len(self.earthquake_zonesDict) == 0
 
         try:
             self.bridgesSlider.disabled = True
@@ -291,20 +323,20 @@ class KUBA:
             # final update of the progress bar
             self.__updateProgressBar()
 
-            # save earthquakeZonesDict if just created
+            # save earthquake_zonesDict if just created
             if self.newDict:
-                with open(earthquakeZonesDictFileName, 'w') as file:
-                    json.dump(self.earthquakeZonesDict, file, indent=4)
+                with open(earthquake_zonesDictFileName, 'w') as file:
+                    json.dump(self.earthquake_zonesDict, file, indent=4)
 
             self.interactive_poc_map.add_marker_layer(
-                self.interactive_table.data_frame)
+                self.interactive_bridges_table.data_frame)
             self.interactive_risk_map.add_marker_layer(
-                self.interactive_table.data_frame)
+                self.interactive_bridges_table.data_frame)
 
             with self.output:
                 self.interactive_poc_map.display()
                 self.interactive_risk_map.display()
-                self.interactive_table.display()
+                self.interactive_bridges_table.display()
                 self.plots.display()
 
             self.bridgesSlider.disabled = False
@@ -315,6 +347,10 @@ class KUBA:
             print(traceback.format_exc())
             with self.output:
                 print(traceback.format_exc())
+
+    def load_support_structures(self):
+        for i in range(0, len(self.df_support_structures)):
+            pass
 
     def __load_bridge_details(self, i):
         point = self.bridges['geometry'][i]
@@ -397,8 +433,8 @@ class KUBA:
 
         # K_13
         if self.newDict:
-            zone = self.earthquakeZones[
-                self.earthquakeZones.contains(point)]['ZONE']
+            zone = self.earthquake_zones[
+                self.earthquake_zones.contains(point)]['ZONE']
             if zone.empty:
                 # The earthquake zones don't cover bodies of water.
                 # Therefore we have some coordinates of bridges
@@ -415,17 +451,17 @@ class KUBA:
                 circle.geometry = circle.buffer(1000)
                 # map back to the Leaflet default of EPSG:4326
                 circle = circle.to_crs('EPSG:4326')
-                intersections = self.earthquakeZones.intersects(
+                intersections = self.earthquake_zones.intersects(
                     circle.iloc[0, 0])
-                zone = self.earthquakeZones[intersections]['ZONE']
+                zone = self.earthquake_zones[intersections]['ZONE']
             if zone.empty:
                 zoneName = _("none")
             else:
                 zoneName = zone.iloc[0]
-            self.earthquakeZonesDict[
+            self.earthquake_zonesDict[
                 str(point.x) + ' ' + str(point.y)] = zoneName
         else:
-            zoneName = self.earthquakeZonesDict[
+            zoneName = self.earthquake_zonesDict[
                 str(point.x) + ' ' + str(point.y)]
 
         earthQuakeCheckEntry = self.dfEarthquakeCheck[
@@ -585,7 +621,7 @@ class KUBA:
         axis_string = str(kuba_axis) + " → " + str(traffic_axis)
 
         # add new marker to interactive maps
-        popup = InteractiveMap.create_popup(
+        bridge_popup = InteractiveMap.create_bridge_popup(
             bridgeName, normYearString, yearOfConstructionString,
             humanErrorFactor, typeText, staticalDeterminacyFactor, ageText,
             conditionFactor, span, functionText, overpassFactor,
@@ -594,11 +630,11 @@ class KUBA:
             maintenanceAcceptanceDateString, probabilityOfCollapse, length,
             width, replacement_costs, victim_costs, axis_string, aadt,
             vehicle_lost_costs, downtime_costs, damage_costs, risk)
-        self.interactive_poc_map.add_marker(point, popup)
-        self.interactive_risk_map.add_marker(point, popup)
+        self.interactive_poc_map.add_marker(point, bridge_popup)
+        self.interactive_risk_map.add_marker(point, bridge_popup)
 
         # add dataframe to interactive table
-        self.interactive_table.add_entry(
+        self.interactive_bridges_table.add_entry(
             bridgeName, normYearString, yearOfConstructionString,
             humanErrorFactor, typeText, staticalDeterminacyFactor,
             conditionClass, ageText, conditionFactor, functionText, span,

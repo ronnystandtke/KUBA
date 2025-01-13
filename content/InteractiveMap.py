@@ -27,8 +27,8 @@ class InteractiveMap:
     """
 
     def __init__(self, progress_bar: ProgressBar,
-                 earthquake_zones: gpd.geodataframe.GeoDataFrame,
-                 precipitation: gpd.geodataframe.GeoDataFrame,
+                 earthquake_zones_choropleth: Choropleth,
+                 precipitation_zones_choropleth: Choropleth,
                  marker_key: str,
                  show_headings: bool) -> None:
         """Initialize the InteractiveMap with the known number of steps.
@@ -66,35 +66,9 @@ class InteractiveMap:
             zoom=8)
         self.map.layout.height = '1200px'
 
-        # add layer for earthquake zones (as a choropleth)
-        earthquake_zones_choropleth = Choropleth(
-            geo_data=json.loads(earthquake_zones.to_json()),
-            choro_data={'0': 0, '1': 1, '2': 2, '3': 3, '4': 4},
-            colormap=linear.YlOrRd_04,
-            border_color='black',
-            style={'fillOpacity': 0.5, 'dashArray': '5, 5'},
-            name=_('Earthquake zones'))
+        # add choropleths
         self.map.add(earthquake_zones_choropleth)
-
-        # add layer for precipitation zones
-        # replace NaN values with '0'
-        precipitation.loc[precipitation['DN'].isna(), 'DN'] = 0
-        # we have to simplify the geometry, otherwise we get a MemoryError
-        precipitation['geometry'] = precipitation['geometry'].simplify(
-            tolerance=0.0001)
-        precipitation_geo_data = json.loads(precipitation.to_json())
-        # create dictionary of "id":"DN" as choro_data
-        precipitation_choro_data = {
-            str(feature["id"]): feature["properties"]["DN"] for feature in (
-                precipitation_geo_data["features"])}
-        precipitation_choropleth = Choropleth(
-            geo_data=precipitation_geo_data,
-            choro_data=precipitation_choro_data,
-            colormap=linear.Spectral_10,
-            border_color='black',
-            style={'fillOpacity': 0.5, 'dashArray': '5, 5'},
-            name=_('Precipitation zones'))
-        self.map.add(precipitation_choropleth)
+        self.map.add(precipitation_zones_choropleth)
 
         # add control to enable or disable the
         # base, earthquake and precipitation layers
@@ -119,37 +93,38 @@ class InteractiveMap:
             widget=self.cluster_button, position='topleft'))
 
     @staticmethod
-    def create_popup(bridge_name: str,
-                     norm_year: str,
-                     year_of_construction: str,
-                     human_error_factor: int,
-                     bridge_type: str,
-                     statical_determinacy_factor: int,
-                     age: str,
-                     condition_factor: int,
-                     span: int,
-                     bridge_function: str,
-                     overpass_factor: int,
-                     static_calculation_factor: int,
-                     bridge_type_factor: int,
-                     building_material: str,
-                     material_factor: int,
-                     robustness_factor: int,
-                     earthquake_zone_name: str,
-                     earthquake_zone_factor: int,
-                     maintenance_acceptance_date: str,
-                     probability_of_collapse: float,
-                     length: int,
-                     width: int,
-                     replacement_costs: int,
-                     victim_costs: int,
-                     axis: str,
-                     aadt: int,
-                     vehicle_lost_costs: int,
-                     downtime_costs: int,
-                     damage_costs: int,
-                     risk: float) -> HTML:
-        """Creates the popup for a marker (an HTML widget)
+    def create_bridge_popup(
+            bridge_name: str,
+            norm_year: str,
+            year_of_construction: str,
+            human_error_factor: int,
+            bridge_type: str,
+            statical_determinacy_factor: int,
+            age: str,
+            condition_factor: int,
+            span: int,
+            bridge_function: str,
+            overpass_factor: int,
+            static_calculation_factor: int,
+            bridge_type_factor: int,
+            building_material: str,
+            material_factor: int,
+            robustness_factor: int,
+            earthquake_zone_name: str,
+            earthquake_zone_factor: int,
+            maintenance_acceptance_date: str,
+            probability_of_collapse: float,
+            length: int,
+            width: int,
+            replacement_costs: int,
+            victim_costs: int,
+            axis: str,
+            aadt: int,
+            vehicle_lost_costs: int,
+            downtime_costs: int,
+            damage_costs: int,
+            risk: float) -> HTML:
+        """Creates a popup for a bridge marker (an HTML widget)
 
         Parameters
         ----------
@@ -269,6 +244,55 @@ class InteractiveMap:
 
         return widget
 
+    @staticmethod
+    def create_support_structure_popup(
+            support_structure_name: str) -> HTML:
+        """Creates a popup for a support structure marker (an HTML widget)
+
+        Parameters
+        ----------
+        support_structure_name: str
+            The descriptive name of the support structure
+        """
+        widget = widgets.HTML()
+
+        widget.value = (
+            '<b>' + _('Name') + '</b>: ' + support_structure_name)
+
+        return widget
+
+    @staticmethod
+    def create_earthquake_zones_choropleth(
+            earthquake_zones: gpd.geodataframe.GeoDataFrame) -> Choropleth:
+        return Choropleth(
+            geo_data=json.loads(earthquake_zones.to_json()),
+            choro_data={'0': 0, '1': 1, '2': 2, '3': 3, '4': 4},
+            colormap=linear.YlOrRd_04,
+            border_color='black',
+            style={'fillOpacity': 0.5, 'dashArray': '5, 5'},
+            name=_('Earthquake zones'))
+
+    @staticmethod
+    def create_precipitation_zones_choropleth(
+            precipitation_zones: gpd.geodataframe.GeoDataFrame) -> Choropleth:
+        # replace NaN values with '0'
+        precipitation_zones.loc[precipitation_zones['DN'].isna(), 'DN'] = 0
+        # we have to simplify the geometry, otherwise we get a MemoryError
+        precipitation_zones['geometry'] = (
+            precipitation_zones['geometry'].simplify(tolerance=0.0001))
+        precipitation_geo_data = json.loads(precipitation_zones.to_json())
+        # create dictionary of "id":"DN" as choro_data
+        precipitation_choro_data = {
+            str(feature["id"]): feature["properties"]["DN"] for feature in (
+                precipitation_geo_data["features"])}
+        return Choropleth(
+            geo_data=precipitation_geo_data,
+            choro_data=precipitation_choro_data,
+            colormap=linear.Spectral_10,
+            border_color='black',
+            style={'fillOpacity': 0.5, 'dashArray': '5, 5'},
+            name=_('Precipitation zones'))
+
     def add_marker(self,
                    point: gpd.geodataframe.GeoDataFrame,
                    popup: HTML) -> None:
@@ -287,23 +311,23 @@ class InteractiveMap:
         circle_marker.popup = popup
         self.markers.append(circle_marker)
 
-    def add_marker_layer(self, bridges: pd.DataFrame) -> None:
+    def add_marker_layer(self, values: pd.DataFrame) -> None:
         """Adds the marker layer to the map.
 
         Parameters
         ----------
-        bridges : pandas.DataFrame
-            The data frame with all the bridges we evaluated
+        values : pandas.DataFrame
+            The data frame with all the values we evaluated
         """
 
-        max_value = bridges[self.marker_key].max()
+        max_value = values[self.marker_key].max()
 
         # values_colormap = linear.YlOrRd_04
         # values_colormap = linear.RdYlGn_10
         values_colormap = linear.Spectral_11
         values_colormap = values_colormap.scale(0, max_value)
         for i in range(0, len(self.markers)):
-            value = bridges[self.marker_key][i]
+            value = values[self.marker_key][i]
             value_color = values_colormap(max_value - value)
             marker = self.markers[i]
             marker.value = value
@@ -311,7 +335,7 @@ class InteractiveMap:
             marker.color = value_color
             marker.fill_color = value_color
 
-        # sort list by value, so that the bridges with the highest
+        # sort list by value, so that the markers with the highest
         # value are painted at the top
         self.markers.sort(key=lambda marker: marker.value)
 
@@ -335,7 +359,7 @@ class InteractiveMap:
         display(self.map)
 
     def toggle_marker_layers(self):
-        """Switches between the layers with clustered and Individual bridges.
+        """Switches between the layers with clustered and individual bridges.
         """
         if self.cluster_button.value:
             self.map.remove_layer(self.single_markers)

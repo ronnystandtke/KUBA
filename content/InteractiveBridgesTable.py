@@ -14,8 +14,8 @@ def cached_gettext(message):
 _ = cached_gettext
 
 
-class InteractiveTable:
-    """An interactive table for exploring the KUBA dataset.
+class InteractiveBridgesTable:
+    """An interactive table for exploring bridges of the KUBA dataset.
     """
 
     def __init__(self) -> None:

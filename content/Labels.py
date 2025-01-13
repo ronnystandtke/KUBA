@@ -25,3 +25,13 @@ TRAFFIC_AXIS_LABEL = 'Unnamed: 4'
 TRAFFIC_January_LABEL = 'Unnamed: 6'
 TRAFFIC_December_LABEL = 'Unnamed: 17'
 TRAFFIC_AADT_LABEL = 'Unnamed: 18'
+SUPPORT_NAME_LABEL = 'Name'
+SUPPORT_CONDITION_LABEL = 'Zustand'
+SUPPORT_X_LABEL = 'Infrastrukturobjekt\xa0Landeskoordinaten\xa0E\xa0[m]'
+SUPPORT_Y_LABEL = 'Infrastrukturobjekt\xa0Landeskoordinaten\xa0N\xa0[m]'
+SUPPORT_AREA_LABEL = 'Infrastrukturobjekt\xa0Fläche\xa0[m²]'
+SUPPORT_MAX_HEIGHT_LABEL = (
+    'Infrastrukturobjekt\xa0Max.\xa0Infrastrukturobjekthöhe\xa0[m]')
+SUPPORT_LENGTH_LABEL = 'Infrastrukturobjekt\xa0Länge\xa0[m]'
+SUPPORT_CONSEQUENCE_OF_COLLAPSE = (
+    'Einsturzkonsequenz\xa0-\xa0Stützmauern\xa0Text')
