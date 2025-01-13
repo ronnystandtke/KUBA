@@ -2,6 +2,7 @@ import gettext
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 import pandas as pd
+import plotly.express as px
 from functools import cache
 from IPython.display import display, HTML
 
@@ -48,7 +49,8 @@ class Plots:
 
         self.aadtRiskScatterColumns = [
             _('Average annual daily traffic'), _('Risk')]
-        self.aadtRiskScatter = pd.DataFrame(columns=self.aadtRiskScatterColumns)
+        self.aadtRiskScatter = pd.DataFrame(
+            columns=self.aadtRiskScatterColumns)
 
         self.spanRiskScatterColumns = [_('Span'), _('Risk')]
         self.spanRiskScatter = pd.DataFrame(
@@ -67,9 +69,22 @@ class Plots:
         self.materialRiskBox = pd.DataFrame(
             columns=self.materialRiskBoxColumns)
 
+        self.poc_cost_risk_columns = [
+            _('Probability of collapse'), _('Damage costs'), _('Risk')]
+        self.poc_cost_risk_dataframe = pd.DataFrame(
+            columns=self.poc_cost_risk_columns)
+
+        self.standardized_damage_columns = [
+            _('Vehicle lost costs'), _('Replacement costs'),
+            _('Downtime costs'), _('Victim costs')]
+        self.standardized_damage_dataframe = pd.DataFrame(
+            columns=self.standardized_damage_columns)
+
     def fillData(self, index, conditionClass, probabilityOfCollapse, age, span,
                  buildingMaterialString, yearOfConstruction,
-                 maintenanceAcceptanceDate, aadt, risk):
+                 maintenanceAcceptanceDate, aadt, risk, damage_costs,
+                 vehicle_lost_costs, replacement_costs, downtime_costs,
+                 victim_costs):
 
         if conditionClass is not None and conditionClass < 9:
 
@@ -139,6 +154,18 @@ class Plots:
             columns=self.materialRiskBoxColumns)
         self.materialRiskBox = self.__concat_dataframe(
             self.materialRiskBox, newDataFrame)
+
+        newDataFrame = pd.DataFrame(
+            [[vehicle_lost_costs, replacement_costs, downtime_costs,
+              victim_costs]], columns=self.standardized_damage_columns)
+        self.standardized_damage_dataframe = self.__concat_dataframe(
+            self.standardized_damage_dataframe, newDataFrame)
+
+        newDataFrame = pd.DataFrame(
+            [[probabilityOfCollapse, damage_costs, risk]],
+            columns=self.poc_cost_risk_columns)
+        self.poc_cost_risk_dataframe = self.__concat_dataframe(
+            self.poc_cost_risk_dataframe, newDataFrame)
 
     def display(self):
 
@@ -240,6 +267,37 @@ class Plots:
         # box plot of materials vs. risk
         self.__add_material_box_plot(
             self.materialRiskBox, self.materialRiskBoxColumns)
+
+        # standardized damage
+        df = self.standardized_damage_dataframe
+        replacement_sum = df[_('Replacement costs')].sum()
+        standardized_damages = [
+            df[_('Vehicle lost costs')].sum() / replacement_sum,
+            1,  # TODO: isn't this column redundant? It is always just "1"...
+            df[_('Downtime costs')].sum() / replacement_sum,
+            df[_('Victim costs')].sum() / replacement_sum]
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.bar(self.standardized_damage_columns,
+               standardized_damages, width=0.5)
+        ax.set_ylabel(_('Ratio of damage costs to replacement costs'))
+        plt.show()
+
+        # 3D plot:
+        #   - x: probability of collapse
+        #   - y: damage costs
+        #   - z: risk
+        fig = px.scatter_3d(
+            self.poc_cost_risk_dataframe,
+            x=self.poc_cost_risk_columns[0],
+            y=self.poc_cost_risk_columns[1],
+            z=self.poc_cost_risk_columns[2],
+            height=1000,
+            size=[1] * len(self.poc_cost_risk_dataframe),
+            size_max=10,
+            color=self.poc_cost_risk_columns[2],
+            color_continuous_scale='Viridis')
+        html_str = fig.to_html()
+        display(HTML(html_str))
 
     def __concat_dataframe(self, dataFrame, newDataFrame):
         return pd.concat(
