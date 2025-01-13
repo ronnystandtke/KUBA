@@ -513,7 +513,7 @@ class KUBA:
         traffic_axis = self.traffic_mapping.get(kuba_axis, "")
 
         if traffic_axis:
-            # TODO: We have two options to caclulate the mean value:
+            # We have two options to caclulate the mean value:
             #   - .mean().mean(): the mean value of mean values
             #   - .stack().mean(): the mean value of all values
             #   What is the "better" variant?
@@ -543,7 +543,7 @@ class KUBA:
                 heavy_duty_indices = aadt_indices + heavy_duty_offset
                 heavy_duty_lines = self.df_traffic_data.iloc[
                     heavy_duty_indices]
-                # TODO: .mean().mean() OK?
+                # here we use .mean().mean() again
                 heavy_duty_mean = heavy_duty_lines.loc[
                     :, start_label:stop_label].mean(axis=1).mean()
 
@@ -585,8 +585,8 @@ class KUBA:
         axis_string = str(kuba_axis) + " → " + str(traffic_axis)
 
         # add new marker to interactive maps
-        self.interactive_poc_map.add_marker(
-            point, bridgeName, normYearString, yearOfConstructionString,
+        popup = InteractiveMap.create_popup(
+            bridgeName, normYearString, yearOfConstructionString,
             humanErrorFactor, typeText, staticalDeterminacyFactor, ageText,
             conditionFactor, span, functionText, overpassFactor,
             staticCalculationFactor, bridgeTypeFactor, buildingMaterialString,
@@ -594,16 +594,8 @@ class KUBA:
             maintenanceAcceptanceDateString, probabilityOfCollapse, length,
             width, replacement_costs, victim_costs, axis_string, aadt,
             vehicle_lost_costs, downtime_costs, damage_costs, risk)
-
-        self.interactive_risk_map.add_marker(
-            point, bridgeName, normYearString, yearOfConstructionString,
-            humanErrorFactor, typeText, staticalDeterminacyFactor, ageText,
-            conditionFactor, span, functionText, overpassFactor,
-            staticCalculationFactor, bridgeTypeFactor, buildingMaterialString,
-            materialFactor, robustnessFactor, zoneName, earthQuakeZoneFactor,
-            maintenanceAcceptanceDateString, probabilityOfCollapse, length,
-            width, replacement_costs, victim_costs, axis_string, aadt,
-            vehicle_lost_costs, downtime_costs, damage_costs, risk)
+        self.interactive_poc_map.add_marker(point, popup)
+        self.interactive_risk_map.add_marker(point, popup)
 
         # add dataframe to interactive table
         self.interactive_table.add_entry(

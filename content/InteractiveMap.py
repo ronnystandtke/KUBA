@@ -118,44 +118,41 @@ class InteractiveMap:
         self.map.add_control(WidgetControl(
             widget=self.cluster_button, position='topleft'))
 
-    def add_marker(self,
-                   point: gpd.geodataframe.GeoDataFrame,
-                   bridge_name: str,
-                   norm_year: str,
-                   year_of_construction: str,
-                   human_error_factor: int,
-                   bridge_type: str,
-                   statical_determinacy_factor: int,
-                   age: str,
-                   condition_factor: int,
-                   span: int,
-                   bridge_function: str,
-                   overpass_factor: int,
-                   static_calculation_factor: int,
-                   bridge_type_factor: int,
-                   building_material: str,
-                   material_factor: int,
-                   robustness_factor: int,
-                   earthquake_zone_name: str,
-                   earthquake_zone_factor: int,
-                   maintenance_acceptance_date: str,
-                   probability_of_collapse: float,
-                   length: int,
-                   width: int,
-                   replacement_costs: int,
-                   victim_costs: int,
-                   axis: str,
-                   aadt: int,
-                   vehicle_lost_costs: int,
-                   downtime_costs: int,
-                   damage_costs: int,
-                   risk: float) -> None:
-        """Adds a marker to the internal list of markers.
+    @staticmethod
+    def create_popup(bridge_name: str,
+                     norm_year: str,
+                     year_of_construction: str,
+                     human_error_factor: int,
+                     bridge_type: str,
+                     statical_determinacy_factor: int,
+                     age: str,
+                     condition_factor: int,
+                     span: int,
+                     bridge_function: str,
+                     overpass_factor: int,
+                     static_calculation_factor: int,
+                     bridge_type_factor: int,
+                     building_material: str,
+                     material_factor: int,
+                     robustness_factor: int,
+                     earthquake_zone_name: str,
+                     earthquake_zone_factor: int,
+                     maintenance_acceptance_date: str,
+                     probability_of_collapse: float,
+                     length: int,
+                     width: int,
+                     replacement_costs: int,
+                     victim_costs: int,
+                     axis: str,
+                     aadt: int,
+                     vehicle_lost_costs: int,
+                     downtime_costs: int,
+                     damage_costs: int,
+                     risk: float) -> HTML:
+        """Creates the popup for a marker (an HTML widget)
 
         Parameters
         ----------
-        point : gpd.geodataframe.GeoDataFrame
-            The point of the marker on the map
         bridge_name: str
             The descriptive name of the bridge
         norm_year: str
@@ -219,10 +216,9 @@ class InteractiveMap:
             The risk value of this bridge
             (probability_of_collapse * damage_costs)
         """
+        widget = widgets.HTML()
 
-        message = widgets.HTML()
-
-        message.value = (
+        widget.value = (
             '<b>' + _('Name') + '</b>: ' + bridge_name + '<br><b>' +
             _('Year of the norm') + '</b>: ' + norm_year + '<br><b>' +
             _('Year of construction') + '</b>: ' + year_of_construction +
@@ -234,8 +230,9 @@ class InteractiveMap:
             '</b>: ' + age + '<br><b><i>P<sub>f</sub>&times;K<sub>4</sub>: ' +
             _('Condition factor') + '</b>: ' + str(condition_factor) +
             '</i><br><b>' + _('Span') + '</b>: ' +
-            self.__get_dimension_string(span) + '<br><b>' + _('Function') +
-            '</b>: ' + bridge_function + '<br><b><i>K<sub>6</sub>: ' +
+            InteractiveMap.__get_dimension_string(span) + '<br><b>' +
+            _('Function')
+            + '</b>: ' + bridge_function + '<br><b><i>K<sub>6</sub>: ' +
             _('Overpass factor') + '</b>: ' + str(overpass_factor) +
             '</i><br><b><i>K<sub>7</sub>: ' + _('Static calculation factor') +
             '</b>: ' + str(static_calculation_factor) +
@@ -253,8 +250,10 @@ class InteractiveMap:
             maintenance_acceptance_date + '<br><b>' +
             _('Probability of collapse') + '</b>: ' +
             str(probability_of_collapse) + '<br><b>' + _('Length') + '</b>: ' +
-            self.__get_dimension_string(length) + '<br><b>' + _('Width') +
-            '</b>: ' + self.__get_dimension_string(width) + '<br><b>' +
+            InteractiveMap.__get_dimension_string(length) + '<br><b>' +
+            _('Width') +
+            '</b>: ' + InteractiveMap.__get_dimension_string(width) +
+            '<br><b>' +
             _('Replacement costs') + '</b>: ' +
             format_currency(replacement_costs, 'CHF') + '<br><b>' +
             _('Victim costs') + '</b>: ' +
@@ -268,10 +267,24 @@ class InteractiveMap:
             format_currency(damage_costs, 'CHF') + '<br><b>' + _('Risk') +
             '</b>: ' + str(risk))
 
+        return widget
+
+    def add_marker(self,
+                   point: gpd.geodataframe.GeoDataFrame,
+                   popup: HTML) -> None:
+        """Adds a marker to the internal list of markers.
+
+        Parameters
+        ----------
+        point : gpd.geodataframe.GeoDataFrame
+            The point of the marker on the map
+        popup: HTML
+            The popup to show at the marker
+        """
+
         circle_marker = CircleMarker()
         circle_marker.location = [point.xy[1][0], point.xy[0][0]]
-        circle_marker.popup = message
-
+        circle_marker.popup = popup
         self.markers.append(circle_marker)
 
     def add_marker_layer(self, bridges: pd.DataFrame) -> None:
@@ -335,7 +348,8 @@ class InteractiveMap:
         if ((layer is not None) and (layer in self.map.layers)):
             self.map.remove(layer)
 
-    def __get_dimension_string(self, dimension) -> str:
+    @staticmethod
+    def __get_dimension_string(dimension) -> str:
         if ((dimension is None) or (math.isnan(dimension))):
             return _('unknown')
         else:
