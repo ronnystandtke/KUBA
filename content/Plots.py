@@ -1,6 +1,7 @@
 import gettext
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
+import numpy as np
 import pandas as pd
 import plotly.express as px
 from functools import cache
@@ -273,7 +274,7 @@ class Plots:
         replacement_sum = df[_('Replacement costs')].sum()
         standardized_damages = [
             df[_('Vehicle lost costs')].sum() / replacement_sum,
-            1,  # TODO: isn't this column redundant? It is always just "1"...
+            1,  # this is always "1" (Replacement costs / Replacement costs)
             df[_('Downtime costs')].sum() / replacement_sum,
             df[_('Victim costs')].sum() / replacement_sum]
         fig, ax = plt.subplots(figsize=(10, 5))
@@ -286,15 +287,51 @@ class Plots:
         #   - x: probability of collapse
         #   - y: damage costs
         #   - z: risk
+        df = self.poc_cost_risk_dataframe
+        columns = self.poc_cost_risk_columns
         fig = px.scatter_3d(
-            self.poc_cost_risk_dataframe,
-            x=self.poc_cost_risk_columns[0],
-            y=self.poc_cost_risk_columns[1],
-            z=self.poc_cost_risk_columns[2],
+            df,
+            x=columns[0],
+            y=columns[1],
+            z=columns[2],
             height=1000,
-            size=[1] * len(self.poc_cost_risk_dataframe),
+            size=[1] * len(df),
             size_max=10,
-            color=self.poc_cost_risk_columns[2],
+            color=columns[2],
+            color_continuous_scale='Viridis')
+        html_str = fig.to_html()
+        display(HTML(html_str))
+
+        # 3D plot with logarithmic x & y axes
+        column_log_0 = 'ln(' + columns[0] + ')'
+        column_log_1 = 'ln(' + columns[1] + ')'
+        df[column_log_0] = np.log(df[columns[0]])
+        df[column_log_1] = np.log(df[columns[1]])
+        fig = px.scatter_3d(
+            df,
+            x=column_log_0,
+            y=column_log_1,
+            z=columns[2],
+            height=1000,
+            size=[1] * len(df),
+            size_max=10,
+            color=columns[2],
+            color_continuous_scale='Viridis')
+        html_str = fig.to_html()
+        display(HTML(html_str))
+
+        # 3D plot with all logarithmic axes
+        column_log_2 = 'ln(' + columns[2] + ')'
+        df[column_log_2] = np.log(df[columns[2]])
+        fig = px.scatter_3d(
+            df,
+            x=column_log_0,
+            y=column_log_1,
+            z=column_log_2,
+            height=1000,
+            size=[1] * len(df),
+            size_max=10,
+            color=column_log_2,
             color_continuous_scale='Viridis')
         html_str = fig.to_html()
         display(HTML(html_str))
@@ -335,8 +372,3 @@ class Plots:
         ax.set_xlabel(column1)
         ax.set_ylabel(column2)
         plt.show()
-
-        # TODO:
-        #    - erst einmal aussen vor lassen: Normierte Schadensanteile (normiert auf den Wiederbeschaffungswert der Brücke, Beispiel anbei)
-        #    - Bild: 3D: x-Achse Versagenswahrscheinlichkeit, y-Achse Schadensumfang, z-Achse: Risiko oder Zustandsklasse, Farbcodierung: Risiko oder Zustandsklasse
-        #    - Bild: 3D: x-Achse Versagenswahrscheinlichkeit (Spannweite), y-Achse Schadensumfang (Spannweite), z-Achse: Risiko (Spannweite)
