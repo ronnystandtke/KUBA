@@ -35,3 +35,4 @@ SUPPORT_MAX_HEIGHT_LABEL = (
 SUPPORT_LENGTH_LABEL = 'Infrastrukturobjekt\xa0Länge\xa0[m]'
 SUPPORT_CONSEQUENCE_OF_COLLAPSE = (
     'Einsturzkonsequenz\xa0-\xa0Stützmauern\xa0Text')
+SUPPORT_WALL_TYPE_LABEL = 'Mauertyp\xa0Text'

@@ -20,7 +20,8 @@ from InteractiveBridgesTable import InteractiveBridgesTable
 from InteractiveSupportStructuresTable import InteractiveSupportStructuresTable
 from Plots import Plots
 from ProgressBar import ProgressBar
-from Risk import Risk
+from RiskBridges import RiskBridges
+from RiskSupportStructures import RiskSupportStructures
 
 
 from warnings import simplefilter
@@ -349,8 +350,43 @@ class KUBA:
                 print(traceback.format_exc())
 
     def load_support_structures(self):
-        for i in range(0, len(self.df_support_structures)):
-            pass
+
+        for i in range(0, len(self.support_structures)):
+
+            # TODO: skip everything that is not "Stützbauwerk",
+            # "Stützkonstruktion", "Stützmauer", "Stützmaueranlage",
+            # "Schwergewichtsmauern in Mauerwerk"?
+            type_text = self.support_structures[Labels.TYPE_TEXT_LABEL][i]
+            if (type_text != 'Schwergewichtsmauern in Mauerwerk' and
+                    type_text != 'Stützbauwerk' and
+                    type_text != 'Stützkonstruktion' and
+                    type_text != 'Stützmauer' and
+                    type_text != 'Stützmaueranlage'):
+                continue
+
+            # K_1
+            year_of_construction = self.support_structures[
+                Labels.YEAR_OF_CONSTRUCTION_LABEL][i]
+            human_error_factor = RiskSupportStructures.get_human_error_factor(
+                year_of_construction)
+
+            # TODO: what happened to K_3?
+
+            # K_4
+            condition_class = self.support_structures[
+                Labels.SUPPORT_CONDITION_LABEL][i]
+            condition_class_factor = (
+                RiskSupportStructures.get_condition_class_factor(
+                    condition_class))
+
+            # TODO: what happened to K_5, K_6 & K_7?
+
+            # K_8
+            # TODO: Table 4.8 header: must read "Mauertyp Text KUBA-Datenbank"?
+            function_text = self.support_structures[
+                Labels.FUNCTION_TEXT_LABEL][i]
+            wall_type = self.support_structures[
+                Labels.SUPPORT_WALL_TYPE_LABEL][i]
 
     def __load_bridge_details(self, i):
         point = self.bridges['geometry'][i]
@@ -365,23 +401,24 @@ class KUBA:
         bridgeName = str(self.bridges['Name'][i])
 
         # K_1
-        normYear = Risk.getNormYear(self.bridges[Labels.NORM_YEAR_LABEL][i])
+        normYear = RiskBridges.getNormYear(
+            self.bridges[Labels.NORM_YEAR_LABEL][i])
         yearOfConstruction = self.bridges[Labels.YEAR_OF_CONSTRUCTION_LABEL][i]
         if not math.isnan(yearOfConstruction):
             yearOfConstruction = int(yearOfConstruction)
-        humanErrorFactor = Risk.getHumanErrorFactor(
+        humanErrorFactor = RiskBridges.getHumanErrorFactor(
             normYear, yearOfConstruction)
 
         # K_3
         typeCode = self.bridges[Labels.TYPE_CODE_LABEL][i]
         typeText = self.bridges[Labels.TYPE_TEXT_LABEL][i]
         staticalDeterminacyFactor = (
-            Risk.getStaticalDeterminacyFactor(typeCode))
+            RiskBridges.getStaticalDeterminacyFactor(typeCode))
 
         # P_f * K_4
         conditionClass = self.bridges[Labels.CONDITION_CLASS_LABEL][i]
-        age = Risk.getAge(yearOfConstruction)
-        conditionFactor = Risk.getConditionFactor(conditionClass, age)
+        age = RiskBridges.getAge(yearOfConstruction)
+        conditionFactor = RiskBridges.getConditionFactor(conditionClass, age)
 
         # K_6
         bridgeNumber = self.bridges[Labels.NUMBER_LABEL][i]
@@ -394,7 +431,7 @@ class KUBA:
             functionText = None
         else:
             functionText = building[Labels.FUNCTION_LABEL].iat[0]
-        overpassFactor = Risk.getOverpassFactor(functionText)
+        overpassFactor = RiskBridges.getOverpassFactor(functionText)
         if functionText is None:
             functionText = _('unknown')
 
@@ -404,32 +441,33 @@ class KUBA:
         # e.g. N13 154, Averserrhein Brücke.
         # Therefore we use the following fallback strategy:
         # We start with the largest span.
-        span = Risk.getSpan(self.bridges[Labels.LARGEST_SPAN_LABEL][i])
+        span = RiskBridges.getSpan(self.bridges[Labels.LARGEST_SPAN_LABEL][i])
         if span is None:
             # If the largest span is unknown, use the span.
-            span = Risk.getSpan(self.bridges[Labels.SPAN_LABEL][i])
+            span = RiskBridges.getSpan(self.bridges[Labels.SPAN_LABEL][i])
             if span is None:
                 # If the span is unknown, use the length.
-                span = Risk.getSpan(self.bridges[Labels.LENGTH_LABEL][i])
+                span = RiskBridges.getSpan(
+                    self.bridges[Labels.LENGTH_LABEL][i])
                 if span is None:
                     # If the length is unknown, assume 25 m.
                     span = 25
-        staticCalculationFactor = Risk.getStaticCalculationFactor(span)
+        staticCalculationFactor = RiskBridges.getStaticCalculationFactor(span)
 
         # K_8
-        bridgeTypeFactor = Risk.getBridgeTypeFactor(typeCode)
+        bridgeTypeFactor = RiskBridges.getBridgeTypeFactor(typeCode)
 
         # K_9
-        materialCode = Risk.getMaterialCode(
+        materialCode = RiskBridges.getMaterialCode(
             self.bridges[Labels.MATERIAL_CODE_LABEL][i])
         materialText = self.bridges[Labels.MATERIAL_TEXT_LABEL][i]
-        materialFactor = Risk.getMaterialFactor(materialCode)
+        materialFactor = RiskBridges.getMaterialFactor(materialCode)
         buildingMaterialString = (
             _('unknown') if not isinstance(materialText, str)
             else materialText)
 
         # K_11
-        robustnessFactor = Risk.getRobustnessFactor(yearOfConstruction)
+        robustnessFactor = RiskBridges.getRobustnessFactor(yearOfConstruction)
 
         # K_13
         if self.newDict:
@@ -480,7 +518,7 @@ class KUBA:
         else:
             skewValue = skewEntry[Labels.SKEW_LABEL].iloc[0]
 
-        earthQuakeZoneFactor = Risk.getEarthQuakeZoneFactor(
+        earthQuakeZoneFactor = RiskBridges.getEarthQuakeZoneFactor(
             earthQuakeCheckValue, typeCode, bridgeName, skewValue,
             zoneName, yearOfConstruction)
 
