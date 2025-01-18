@@ -385,14 +385,24 @@ class KUBA:
             # TODO: Table 4.8 header: must read "Mauertyp Text KUBA-Datenbank"?
             function_text = self.support_structures[
                 Labels.FUNCTION_TEXT_LABEL][i]
+            is_on_slope_side = RiskSupportStructures.is_on_slope_side(
+                function_text)
             wall_type = self.support_structures[
                 Labels.SUPPORT_WALL_TYPE_LABEL][i]
             type_factor = RiskSupportStructures.get_type_factor(
-                function_text, wall_type)
+                is_on_slope_side, wall_type)
 
             # K 9
             material_factor = RiskSupportStructures.get_material_factor(
                 wall_type)
+
+            # K14
+            length = self.support_structures[Labels.SUPPORT_LENGTH_LABEL][i]
+            average_height = self.support_structures[
+                Labels.SUPPORT_AVERAGE_HEIGHT_LABEL][i]
+            visible_area_factor = (
+                RiskSupportStructures.get_visible_area_factor(
+                    length, average_height))
 
     def __load_bridge_details(self, i):
         point = self.bridges['geometry'][i]

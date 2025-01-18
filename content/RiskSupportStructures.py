@@ -41,47 +41,7 @@ class RiskSupportStructures:
             return 1
 
     @staticmethod
-    def get_type_factor(function_text: str, wall_type: str) -> float:
-        # factor K_8 ("Typ")
-
-        # TODO: consistency?
-        #   table 4.7: "hangseitig"
-        #   table 4.9: "Talseitig"
-
-        # TODO: why a None value?
-        k8_table = [
-            [1.0, 2.0],
-            [1.4, 1.0],
-            [None, 1.0],
-            [2.8, 2.8]]
-
-        y = RiskSupportStructures.__get_support_wall_type(wall_type).value
-        x = 0 if RiskSupportStructures.__is_on_slope_side(function_text) else 1
-
-        return k8_table[y][x]
-
-    @staticmethod
-    def get_material_factor(wall_type: str) -> int:
-        # factor K_9 ("Baustoff")
-
-        # TODO:
-        #   - table 4.10 name is probably not
-        #     "Einteilung hangseitig bzw. bergseitig"
-        #   - table 4.10 first column name is probably not
-        #     "Funktion Text" but "Mauertyp Text"
-        #   - table 4.11: Bergseitig == Talseitig? (just get rid of it?)
-        if (
-                wall_type == 'Schwergewichtsmauer in Beton' or
-                wall_type == 'Fertigbetonelement Mauer' or
-                wall_type == 'Beton' or
-                wall_type == 'Spritzbeton' or
-                wall_type == 'Verankerter Spritzbeton'):
-            return 1
-        else:
-            return 2
-
-    @staticmethod
-    def __is_on_slope_side(function_text: str) -> bool:
+    def is_on_slope_side(function_text: str) -> bool:
 
         # on the mountain side would be the following list:
         # TODO: typo in document: Schützt vor anderers
@@ -114,6 +74,74 @@ class RiskSupportStructures:
             function_text == 'Stützt übrige Infrastruktur' or
             function_text == 'Stützt Verkehrswege' or
             function_text == 'Trägt Strasse / Weg')
+
+    @staticmethod
+    def get_type_factor(is_on_slope_side: bool, wall_type: str) -> float:
+        # factor K_8 ("Typ")
+
+        # TODO: consistency?
+        #   table 4.7: "hangseitig"
+        #   table 4.9: "Talseitig"
+
+        # TODO: why a None value?
+        k8_table = [
+            [1.0, 2.0],
+            [1.4, 1.0],
+            [None, 1.0],
+            [2.8, 2.8]]
+
+        y = RiskSupportStructures.__get_support_wall_type(wall_type).value
+        x = 1 if is_on_slope_side else 0
+
+        return k8_table[y][x]
+
+    @staticmethod
+    def get_material_factor(wall_type: str) -> int:
+        # factor K_9 ("Baustoff")
+
+        # TODO:
+        #   - table 4.10 name is probably not
+        #     "Einteilung hangseitig bzw. bergseitig"
+        #   - table 4.10 first column name is probably not
+        #     "Funktion Text" but "Mauertyp Text"
+        #   - table 4.11: Bergseitig == Talseitig? (just get rid of it?)
+        if (
+                wall_type == 'Schwergewichtsmauer in Beton' or
+                wall_type == 'Fertigbetonelement Mauer' or
+                wall_type == 'Beton' or
+                wall_type == 'Spritzbeton' or
+                wall_type == 'Verankerter Spritzbeton'):
+            return 1
+        else:
+            return 2
+
+    @staticmethod
+    def get_visible_area_factor(length: float, average_height: float) -> float:
+
+        # factor K_14 ("sichtbare Fläche")
+
+        # TODO:
+        #   - missing definition of "fast 0"
+        #   - table 4.11: Bergseitig == Talseitig? (just get rid of it?)
+
+        if length is None or average_height is None:
+            return 2.0
+
+        else:
+            visible_area = length * average_height
+
+            # TODO: precise definition of borders (which value for 100?)
+
+            if visible_area < 20:
+                return 1.0
+            elif visible_area < 100:
+                return 1.2
+            elif visible_area < 500:
+                return 1.4
+            elif visible_area < 1000:
+                return 1.8
+            else:
+                return 2.0
 
     @staticmethod
     def __get_support_wall_type(wall_type: str) -> SupportWall:
