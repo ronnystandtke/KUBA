@@ -390,6 +390,10 @@ class KUBA:
             type_factor = RiskSupportStructures.get_type_factor(
                 function_text, wall_type)
 
+            # K 9
+            material_factor = RiskSupportStructures.get_material_factor(
+                wall_type)
+
     def __load_bridge_details(self, i):
         point = self.bridges['geometry'][i]
 

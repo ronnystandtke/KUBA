@@ -61,9 +61,24 @@ class RiskSupportStructures:
         return k8_table[y][x]
 
     @staticmethod
-    def get_material_factor(material_text):
+    def get_material_factor(wall_type: str) -> int:
         # factor K_9 ("Baustoff")
-        pass
+
+        # TODO:
+        #   - table 4.10 name is probably not
+        #     "Einteilung hangseitig bzw. bergseitig"
+        #   - table 4.10 first column name is probably not
+        #     "Funktion Text" but "Mauertyp Text"
+        #   - table 4.11: Bergseitig == Talseitig? (just get rid of it?)
+        if (
+                wall_type == 'Schwergewichtsmauer in Beton' or
+                wall_type == 'Fertigbetonelement Mauer' or
+                wall_type == 'Beton' or
+                wall_type == 'Spritzbeton' or
+                wall_type == 'Verankerter Spritzbeton'):
+            return 1
+        else:
+            return 2
 
     @staticmethod
     def __is_on_slope_side(function_text: str) -> bool:
