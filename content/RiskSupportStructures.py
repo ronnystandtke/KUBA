@@ -1,7 +1,14 @@
-import SupportWall
+from enum import Enum
 
 
 class RiskSupportStructures:
+
+    # TODO:
+    # is "Revetment wall" the correct English term for "Verkleidungsmauer"?
+    SupportWall = Enum(
+        'SupportWall',
+        ['GRAVITY_WALL', 'CANTILEVER_WALL', 'REVETMENT_WALL', 'OTHER_WALL'],
+        start=0)
 
     @staticmethod
     def get_human_error_factor(year_of_construction: int) -> int:
@@ -34,18 +41,24 @@ class RiskSupportStructures:
             return 1
 
     @staticmethod
-    def get_type_factor(type: str) -> float:
+    def get_type_factor(function_text: str, wall_type: str) -> float:
         # factor K_8 ("Typ")
 
-        # TODO: not found in KUBA database:
-        #   - Verkleidungsmauer
-        #   - Winkelstützmauer
+        # TODO: consistency?
+        #   table 4.7: "hangseitig"
+        #   table 4.9: "Talseitig"
 
-        # TODO: Bergseitig und Talseitig nicht erkennbar?
-        if type == 'Schwergewichtsmauern in Mauerwerk':
-            return 1.0
-        else:
-            return 1.4
+        # TODO: why a None value?
+        k8_table = [
+            [1.0, 2.0],
+            [1.4, 1.0],
+            [None, 1.0],
+            [2.8, 2.8]]
+
+        y = RiskSupportStructures.__get_support_wall_type(wall_type).value
+        x = 0 if RiskSupportStructures.__is_on_slope_side(function_text) else 1
+
+        return k8_table[y][x]
 
     @staticmethod
     def get_material_factor(material_text):
@@ -90,21 +103,23 @@ class RiskSupportStructures:
     @staticmethod
     def __get_support_wall_type(wall_type: str) -> SupportWall:
 
+        # TODO: empty text means "Verkleidungsmauer"?
+        if (wall_type is None or wall_type == ''):
+            return RiskSupportStructures.SupportWall.REVETMENT_WALL
+
         if (wall_type == 'Schwergewichtsmauer in Beton' or
                 wall_type == 'Schwergewichtsmauer in Mauerwerk' or
                 wall_type == 'Schwergewichtsmauern' or
                 wall_type == 'Steinkorbmauer' or
                 wall_type == 'Trockenmauer' or
                 wall_type == 'Mauerwerk'):
+            return RiskSupportStructures.SupportWall.GRAVITY_WALL
 
-            return SupportWall.GRAVITY_WALL
+        if (wall_type == 'Verankerte Winkelstützmauer' or
+                wall_type == 'Winkelstützmauer' or
+                wall_type == 'Winkelstützmauer mit Mauerwerksverkleidung' or
+                wall_type == 'Winkelstützmauer mit Querträger(n)' or
+                wall_type == 'Winkelstützmauer mit Wiederlager'):
+            return RiskSupportStructures.SupportWall.CANTILEVER_WALL
 
-        elif (wall_type == 'Schwergewichtsmauer in Beton' or
-                wall_type == 'Schwergewichtsmauer in Mauerwerk' or
-                wall_type == 'Schwergewichtsmauern' or
-                wall_type == 'Steinkorbmauer' or
-                wall_type == 'Trockenmauer' or
-                wall_type == 'Mauerwerk'):
-            pass
-
-        # TODO: empty text means "Verkleidungsmauer"?
+        return RiskSupportStructures.SupportWall.OTHER_WALL

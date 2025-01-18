@@ -387,6 +387,8 @@ class KUBA:
                 Labels.FUNCTION_TEXT_LABEL][i]
             wall_type = self.support_structures[
                 Labels.SUPPORT_WALL_TYPE_LABEL][i]
+            type_factor = RiskSupportStructures.get_type_factor(
+                function_text, wall_type)
 
     def __load_bridge_details(self, i):
         point = self.bridges['geometry'][i]
