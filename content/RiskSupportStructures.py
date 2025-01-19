@@ -122,7 +122,7 @@ class RiskSupportStructures:
 
         # TODO:
         #   - missing definition of "fast 0"
-        #   - table 4.11: Bergseitig == Talseitig? (just get rid of it?)
+        #   - table 4.12: Bergseitig == Talseitig? (just get rid of it?)
 
         if length is None or average_height is None:
             return 2.0
@@ -142,6 +142,37 @@ class RiskSupportStructures:
                 return 1.8
             else:
                 return 2.0
+
+    @staticmethod
+    def get_height_factor(max_height: float) -> float:
+
+        # factor K_15 ("Höhe")
+
+        # TODO:
+        #   - table 4.13: Bergseitig == Talseitig? (just get rid of it?)
+
+        if max_height is None:
+            return 2.0
+        elif max_height < 2:
+            return 1.0
+        elif max_height < 5:
+            return 1.2
+        elif max_height < 10:
+            return 1.5
+        else:
+            return 2.0
+
+    @staticmethod
+    def get_precipitation_zone_factor(precipitation_zone: int) -> float:
+
+        # factor K_17 ("Niederschlagszone")
+
+        # TODO:
+        #   - table 4.15: Bergseitig == Talseitig? (just get rid of it?)
+
+        k17_dict = {
+            1: 1.09, 2: 1.09, 3: 1.15, 4: 1, 5: 1.12, 6: 1.5, 7: 1.12, 8: 1.03}
+        return k17_dict[precipitation_zone]
 
     @staticmethod
     def __get_support_wall_type(wall_type: str) -> SupportWall:

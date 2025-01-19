@@ -30,7 +30,8 @@ simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 gettext.bindtextdomain('kuba', 'translations')
 gettext.textdomain('kuba')
 
-earthquake_zonesDictFileName = "data/earthquakezones.json"
+earthquake_zones_dict_file_name = "data/earthquakezones.json"
+precipitation_zones_dict_file_name = "data/precipitationzones.json"
 
 
 @cache
@@ -150,14 +151,25 @@ class KUBA:
             sheet_name='DTV mit Klassen')
 
         # load pre-calculated earthquake zone data
-        self.earthquake_zonesDict = {}
+        self.earthquake_zones_dict = {}
         try:
-            if os.path.isfile(earthquake_zonesDictFileName):
-                with open(earthquake_zonesDictFileName) as file:
-                    self.earthquake_zonesDict = json.load(file)
+            if os.path.isfile(earthquake_zones_dict_file_name):
+                with open(earthquake_zones_dict_file_name) as file:
+                    self.earthquake_zones_dict = json.load(file)
         except JSONDecodeError:
             # This only happens when we empty earthquakezones.json to enforce a
             # recalculation.
+            pass
+
+        # load pre-calculated precipitation zone data
+        self.precipitation_zones_dict = {}
+        try:
+            if os.path.isfile(precipitation_zones_dict_file_name):
+                with open(precipitation_zones_dict_file_name) as file:
+                    self.precipitation_zones_dict = json.load(file)
+        except JSONDecodeError:
+            # This only happens when we empty precipitationzones.json to
+            # enforce a recalculation.
             pass
 
         # check how many bridges we find in the other sheets
@@ -226,6 +238,7 @@ class KUBA:
         self.progress_bar.update_progress(
             description=_('Converting coordinate reference systems'))
         self.bridges.to_crs('EPSG:4326', inplace=True)
+        self.support_structures.to_crs('EPSG:4326', inplace=True)
         self.earthquake_zones.to_crs(crs="EPSG:4326", inplace=True)
         self.precipitation_zones.to_crs(crs="EPSG:4326", inplace=True)
 
@@ -297,8 +310,14 @@ class KUBA:
         #     display(self.sliderHBox)
         #     display(self.loadButton)
 
+        self.progress_bar_value = 0
+
         self.loadBridges()
         self.load_support_structures()
+
+        self.progress_bar.reset(1)
+        description = (_('Done'))
+        self.progress_bar.update_progress(step=1, description=description)
 
     def updateReadout(self):
         self.sliderReadout.value = '{} / {}'.format(
@@ -306,7 +325,7 @@ class KUBA:
 
     def loadBridges(self):
 
-        self.newDict = len(self.earthquake_zonesDict) == 0
+        self.new_earthquake_zones_dict = len(self.earthquake_zones_dict) == 0
 
         try:
             self.bridgesSlider.disabled = True
@@ -314,31 +333,42 @@ class KUBA:
             self.loadButton.disabled = True
 
             self.progress_bar.reset(self.bridgesSlider.value)
-            self.progressBarValue = 0
             self.bridgesWithoutCoordinates = 0
-            self.lastProgressBarUpdate = 0
+            self.last_bridges_progress_bar_update = 0
 
             for i in range(0, self.bridgesSlider.value):
-                self.__load_bridge_details(i)
+                self.__load_bridge(i)
 
             # final update of the progress bar
-            self.__updateProgressBar()
+            self.__update_bridges_progress_bar()
 
-            # save earthquake_zonesDict if just created
-            if self.newDict:
-                with open(earthquake_zonesDictFileName, 'w') as file:
-                    json.dump(self.earthquake_zonesDict, file, indent=4)
+            # save earthquake_zones_dict if just created
+            if self.new_earthquake_zones_dict:
+                with open(earthquake_zones_dict_file_name, 'w') as file:
+                    json.dump(self.earthquake_zones_dict, file, indent=4)
 
+            self.progress_bar.reset(3)
+            description = (
+                _('Loading interactive map of probabilities of collapse'))
+            self.progress_bar.update_progress(step=0, description=description)
             self.interactive_poc_map.add_marker_layer(
                 self.interactive_bridges_table.data_frame)
+
+            description = (
+                _('Loading interactive map of risks'))
+            self.progress_bar.update_progress(step=1, description=description)
             self.interactive_risk_map.add_marker_layer(
                 self.interactive_bridges_table.data_frame)
 
             with self.output:
                 self.interactive_poc_map.display()
                 self.interactive_risk_map.display()
+                description = (
+                    _('Loading interactive table of bridges'))
+                self.progress_bar.update_progress(
+                    step=2, description=description)
                 self.interactive_bridges_table.display()
-                self.plots.display()
+                self.plots.display(self.progress_bar)
 
             self.bridgesSlider.disabled = False
             self.bridgesIntText.disabled = False
@@ -351,60 +381,136 @@ class KUBA:
 
     def load_support_structures(self):
 
-        for i in range(0, len(self.support_structures)):
+        self.progress_bar.reset(len(self.support_structures))
+        self.last_support_structures_progress_bar_update = 0
 
-            # TODO: skip everything that is not "Stützbauwerk",
-            # "Stützkonstruktion", "Stützmauer", "Stützmaueranlage",
-            # "Schwergewichtsmauern in Mauerwerk"?
-            type_text = self.support_structures[Labels.TYPE_TEXT_LABEL][i]
-            if (type_text != 'Schwergewichtsmauern in Mauerwerk' and
-                    type_text != 'Stützbauwerk' and
-                    type_text != 'Stützkonstruktion' and
-                    type_text != 'Stützmauer' and
-                    type_text != 'Stützmaueranlage'):
-                continue
+        self.new_precipitation_zones_dict = (
+            len(self.precipitation_zones_dict) == 0)
 
-            # K_1
-            year_of_construction = self.support_structures[
-                Labels.YEAR_OF_CONSTRUCTION_LABEL][i]
-            human_error_factor = RiskSupportStructures.get_human_error_factor(
-                year_of_construction)
+        try:
 
-            # TODO: what happened to K_3?
+            for i in range(0, len(self.support_structures)):
+                self.__load_support_structure(i)
+                self.progress_bar_value += 1
+                self.__update_support_structures_progress_bar_after_timeout()
 
-            # K_4
-            condition_class = self.support_structures[
-                Labels.SUPPORT_CONDITION_LABEL][i]
-            condition_class_factor = (
-                RiskSupportStructures.get_condition_class_factor(
-                    condition_class))
+            # save precipitation_zones_dict if just created
+            if self.new_precipitation_zones_dict:
+                with open(precipitation_zones_dict_file_name, 'w') as file:
+                    json.dump(self.precipitation_zones_dict, file, indent=4)
 
-            # TODO: what happened to K_5, K_6 & K_7?
+        except Exception:
+            print(traceback.format_exc())
+            with self.output:
+                print(traceback.format_exc())
 
-            # K_8
-            # TODO: Table 4.8 header: must read "Mauertyp Text KUBA-Datenbank"?
-            function_text = self.support_structures[
-                Labels.FUNCTION_TEXT_LABEL][i]
-            is_on_slope_side = RiskSupportStructures.is_on_slope_side(
-                function_text)
-            wall_type = self.support_structures[
-                Labels.SUPPORT_WALL_TYPE_LABEL][i]
-            type_factor = RiskSupportStructures.get_type_factor(
-                is_on_slope_side, wall_type)
+    def __load_support_structure(self, i):
 
-            # K 9
-            material_factor = RiskSupportStructures.get_material_factor(
-                wall_type)
+        # TODO: skip everything that is not "Stützbauwerk",
+        # "Stützkonstruktion", "Stützmauer", "Stützmaueranlage",
+        # "Schwergewichtsmauern in Mauerwerk"?
+        type_text = self.support_structures[Labels.TYPE_TEXT_LABEL][i]
+        if (type_text != 'Schwergewichtsmauern in Mauerwerk' and
+                type_text != 'Stützbauwerk' and
+                type_text != 'Stützkonstruktion' and
+                type_text != 'Stützmauer' and
+                type_text != 'Stützmaueranlage'):
+            return
 
-            # K14
-            length = self.support_structures[Labels.SUPPORT_LENGTH_LABEL][i]
-            average_height = self.support_structures[
-                Labels.SUPPORT_AVERAGE_HEIGHT_LABEL][i]
-            visible_area_factor = (
-                RiskSupportStructures.get_visible_area_factor(
-                    length, average_height))
+        # K_1
+        year_of_construction = self.support_structures[
+            Labels.YEAR_OF_CONSTRUCTION_LABEL][i]
+        human_error_factor = RiskSupportStructures.get_human_error_factor(
+            year_of_construction)
 
-    def __load_bridge_details(self, i):
+        # K_2
+        correlation_factor = 1.3
+
+        # TODO: what happened to K_3?
+
+        # K_4
+        condition_class = self.support_structures[
+            Labels.SUPPORT_CONDITION_LABEL][i]
+        condition_class_factor = (
+            RiskSupportStructures.get_condition_class_factor(condition_class))
+
+        # TODO: what happened to K_5, K_6 & K_7?
+
+        # K_8
+        # TODO: Table 4.8 header: must read "Mauertyp Text KUBA-Datenbank"?
+        function_text = self.support_structures[Labels.FUNCTION_TEXT_LABEL][i]
+        is_on_slope_side = RiskSupportStructures.is_on_slope_side(
+            function_text)
+        wall_type = self.support_structures[Labels.SUPPORT_WALL_TYPE_LABEL][i]
+        type_factor = RiskSupportStructures.get_type_factor(
+            is_on_slope_side, wall_type)
+
+        # K_9
+        material_factor = RiskSupportStructures.get_material_factor(wall_type)
+
+        # TODO: what happened to K_10, K_11 & K_12?
+
+        # TODO: K_13 see attachment?
+
+        # K_14
+        length = self.support_structures[Labels.SUPPORT_LENGTH_LABEL][i]
+        average_height = self.support_structures[
+            Labels.SUPPORT_AVERAGE_HEIGHT_LABEL][i]
+        visible_area_factor = (
+            RiskSupportStructures.get_visible_area_factor(
+                length, average_height))
+
+        # K_15
+        max_height = length = self.support_structures[
+            Labels.SUPPORT_MAX_HEIGHT_LABEL][i]
+        height_factor = RiskSupportStructures.get_height_factor(max_height)
+
+        # K_16
+        # TODO: use default value for "no information"?
+        grade_factor = 2.0
+
+        # K_17
+        point = self.support_structures['geometry'][i]
+        if point.is_empty:
+            # TODO: what to do with support structures without coordinates?
+            precipitation_zone_factor = 1.0
+        else:
+            precipitation_zone_value = None
+            if self.new_precipitation_zones_dict:
+                precipitation_zone = self.precipitation_zones[
+                    self.precipitation_zones.contains(point)]['DN']
+                if precipitation_zone.empty:
+                    # TODO: what to do with support structures outside of known
+                    # precipitation_zones?
+                    pass
+                else:
+                    precipitation_zone_value = int(precipitation_zone.iloc[0])
+                    self.precipitation_zones_dict[
+                        str(point.x) + ' ' + str(point.y)] = (
+                            precipitation_zone_value)
+            else:
+                precipitation_zone_value = self.precipitation_zones_dict[
+                    str(point.x) + ' ' + str(point.y)]
+
+            if precipitation_zone_value is None:
+                # TODO: what to do with support structures outside of known
+                # precipitation_zones?
+                precipitation_zone_factor = 1.0
+            else:
+                precipitation_zone_factor = (
+                    RiskSupportStructures.get_precipitation_zone_factor(
+                        precipitation_zone_value))
+
+        # TODO: what means "pro Jahr" for P_f?
+        probability_of_failure = 10e-6
+
+        probability_of_collapse = (
+            probability_of_failure * human_error_factor *
+            correlation_factor * condition_class_factor * type_factor *
+            material_factor * visible_area_factor * height_factor *
+            grade_factor * precipitation_zone_factor)
+
+    def __load_bridge(self, i):
         point = self.bridges['geometry'][i]
 
         # there ARE empty coordinates in the table! :-(
@@ -412,7 +518,7 @@ class KUBA:
             self.bridgesWithoutCoordinates += 1
             return
 
-        self.progressBarValue += 1
+        self.progress_bar_value += 1
 
         bridgeName = str(self.bridges['Name'][i])
 
@@ -486,7 +592,7 @@ class KUBA:
         robustnessFactor = RiskBridges.getRobustnessFactor(yearOfConstruction)
 
         # K_13
-        if self.newDict:
+        if self.new_earthquake_zones_dict:
             zone = self.earthquake_zones[
                 self.earthquake_zones.contains(point)]['ZONE']
             if zone.empty:
@@ -512,10 +618,10 @@ class KUBA:
                 zoneName = _("none")
             else:
                 zoneName = zone.iloc[0]
-            self.earthquake_zonesDict[
+            self.earthquake_zones_dict[
                 str(point.x) + ' ' + str(point.y)] = zoneName
         else:
-            zoneName = self.earthquake_zonesDict[
+            zoneName = self.earthquake_zones_dict[
                 str(point.x) + ' ' + str(point.y)]
 
         earthQuakeCheckEntry = self.dfEarthquakeCheck[
@@ -706,25 +812,43 @@ class KUBA:
                             damage_costs, vehicle_lost_costs,
                             replacement_costs, downtime_costs, victim_costs)
 
-        self.__updateProgressBarAfterTimeout()
+        self.__update_bridges_progress_bar_after_timeout()
 
-    def __updateProgressBarAfterTimeout(self):
+    def __update_bridges_progress_bar_after_timeout(self):
         # updating the progressbar is a very time consuming operation
         # therefore we only update it after some time elapsed
         # and not at every iteration
         now = time.time()
-        elapsedTime = now - self.lastProgressBarUpdate
+        elapsedTime = now - self.last_bridges_progress_bar_update
         if elapsedTime > 1:
-            self.__updateProgressBar()
-            self.lastProgressBarUpdate = now
+            self.__update_bridges_progress_bar()
+            self.last_bridges_progress_bar_update = now
 
-    def __updateProgressBar(self):
+    def __update_bridges_progress_bar(self):
         description = (
             _('Bridges are being loaded') + ': ' +
-            str(self.progressBarValue) + '/' +
+            str(self.progress_bar_value) + '/' +
             str(self.bridgesSlider.value))
         if self.bridgesWithoutCoordinates > 0:
             description += (' (' + str(self.bridgesWithoutCoordinates) +
                             ' ' + _("without coordinates") + ')')
         self.progress_bar.update_progress(
-            step=self.progressBarValue, description=description)
+            step=self.progress_bar_value, description=description)
+
+    def __update_support_structures_progress_bar_after_timeout(self):
+        # updating the progressbar is a very time consuming operation
+        # therefore we only update it after some time elapsed
+        # and not at every iteration
+        now = time.time()
+        elapsedTime = now - self.last_support_structures_progress_bar_update
+        if elapsedTime > 1:
+            self.__update_support_structures_progress_bar()
+            self.last_support_structures_progress_bar_update = now
+
+    def __update_support_structures_progress_bar(self):
+        description = (
+            _('Support structures are being loaded') + ': ' +
+            str(self.progress_bar_value) + '/' +
+            str(len(self.support_structures)))
+        self.progress_bar.update_progress(
+            step=self.progress_bar_value, description=description)

@@ -6,6 +6,7 @@ import pandas as pd
 import plotly.express as px
 from functools import cache
 from IPython.display import display, HTML
+from ProgressBar import ProgressBar
 
 
 @cache
@@ -168,12 +169,19 @@ class Plots:
         self.poc_cost_risk_dataframe = self.__concat_dataframe(
             self.poc_cost_risk_dataframe, newDataFrame)
 
-    def display(self):
+    def display(self, progress_bar: ProgressBar) -> None:
+
+        self.progress_bar = progress_bar
 
         display(HTML("<hr><div style='text-align: center;'><h1>" +
                      _("Diagrams") + "</h1></div>"))
 
+        self.plot_number = 0
+        self.plot_counter = 16
+        self.progress_bar.reset(self.plot_counter)
+
         # age (x) vs. condition class (y) and probability of collapse (size)
+        self.__update_progress_bar()
         fig, ax = plt.subplots()
         plt.yticks([1, 2, 3, 4])
         # the circles became quite small,
@@ -188,11 +196,13 @@ class Plots:
             ax, self.acpScatterColumns[0], self.acpScatterColumns[1], fig)
 
         # age vs. probability of collapse
+        self.__update_progress_bar()
         self.__add_simple_scatter(
             self.ageConditionPocScatter,
             self.acpScatterColumns[0], self.acpScatterColumns[2])
 
         # condition class vs. probability of collapse
+        self.__update_progress_bar()
         fig, ax = plt.subplots()
         plt.xticks([1, 2, 3, 4])
         ax.scatter(
@@ -202,20 +212,24 @@ class Plots:
             ax, self.cpScatterColumns[0], self.cpScatterColumns[1], fig)
 
         # span vs. probability of collapse
+        self.__update_progress_bar()
         self.__add_simple_scatter(
             self.spanPocScatter,
             self.spScatterColumns[0], self.spScatterColumns[1])
 
         # maintenance acceptance date vs. probability of collapse
+        self.__update_progress_bar()
         self.__add_date_scatter(self.maintenancePocScatter,
                                 self.maintenancePocScatterColumns[0],
                                 self.maintenancePocScatterColumns[1])
 
         # box plot of materials vs. probability of collapse
+        self.__update_progress_bar()
         self.__add_material_box_plot(
             self.materialPocBox, self.materialPocBoxColumns)
 
         # stack plot year of construction vs. building material
+        self.__update_progress_bar()
         years = pd.unique(self.yearMaterialStack[
             self.yearMaterialStackColumns[0]])
         years.sort()
@@ -246,30 +260,36 @@ class Plots:
         plt.show()
 
         # aadt vs. risk
+        self.__update_progress_bar()
         self.__add_simple_scatter(
             self.aadtRiskScatter,
             self.aadtRiskScatterColumns[0], self.aadtRiskScatterColumns[1])
 
         # span vs. risk
+        self.__update_progress_bar()
         self.__add_simple_scatter(
             self.spanRiskScatter,
             self.spanRiskScatterColumns[0], self.spanRiskScatterColumns[1])
 
         # age vs. risk
+        self.__update_progress_bar()
         self.__add_simple_scatter(
             self.ageRiskScatter,
             self.ageRiskScatterColumns[0], self.ageRiskScatterColumns[1])
 
         # maintenance acceptance date vs. risk
+        self.__update_progress_bar()
         self.__add_date_scatter(self.maintenanceRiskScatter,
                                 self.maintenanceRiskScatterColumns[0],
                                 self.maintenanceRiskScatterColumns[1])
 
         # box plot of materials vs. risk
+        self.__update_progress_bar()
         self.__add_material_box_plot(
             self.materialRiskBox, self.materialRiskBoxColumns)
 
         # standardized damage
+        self.__update_progress_bar()
         df = self.standardized_damage_dataframe
         replacement_sum = df[_('Replacement costs')].sum()
         standardized_damages = [
@@ -287,6 +307,7 @@ class Plots:
         #   - x: probability of collapse
         #   - y: damage costs
         #   - z: risk
+        self.__update_progress_bar()
         df = self.poc_cost_risk_dataframe
         columns = self.poc_cost_risk_columns
         fig = px.scatter_3d(
@@ -303,6 +324,7 @@ class Plots:
         display(HTML(html_str))
 
         # 3D plot with logarithmic x & y axes
+        self.__update_progress_bar()
         column_log_0 = 'ln(' + columns[0] + ')'
         column_log_1 = 'ln(' + columns[1] + ')'
         df[column_log_0] = np.log(df[columns[0]])
@@ -321,6 +343,7 @@ class Plots:
         display(HTML(html_str))
 
         # 3D plot with all logarithmic axes
+        self.__update_progress_bar()
         column_log_2 = 'ln(' + columns[2] + ')'
         df[column_log_2] = np.log(df[columns[2]])
         fig = px.scatter_3d(
@@ -372,3 +395,10 @@ class Plots:
         ax.set_xlabel(column1)
         ax.set_ylabel(column2)
         plt.show()
+
+    def __update_progress_bar(self):
+        description = (_('Loading plot') + ': ' +
+                       str(self.plot_number) + '/' + str(self.plot_counter))
+        self.progress_bar.update_progress(
+            step=self.plot_number, description=description)
+        self.plot_number += 1
