@@ -116,7 +116,14 @@ class RiskSupportStructures:
             return 2
 
     @staticmethod
-    def get_visible_area_factor(length: float, average_height: float) -> float:
+    def get_visible_area(length: float, average_height: float) -> float:
+        if length is None or average_height is None:
+            return None
+        else:
+            return length * average_height
+
+    @staticmethod
+    def get_visible_area_factor(visible_area: float) -> float:
 
         # factor K_14 ("sichtbare Fläche")
 
@@ -124,12 +131,10 @@ class RiskSupportStructures:
         #   - missing definition of "fast 0"
         #   - table 4.12: Bergseitig == Talseitig? (just get rid of it?)
 
-        if length is None or average_height is None:
+        if visible_area is None:
             return 2.0
 
         else:
-            visible_area = length * average_height
-
             # TODO: precise definition of borders (which value for 100?)
 
             if visible_area < 20:

@@ -1,3 +1,4 @@
+NAME_LABEL = 'Name'
 ALL_BUILDINGS_NUMBER_LABEL = 'Nummer'
 SKEW_LABEL = "Schief\xa0[°]"
 NUMBER_LABEL = '\xa0Nummer'
@@ -25,7 +26,6 @@ TRAFFIC_AXIS_LABEL = 'Unnamed: 4'
 TRAFFIC_January_LABEL = 'Unnamed: 6'
 TRAFFIC_December_LABEL = 'Unnamed: 17'
 TRAFFIC_AADT_LABEL = 'Unnamed: 18'
-SUPPORT_NAME_LABEL = 'Name'
 SUPPORT_CONDITION_LABEL = 'Zustand'
 SUPPORT_X_LABEL = 'Infrastrukturobjekt\xa0Landeskoordinaten\xa0E\xa0[m]'
 SUPPORT_Y_LABEL = 'Infrastrukturobjekt\xa0Landeskoordinaten\xa0N\xa0[m]'

@@ -246,18 +246,94 @@ class InteractiveMap:
 
     @staticmethod
     def create_support_structure_popup(
-            support_structure_name: str) -> HTML:
+            support_structure_name: str,
+            year_of_construction: str,
+            human_error_factor: int,
+            condition_class: int,
+            condition_factor: int,
+            support_structure_type_factor: float,
+            wall_type: str,
+            material_factor: float,
+            visible_area: float,
+            visible_area_factor: float,
+            height: float,
+            height_factor: float,
+            precipitation_zone: int,
+            precipitation_zone_factor: float,
+            probability_of_collapse: float) -> HTML:
         """Creates a popup for a support structure marker (an HTML widget)
 
         Parameters
         ----------
         support_structure_name: str
             The descriptive name of the support structure
+        year_of_construction: str
+            The year of construction of the support structure
+        human_error_factor: int
+            The factor for human errors
+        condition_class: int
+            The condition class of the support structure
+        condition_factor: int
+            The condition factor of the support structure
+        support_structure_type_factor: int
+            The type factor of the support structure
+        wall_type: str
+            The wall type of the support structure
+        material_factor : int
+            The material factor of the support structure
+        visible_area: float
+            The visible area of the support structure
+        visible_area_factor: float
+            The visible area factor of the support structure
+        height: float
+            The height of the support structure
+        height_factor: float
+            The height factor of the support structure
+        precipitation_zone: int
+            The precipitation zone of the support structure
+        precipitation_zone_factor: float
+            The precipitation zone factor of the support structure
+        probability_of_collapse : float
+            The probability of collapse of the support structure
         """
         widget = widgets.HTML()
 
+        if math.isnan(year_of_construction):
+            year_of_construction_string = _('unknown')
+        else:
+            year_of_construction_string = str(int(year_of_construction))
+
+        if math.isnan(visible_area):
+            visible_area_string = _('unknown')
+        else:
+            visible_area_string = str(visible_area) + ' m²'
+
+        if math.isnan(condition_class):
+            condition_class_string = _('unknown')
+        else:
+            condition_class_string = str(int(condition_class))
+
         widget.value = (
-            '<b>' + _('Name') + '</b>: ' + support_structure_name)
+            '<b>' + _('Name') + '</b>: ' + support_structure_name + '<br><b>' +
+            _('Year of construction') + '</b>: ' +
+            year_of_construction_string + '<br><b><i>K<sub>1</sub>: ' +
+            _('Human error factor') + '</b>: ' + str(human_error_factor) +
+            '<br><b>' + _('Condition class') + '</b>: ' +
+            condition_class_string + '<br><b>K<sub>4</sub>: ' +
+            _('Condition factor') + '</b>: ' + str(condition_factor) +
+            '<br><b>' + _('Type factor') + '</b>: ' +
+            str(support_structure_type_factor) + '<br><b>' + _('Wall type') +
+            '</b>: ' + str(wall_type) + '<br><b>' +
+            _('Building material factor') + '</b>: ' + str(material_factor) +
+            '<br><b>' + _('Visible area') + '</b>: ' + visible_area_string +
+            '<br><b>' + _('Visible area factor') + '</b>: ' +
+            str(visible_area_factor) + '<br><b>' + _('Height') + '</b>: ' +
+            InteractiveMap.__get_dimension_string(height) + '<br><b>' +
+            _('Precipitation zone') + '</b>: ' + str(precipitation_zone) +
+            '<br><b>' + _('Precipitation zone factor') + '</b>: ' +
+            str(precipitation_zone_factor) + '<br><b>' +
+            _('Probability of collapse') + '</b>: ' +
+            str(probability_of_collapse))
 
         return widget
 
@@ -306,10 +382,11 @@ class InteractiveMap:
             The popup to show at the marker
         """
 
-        circle_marker = CircleMarker()
-        circle_marker.location = [point.xy[1][0], point.xy[0][0]]
-        circle_marker.popup = popup
-        self.markers.append(circle_marker)
+        if not point.is_empty:
+            circle_marker = CircleMarker()
+            circle_marker.location = [point.xy[1][0], point.xy[0][0]]
+            circle_marker.popup = popup
+            self.markers.append(circle_marker)
 
     def add_marker_layer(self, values: pd.DataFrame) -> None:
         """Adds the marker layer to the map.

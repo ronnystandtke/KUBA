@@ -249,23 +249,24 @@ class KUBA:
             InteractiveMap.create_precipitation_zones_choropleth(
                 self.precipitation_zones))
 
-        self.interactive_poc_map = InteractiveMap(
+        self.bridges_poc_map = InteractiveMap(
             self.progress_bar, earthquake_zones_choropleth,
             precipitation_zones_choropleth, _('Probability of collapse'), True)
 
-        self.interactive_risk_map = InteractiveMap(
+        self.bridges_risk_map = InteractiveMap(
             self.progress_bar, earthquake_zones_choropleth,
             precipitation_zones_choropleth, _('Risk'), False)
 
-        self.interactive_support_structure_map = InteractiveMap(
-            self.progress_bar, earthquake_zones_choropleth,
-            precipitation_zones_choropleth, _('Risk'), False)
-
-        self.interactive_bridges_table = InteractiveBridgesTable()
-        self.interactive_support_structures_table = (
-            InteractiveSupportStructuresTable())
+        self.bridges_table = InteractiveBridgesTable()
 
         self.plots = Plots()
+
+        self.support_structures_table = InteractiveSupportStructuresTable()
+
+        self.support_structures_poc_map = InteractiveMap(
+            self.progress_bar, earthquake_zones_choropleth,
+            precipitation_zones_choropleth, _('Probability of collapse'),
+            False)
 
         initialWidthStyle = {'description_width': 'initial'}
 
@@ -310,8 +311,6 @@ class KUBA:
         #     display(self.sliderHBox)
         #     display(self.loadButton)
 
-        self.progress_bar_value = 0
-
         self.loadBridges()
         self.load_support_structures()
 
@@ -333,6 +332,7 @@ class KUBA:
             self.loadButton.disabled = True
 
             self.progress_bar.reset(self.bridgesSlider.value)
+            self.progress_bar_value = 0
             self.bridgesWithoutCoordinates = 0
             self.last_bridges_progress_bar_update = 0
 
@@ -349,25 +349,23 @@ class KUBA:
 
             self.progress_bar.reset(3)
             description = (
-                _('Loading interactive map of probabilities of collapse'))
+                _('Loading the map of bridge collapse probabilities'))
             self.progress_bar.update_progress(step=0, description=description)
-            self.interactive_poc_map.add_marker_layer(
-                self.interactive_bridges_table.data_frame)
+            self.bridges_poc_map.add_marker_layer(
+                self.bridges_table.data_frame)
 
-            description = (
-                _('Loading interactive map of risks'))
+            description = (_('Loading the map of bridge risks'))
             self.progress_bar.update_progress(step=1, description=description)
-            self.interactive_risk_map.add_marker_layer(
-                self.interactive_bridges_table.data_frame)
+            self.bridges_risk_map.add_marker_layer(
+                self.bridges_table.data_frame)
 
             with self.output:
-                self.interactive_poc_map.display()
-                self.interactive_risk_map.display()
-                description = (
-                    _('Loading interactive table of bridges'))
+                self.bridges_poc_map.display()
+                self.bridges_risk_map.display()
+                description = _('Loading the table of bridges')
                 self.progress_bar.update_progress(
                     step=2, description=description)
-                self.interactive_bridges_table.display()
+                self.bridges_table.display()
                 self.plots.display(self.progress_bar)
 
             self.bridgesSlider.disabled = False
@@ -382,6 +380,7 @@ class KUBA:
     def load_support_structures(self):
 
         self.progress_bar.reset(len(self.support_structures))
+        self.progress_bar_value = 0
         self.last_support_structures_progress_bar_update = 0
 
         self.new_precipitation_zones_dict = (
@@ -399,12 +398,32 @@ class KUBA:
                 with open(precipitation_zones_dict_file_name, 'w') as file:
                     json.dump(self.precipitation_zones_dict, file, indent=4)
 
+            self.progress_bar.reset(2)
+            description = (
+                _('Loading the map of support structure collapse probabilities'))
+            self.progress_bar.update_progress(step=0, description=description)
+            self.support_structures_poc_map.add_marker_layer(
+                self.support_structures_table.data_frame)
+
+            with self.output:
+                self.support_structures_poc_map.display()
+                description = _('Loading the table of support structures')
+                self.progress_bar.update_progress(
+                    step=1, description=description)
+                self.support_structures_table.display()
+
         except Exception:
             print(traceback.format_exc())
             with self.output:
                 print(traceback.format_exc())
 
     def __load_support_structure(self, i):
+
+        point = self.support_structures['geometry'][i]
+        if point.is_empty:
+            # TODO: what to do with support structures without coordinates?
+            # (we ignored bridges without coordinates...)
+            return
 
         # TODO: skip everything that is not "Stützbauwerk",
         # "Stützkonstruktion", "Stützmauer", "Stützmaueranlage",
@@ -416,6 +435,9 @@ class KUBA:
                 type_text != 'Stützmauer' and
                 type_text != 'Stützmaueranlage'):
             return
+
+        support_structure_name = str(
+            self.support_structures[Labels.NAME_LABEL][i])
 
         # K_1
         year_of_construction = self.support_structures[
@@ -442,6 +464,8 @@ class KUBA:
         is_on_slope_side = RiskSupportStructures.is_on_slope_side(
             function_text)
         wall_type = self.support_structures[Labels.SUPPORT_WALL_TYPE_LABEL][i]
+        if type(wall_type) is not str:
+            wall_type = ""
         type_factor = RiskSupportStructures.get_type_factor(
             is_on_slope_side, wall_type)
 
@@ -456,9 +480,10 @@ class KUBA:
         length = self.support_structures[Labels.SUPPORT_LENGTH_LABEL][i]
         average_height = self.support_structures[
             Labels.SUPPORT_AVERAGE_HEIGHT_LABEL][i]
+        visible_area = RiskSupportStructures.get_visible_area(
+            length, average_height)
         visible_area_factor = (
-            RiskSupportStructures.get_visible_area_factor(
-                length, average_height))
+            RiskSupportStructures.get_visible_area_factor(visible_area))
 
         # K_15
         max_height = length = self.support_structures[
@@ -470,45 +495,93 @@ class KUBA:
         grade_factor = 2.0
 
         # K_17
-        point = self.support_structures['geometry'][i]
-        if point.is_empty:
-            # TODO: what to do with support structures without coordinates?
-            precipitation_zone_factor = 1.0
-        else:
-            precipitation_zone_value = None
-            if self.new_precipitation_zones_dict:
-                precipitation_zone = self.precipitation_zones[
-                    self.precipitation_zones.contains(point)]['DN']
-                if precipitation_zone.empty:
-                    # TODO: what to do with support structures outside of known
-                    # precipitation_zones?
-                    pass
-                else:
-                    precipitation_zone_value = int(precipitation_zone.iloc[0])
-                    self.precipitation_zones_dict[
-                        str(point.x) + ' ' + str(point.y)] = (
-                            precipitation_zone_value)
-            else:
-                precipitation_zone_value = self.precipitation_zones_dict[
-                    str(point.x) + ' ' + str(point.y)]
-
-            if precipitation_zone_value is None:
+        precipitation_zone_value = None
+        if self.new_precipitation_zones_dict:
+            precipitation_zone = self.precipitation_zones[
+                self.precipitation_zones.contains(point)]['DN']
+            if precipitation_zone.empty:
                 # TODO: what to do with support structures outside of known
                 # precipitation_zones?
-                precipitation_zone_factor = 1.0
+                pass
             else:
-                precipitation_zone_factor = (
-                    RiskSupportStructures.get_precipitation_zone_factor(
-                        precipitation_zone_value))
+                precipitation_zone_value = int(precipitation_zone.iloc[0])
+                self.precipitation_zones_dict[
+                    str(point.x) + ' ' + str(point.y)] = (
+                        precipitation_zone_value)
+        else:
+            precipitation_zone_value = self.precipitation_zones_dict[
+                str(point.x) + ' ' + str(point.y)]
+
+        if precipitation_zone_value is None:
+            # TODO: what to do with support structures outside of known
+            # precipitation_zones?
+            precipitation_zone_factor = 1.0
+        else:
+            precipitation_zone_factor = (
+                RiskSupportStructures.get_precipitation_zone_factor(
+                    precipitation_zone_value))
 
         # TODO: what means "pro Jahr" for P_f?
         probability_of_failure = 10e-6
 
         probability_of_collapse = (
-            probability_of_failure * human_error_factor *
-            correlation_factor * condition_class_factor * type_factor *
-            material_factor * visible_area_factor * height_factor *
-            grade_factor * precipitation_zone_factor)
+            probability_of_failure *
+            (1 if human_error_factor is None
+                else human_error_factor) *
+            (1 if correlation_factor is None
+                else correlation_factor) *
+            (1 if condition_class_factor is None
+                else condition_class_factor) *
+            (1 if type_factor is None
+                else type_factor) *
+            (1 if material_factor is None
+                else material_factor) *
+            (1 if visible_area_factor is None
+                else visible_area_factor) *
+            (1 if height_factor is None
+                else height_factor) *
+            (1 if grade_factor is None
+                else grade_factor) *
+            (1 if precipitation_zone_factor is None
+                else precipitation_zone_factor)
+            )
+
+        try:
+            # add marker to interactive map
+            popup = InteractiveMap.create_support_structure_popup(
+                support_structure_name, year_of_construction,
+                human_error_factor, condition_class, condition_class_factor,
+                type_factor, wall_type, material_factor, visible_area,
+                visible_area_factor, max_height, height_factor,
+                precipitation_zone_value, precipitation_zone_factor,
+                probability_of_collapse)
+            self.support_structures_poc_map.add_marker(point, popup)
+
+            # add dataframe to interactive table
+            self.support_structures_table.add_entry(
+                support_structure_name, year_of_construction,
+                human_error_factor, condition_class, condition_class_factor,
+                type_factor, wall_type, material_factor, visible_area,
+                visible_area_factor, max_height, height_factor,
+                precipitation_zone_value, precipitation_zone_factor,
+                probability_of_collapse)
+
+        except Exception:
+            print(traceback.format_exc())
+            with self.output:
+                print(traceback.format_exc())
+                print('support_structure_name:', support_structure_name)
+                print('year_of_construction:', year_of_construction)
+                print('human_error_factor:', human_error_factor)
+                print('condition_class:', condition_class)
+                print('condition_class_factor:', condition_class_factor)
+                print('type_factor:', type_factor)
+                print('wall_type:', wall_type)
+                print('material_factor:', material_factor)
+                print('visible_area:', visible_area)
+                print('visible_area_factor:', visible_area_factor)
+                print('max_height:', max_height)
+                print('height_factor:', height_factor)
 
     def __load_bridge(self, i):
         point = self.bridges['geometry'][i]
@@ -520,7 +593,7 @@ class KUBA:
 
         self.progress_bar_value += 1
 
-        bridgeName = str(self.bridges['Name'][i])
+        bridgeName = str(self.bridges[Labels.NAME_LABEL][i])
 
         # K_1
         normYear = RiskBridges.getNormYear(
@@ -790,11 +863,11 @@ class KUBA:
             maintenanceAcceptanceDateString, probabilityOfCollapse, length,
             width, replacement_costs, victim_costs, axis_string, aadt,
             vehicle_lost_costs, downtime_costs, damage_costs, risk)
-        self.interactive_poc_map.add_marker(point, bridge_popup)
-        self.interactive_risk_map.add_marker(point, bridge_popup)
+        self.bridges_poc_map.add_marker(point, bridge_popup)
+        self.bridges_risk_map.add_marker(point, bridge_popup)
 
         # add dataframe to interactive table
-        self.interactive_bridges_table.add_entry(
+        self.bridges_table.add_entry(
             bridgeName, normYearString, yearOfConstructionString,
             humanErrorFactor, typeText, staticalDeterminacyFactor,
             conditionClass, ageText, conditionFactor, functionText, span,

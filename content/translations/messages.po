@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-19 17:11+0100\n"
+"POT-Creation-Date: 2025-01-19 23:45+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: ../InteractiveBridgesTable.py:126 ../InteractiveMap.py:197
-#: ../InteractiveMap.py:260 ../InteractiveSupportStructuresTable.py:35
+#: ../InteractiveMap.py:317 ../InteractiveSupportStructuresTable.py:84
 msgid "Name"
 msgstr ""
 
@@ -26,11 +26,14 @@ msgstr ""
 msgid "Year of the norm"
 msgstr ""
 
-#: ../InteractiveBridgesTable.py:128 ../InteractiveMap.py:199 ../Plots.py:48
+#: ../InteractiveBridgesTable.py:128 ../InteractiveMap.py:199
+#: ../InteractiveMap.py:318 ../InteractiveSupportStructuresTable.py:85
+#: ../Plots.py:48
 msgid "Year of construction"
 msgstr ""
 
 #: ../InteractiveBridgesTable.py:129 ../InteractiveMap.py:200
+#: ../InteractiveMap.py:320 ../InteractiveSupportStructuresTable.py:86
 msgid "Human error factor"
 msgstr ""
 
@@ -42,7 +45,8 @@ msgstr ""
 msgid "Statical determinacy factor"
 msgstr ""
 
-#: ../InteractiveBridgesTable.py:133 ../Plots.py:25 ../Plots.py:30
+#: ../InteractiveBridgesTable.py:133 ../InteractiveMap.py:321
+#: ../InteractiveSupportStructuresTable.py:87 ../Plots.py:25 ../Plots.py:30
 msgid "Condition class"
 msgstr ""
 
@@ -52,6 +56,7 @@ msgid "Age"
 msgstr ""
 
 #: ../InteractiveBridgesTable.py:135 ../InteractiveMap.py:206
+#: ../InteractiveMap.py:323 ../InteractiveSupportStructuresTable.py:88
 msgid "Condition factor"
 msgstr ""
 
@@ -82,6 +87,7 @@ msgid "Building material"
 msgstr ""
 
 #: ../InteractiveBridgesTable.py:143 ../InteractiveMap.py:217
+#: ../InteractiveMap.py:327 ../InteractiveSupportStructuresTable.py:91
 msgid "Building material factor"
 msgstr ""
 
@@ -102,9 +108,10 @@ msgstr ""
 msgid "Last maintenance acceptance date"
 msgstr ""
 
-#: ../InteractiveBridgesTable.py:149 ../InteractiveMap.py:226 ../KUBA.py:254
-#: ../Plots.py:25 ../Plots.py:30 ../Plots.py:34 ../Plots.py:39 ../Plots.py:44
-#: ../Plots.py:75
+#: ../InteractiveBridgesTable.py:149 ../InteractiveMap.py:226
+#: ../InteractiveMap.py:335 ../InteractiveSupportStructuresTable.py:99
+#: ../KUBA.py:254 ../KUBA.py:268 ../Plots.py:25 ../Plots.py:30 ../Plots.py:34
+#: ../Plots.py:39 ../Plots.py:44 ../Plots.py:75
 msgid "Probability of collapse"
 msgstr ""
 
@@ -149,16 +156,17 @@ msgid "Damage costs"
 msgstr ""
 
 #: ../InteractiveBridgesTable.py:159 ../InteractiveMap.py:242 ../KUBA.py:258
-#: ../KUBA.py:262 ../Plots.py:53 ../Plots.py:57 ../Plots.py:61 ../Plots.py:66
-#: ../Plots.py:70 ../Plots.py:75
+#: ../Plots.py:53 ../Plots.py:57 ../Plots.py:61 ../Plots.py:66 ../Plots.py:70
+#: ../Plots.py:75
 msgid "Risk"
 msgstr ""
 
-#: ../InteractiveBridgesTable.py:172 ../InteractiveSupportStructuresTable.py:48
+#: ../InteractiveBridgesTable.py:172
+#: ../InteractiveSupportStructuresTable.py:113
 msgid "Interactive table"
 msgstr ""
 
-#: ../InteractiveBridgesTable.py:176 ../InteractiveSupportStructuresTable.py:52
+#: ../InteractiveBridgesTable.py:176
 msgid "Bridges"
 msgstr ""
 
@@ -166,7 +174,7 @@ msgstr ""
 msgid "Creating base map"
 msgstr ""
 
-#: ../InteractiveMap.py:86 ../InteractiveMap.py:273
+#: ../InteractiveMap.py:86 ../InteractiveMap.py:349
 msgid "Earthquake zones"
 msgstr ""
 
@@ -174,25 +182,63 @@ msgstr ""
 msgid "Cluster bridges"
 msgstr ""
 
-#: ../InteractiveMap.py:294
+#: ../InteractiveMap.py:302 ../InteractiveMap.py:307 ../InteractiveMap.py:312
+#: ../InteractiveMap.py:455 ../InteractiveSupportStructuresTable.py:79
+#: ../KUBA.py:630 ../KUBA.py:660 ../KUBA.py:741 ../KUBA.py:747 ../KUBA.py:750
+#: ../KUBA.py:766
+msgid "unknown"
+msgstr ""
+
+#: ../InteractiveMap.py:324 ../InteractiveSupportStructuresTable.py:89
+msgid "Type factor"
+msgstr ""
+
+#: ../InteractiveMap.py:325 ../InteractiveSupportStructuresTable.py:90
+msgid "Wall type"
+msgstr ""
+
+#: ../InteractiveMap.py:328 ../InteractiveSupportStructuresTable.py:92
+msgid "Visible area"
+msgstr ""
+
+#: ../InteractiveMap.py:329 ../InteractiveSupportStructuresTable.py:94
+msgid "Visible area factor"
+msgstr ""
+
+#: ../InteractiveMap.py:330 ../InteractiveSupportStructuresTable.py:95
+msgid "Height"
+msgstr ""
+
+#: ../InteractiveMap.py:332 ../InteractiveSupportStructuresTable.py:97
+msgid "Precipitation zone"
+msgstr ""
+
+#: ../InteractiveMap.py:333 ../InteractiveSupportStructuresTable.py:98
+msgid "Precipitation zone factor"
+msgstr ""
+
+#: ../InteractiveMap.py:370
 msgid "Precipitation zones"
 msgstr ""
 
-#: ../InteractiveMap.py:345
+#: ../InteractiveMap.py:422
 msgid "Clustered Bridges"
 msgstr ""
 
-#: ../InteractiveMap.py:350
+#: ../InteractiveMap.py:427
 msgid "Individual Bridges"
 msgstr ""
 
-#: ../InteractiveMap.py:356
+#: ../InteractiveMap.py:433
 msgid "Interactive maps"
 msgstr ""
 
-#: ../InteractiveMap.py:378 ../KUBA.py:558 ../KUBA.py:588 ../KUBA.py:669
-#: ../KUBA.py:675 ../KUBA.py:678 ../KUBA.py:694
-msgid "unknown"
+#: ../InteractiveSupportStructuresTable.py:96
+msgid "Height factor"
+msgstr ""
+
+#: ../InteractiveSupportStructuresTable.py:117
+msgid "Support structures"
 msgstr ""
 
 #: ../KUBA.py:119
@@ -219,43 +265,51 @@ msgstr ""
 msgid "Converting coordinate reference systems"
 msgstr ""
 
-#: ../KUBA.py:273
+#: ../KUBA.py:274
 msgid "Number of bridges"
 msgstr ""
 
-#: ../KUBA.py:302
+#: ../KUBA.py:303
 msgid "Load selected number of bridges"
 msgstr ""
 
-#: ../KUBA.py:319
+#: ../KUBA.py:320
 msgid "Done"
 msgstr ""
 
-#: ../KUBA.py:352
-msgid "Loading interactive map of probabilities of collapse"
+#: ../KUBA.py:353
+msgid "Loading the map of bridge collapse probabilities"
 msgstr ""
 
 #: ../KUBA.py:358
-msgid "Loading interactive map of risks"
+msgid "Loading the map of bridge risks"
 msgstr ""
 
-#: ../KUBA.py:367
-msgid "Loading interactive table of bridges"
+#: ../KUBA.py:366
+msgid "Loading the table of bridges"
 msgstr ""
 
-#: ../KUBA.py:618
+#: ../KUBA.py:403
+msgid "Loading the map of support structure collapse probabilities"
+msgstr ""
+
+#: ../KUBA.py:410
+msgid "Loading the table of support structures"
+msgstr ""
+
+#: ../KUBA.py:690
 msgid "none"
 msgstr ""
 
-#: ../KUBA.py:829
+#: ../KUBA.py:901
 msgid "Bridges are being loaded"
 msgstr ""
 
-#: ../KUBA.py:834
+#: ../KUBA.py:906
 msgid "without coordinates"
 msgstr ""
 
-#: ../KUBA.py:850
+#: ../KUBA.py:922
 msgid "Support structures are being loaded"
 msgstr ""
 
