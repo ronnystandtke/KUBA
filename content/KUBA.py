@@ -421,13 +421,12 @@ class KUBA:
 
         point = self.support_structures['geometry'][i]
         if point.is_empty:
-            # TODO: what to do with support structures without coordinates?
-            # (we ignored bridges without coordinates...)
+            # we ignore support structures without coordinates
             return
 
-        # TODO: skip everything that is not "Stützbauwerk",
+        # skip everything that is not "Stützbauwerk",
         # "Stützkonstruktion", "Stützmauer", "Stützmaueranlage",
-        # "Schwergewichtsmauern in Mauerwerk"?
+        # "Schwergewichtsmauern in Mauerwerk"
         type_text = self.support_structures[Labels.TYPE_TEXT_LABEL][i]
         if (type_text != 'Schwergewichtsmauern in Mauerwerk' and
                 type_text != 'Stützbauwerk' and
@@ -448,18 +447,13 @@ class KUBA:
         # K_2
         correlation_factor = 1.3
 
-        # TODO: what happened to K_3?
-
         # K_4
         condition_class = self.support_structures[
             Labels.SUPPORT_CONDITION_LABEL][i]
         condition_class_factor = (
             RiskSupportStructures.get_condition_class_factor(condition_class))
 
-        # TODO: what happened to K_5, K_6 & K_7?
-
         # K_8
-        # TODO: Table 4.8 header: must read "Mauertyp Text KUBA-Datenbank"?
         function_text = self.support_structures[Labels.FUNCTION_TEXT_LABEL][i]
         is_on_slope_side = RiskSupportStructures.is_on_slope_side(
             function_text)
@@ -471,10 +465,6 @@ class KUBA:
 
         # K_9
         material_factor = RiskSupportStructures.get_material_factor(wall_type)
-
-        # TODO: what happened to K_10, K_11 & K_12?
-
-        # TODO: K_13 see attachment?
 
         # K_14
         length = self.support_structures[Labels.SUPPORT_LENGTH_LABEL][i]
@@ -491,7 +481,7 @@ class KUBA:
         height_factor = RiskSupportStructures.get_height_factor(max_height)
 
         # K_16
-        # TODO: use default value for "no information"?
+        # we use the default value for "no information"
         grade_factor = 2.0
 
         # K_17
@@ -500,9 +490,8 @@ class KUBA:
             precipitation_zone = self.precipitation_zones[
                 self.precipitation_zones.contains(point)]['DN']
             if precipitation_zone.empty:
-                # TODO: what to do with support structures outside of known
-                # precipitation_zones?
-                pass
+                # support structures outside of known precipitation_zones
+                precipitation_zone_factor = 1.5
             else:
                 precipitation_zone_value = int(precipitation_zone.iloc[0])
                 self.precipitation_zones_dict[
@@ -513,15 +502,13 @@ class KUBA:
                 str(point.x) + ' ' + str(point.y)]
 
         if precipitation_zone_value is None:
-            # TODO: what to do with support structures outside of known
-            # precipitation_zones?
-            precipitation_zone_factor = 1.0
+            # support structures outside of known precipitation_zones
+            precipitation_zone_factor = 1.5
         else:
             precipitation_zone_factor = (
                 RiskSupportStructures.get_precipitation_zone_factor(
                     precipitation_zone_value))
 
-        # TODO: what means "pro Jahr" for P_f?
         probability_of_failure = 10e-6
 
         probability_of_collapse = (
