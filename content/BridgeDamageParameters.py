@@ -1,4 +1,4 @@
-class DamageParameters:
+class BridgeDamageParameters:
 
     @staticmethod
     def get_replacement_costs(length, width):
@@ -20,7 +20,7 @@ class DamageParameters:
     def get_victim_costs(bridge_type, bridge_function):
         # vosl = "value of statistical life" in CHF
         vosl = 7_000_000
-        number_of_deaths = DamageParameters.get_number_of_deaths(
+        number_of_deaths = BridgeDamageParameters.get_number_of_deaths(
             bridge_type, bridge_function)
         number_of_injuries = number_of_deaths
         return vosl * (number_of_deaths + 0.01 * number_of_injuries)

@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class RiskSupportStructures:
+class SupportStructureRisks:
 
     SupportWall = Enum(
         'SupportWall',
@@ -78,7 +78,7 @@ class RiskSupportStructures:
             [1.0, 1.0],
             [2.8, 2.8]]
 
-        y = RiskSupportStructures.__get_support_wall_type(wall_type).value
+        y = SupportStructureRisks.__get_support_wall_type(wall_type).value
         x = 1 if is_on_slope_side else 0
 
         return k8_table[y][x]
@@ -160,7 +160,7 @@ class RiskSupportStructures:
                 wall_type == 'Steinkorbmauer' or
                 wall_type == 'Trockenmauer' or
                 wall_type == 'Mauerwerk'):
-            return RiskSupportStructures.SupportWall.GRAVITY_WALL
+            return SupportStructureRisks.SupportWall.GRAVITY_WALL
 
         if (wall_type is None or wall_type == '' or
                 wall_type == 'Verankerte Winkelstützmauer' or
@@ -168,6 +168,6 @@ class RiskSupportStructures:
                 wall_type == 'Winkelstützmauer mit Mauerwerksverkleidung' or
                 wall_type == 'Winkelstützmauer mit Querträger(n)' or
                 wall_type == 'Winkelstützmauer mit Wiederlager'):
-            return RiskSupportStructures.SupportWall.CANTILEVER_WALL
+            return SupportStructureRisks.SupportWall.CANTILEVER_WALL
 
-        return RiskSupportStructures.SupportWall.OTHER_WALL
+        return SupportStructureRisks.SupportWall.OTHER_WALL

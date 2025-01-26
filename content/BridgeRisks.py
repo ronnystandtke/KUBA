@@ -3,7 +3,7 @@ from datetime import datetime
 CURRENT_YEAR = datetime.now().year
 
 
-class RiskBridges:
+class BridgeRisks:
 
     @staticmethod
     def getNormYear(normText):
@@ -73,8 +73,8 @@ class RiskBridges:
     @staticmethod
     def getConditionFactor(conditionClass, age):
         # factor P_f * K_4 ("Zustandsklasse")
-        h1 = RiskBridges.__getConditionFactorH1(conditionClass)
-        h2 = RiskBridges.__getConditionFactorH2(age)
+        h1 = BridgeRisks.__getConditionFactorH1(conditionClass)
+        h2 = BridgeRisks.__getConditionFactorH2(age)
         return 0.7 * h1 + 0.3 * h2
 
     @staticmethod
@@ -366,29 +366,29 @@ class RiskBridges:
             return 1
 
         # if H4 can be determined, return this value
-        earthQuakeFactorH4 = RiskBridges.__getEarthQuakeFactorH4(
+        earthQuakeFactorH4 = BridgeRisks.__getEarthQuakeFactorH4(
             bridgeType, bridgeName, skewValue)
         if earthQuakeFactorH4 is not None:
             return earthQuakeFactorH4
 
         # if H4 can NOT be determined,
         # return the collapse probability increasing factor
-        return RiskBridges.__getCollapseProbabilityIncreasingFactor(
+        return BridgeRisks.__getCollapseProbabilityIncreasingFactor(
                 zoneName, yearOfConstruction)
 
     @staticmethod
     def __getCollapseProbabilityIncreasingFactor(zoneName, yearOfConstruction):
         # see table 3.30 ("Erhöhungsfaktor der Einsturzwahrscheinlichkeit")
         if (zoneName == 'Z1a') or (zoneName == 'Z1b'):
-            return RiskBridges.__getEHF(yearOfConstruction, 0)
+            return BridgeRisks.__getEHF(yearOfConstruction, 0)
         if (zoneName == 'Z2'):
-            return RiskBridges.__getEHF(yearOfConstruction, 1)
+            return BridgeRisks.__getEHF(yearOfConstruction, 1)
         if (zoneName == 'Z3a') or (zoneName == 'Z3b'):
-            return RiskBridges.__getEHF(yearOfConstruction, 2)
+            return BridgeRisks.__getEHF(yearOfConstruction, 2)
         else:
             # When there are bridges outside of
             # earthquake zones we assume zone 2.
-            return RiskBridges.__getEHF(yearOfConstruction, 1)
+            return BridgeRisks.__getEHF(yearOfConstruction, 1)
 
     @staticmethod
     def __getEHF(yearOfConstruction, index):

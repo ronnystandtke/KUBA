@@ -14,14 +14,14 @@ from IPython.display import display
 from json import JSONDecodeError
 from shapely.geometry import Point
 import Labels
-from DamageParameters import DamageParameters
+from BridgeDamageParameters import BridgeDamageParameters
 from InteractiveMap import InteractiveMap
 from InteractiveBridgesTable import InteractiveBridgesTable
 from InteractiveSupportStructuresTable import InteractiveSupportStructuresTable
 from Plots import Plots
 from ProgressBar import ProgressBar
-from RiskBridges import RiskBridges
-from RiskSupportStructures import RiskSupportStructures
+from BridgeRisks import BridgeRisks
+from SupportStructureRisks import SupportStructureRisks
 
 
 from warnings import simplefilter
@@ -441,7 +441,7 @@ class KUBA:
         # K_1
         year_of_construction = self.support_structures[
             Labels.YEAR_OF_CONSTRUCTION_LABEL][i]
-        human_error_factor = RiskSupportStructures.get_human_error_factor(
+        human_error_factor = SupportStructureRisks.get_human_error_factor(
             year_of_construction)
 
         # K_2
@@ -451,34 +451,34 @@ class KUBA:
         condition_class = self.support_structures[
             Labels.SUPPORT_CONDITION_LABEL][i]
         condition_class_factor = (
-            RiskSupportStructures.get_condition_class_factor(condition_class))
+            SupportStructureRisks.get_condition_class_factor(condition_class))
 
         # K_8
         function_text = self.support_structures[Labels.FUNCTION_TEXT_LABEL][i]
-        is_on_slope_side = RiskSupportStructures.is_on_slope_side(
+        is_on_slope_side = SupportStructureRisks.is_on_slope_side(
             function_text)
         wall_type = self.support_structures[Labels.SUPPORT_WALL_TYPE_LABEL][i]
         if type(wall_type) is not str:
             wall_type = ""
-        type_factor = RiskSupportStructures.get_type_factor(
+        type_factor = SupportStructureRisks.get_type_factor(
             is_on_slope_side, wall_type)
 
         # K_9
-        material_factor = RiskSupportStructures.get_material_factor(wall_type)
+        material_factor = SupportStructureRisks.get_material_factor(wall_type)
 
         # K_14
         length = self.support_structures[Labels.SUPPORT_LENGTH_LABEL][i]
         average_height = self.support_structures[
             Labels.SUPPORT_AVERAGE_HEIGHT_LABEL][i]
-        visible_area = RiskSupportStructures.get_visible_area(
+        visible_area = SupportStructureRisks.get_visible_area(
             length, average_height)
         visible_area_factor = (
-            RiskSupportStructures.get_visible_area_factor(visible_area))
+            SupportStructureRisks.get_visible_area_factor(visible_area))
 
         # K_15
         max_height = length = self.support_structures[
             Labels.SUPPORT_MAX_HEIGHT_LABEL][i]
-        height_factor = RiskSupportStructures.get_height_factor(max_height)
+        height_factor = SupportStructureRisks.get_height_factor(max_height)
 
         # K_16
         # we use the default value for "no information"
@@ -506,7 +506,7 @@ class KUBA:
             precipitation_zone_factor = 1.5
         else:
             precipitation_zone_factor = (
-                RiskSupportStructures.get_precipitation_zone_factor(
+                SupportStructureRisks.get_precipitation_zone_factor(
                     precipitation_zone_value))
 
         probability_of_failure = 10e-6
@@ -583,24 +583,24 @@ class KUBA:
         bridgeName = str(self.bridges[Labels.NAME_LABEL][i])
 
         # K_1
-        normYear = RiskBridges.getNormYear(
+        normYear = BridgeRisks.getNormYear(
             self.bridges[Labels.NORM_YEAR_LABEL][i])
         yearOfConstruction = self.bridges[Labels.YEAR_OF_CONSTRUCTION_LABEL][i]
         if not math.isnan(yearOfConstruction):
             yearOfConstruction = int(yearOfConstruction)
-        humanErrorFactor = RiskBridges.getHumanErrorFactor(
+        humanErrorFactor = BridgeRisks.getHumanErrorFactor(
             normYear, yearOfConstruction)
 
         # K_3
         typeCode = self.bridges[Labels.TYPE_CODE_LABEL][i]
         typeText = self.bridges[Labels.TYPE_TEXT_LABEL][i]
         staticalDeterminacyFactor = (
-            RiskBridges.getStaticalDeterminacyFactor(typeCode))
+            BridgeRisks.getStaticalDeterminacyFactor(typeCode))
 
         # P_f * K_4
         conditionClass = self.bridges[Labels.CONDITION_CLASS_LABEL][i]
-        age = RiskBridges.getAge(yearOfConstruction)
-        conditionFactor = RiskBridges.getConditionFactor(conditionClass, age)
+        age = BridgeRisks.getAge(yearOfConstruction)
+        conditionFactor = BridgeRisks.getConditionFactor(conditionClass, age)
 
         # K_6
         bridgeNumber = self.bridges[Labels.NUMBER_LABEL][i]
@@ -613,7 +613,7 @@ class KUBA:
             functionText = None
         else:
             functionText = building[Labels.FUNCTION_LABEL].iat[0]
-        overpassFactor = RiskBridges.getOverpassFactor(functionText)
+        overpassFactor = BridgeRisks.getOverpassFactor(functionText)
         if functionText is None:
             functionText = _('unknown')
 
@@ -623,33 +623,33 @@ class KUBA:
         # e.g. N13 154, Averserrhein Brücke.
         # Therefore we use the following fallback strategy:
         # We start with the largest span.
-        span = RiskBridges.getSpan(self.bridges[Labels.LARGEST_SPAN_LABEL][i])
+        span = BridgeRisks.getSpan(self.bridges[Labels.LARGEST_SPAN_LABEL][i])
         if span is None:
             # If the largest span is unknown, use the span.
-            span = RiskBridges.getSpan(self.bridges[Labels.SPAN_LABEL][i])
+            span = BridgeRisks.getSpan(self.bridges[Labels.SPAN_LABEL][i])
             if span is None:
                 # If the span is unknown, use the length.
-                span = RiskBridges.getSpan(
+                span = BridgeRisks.getSpan(
                     self.bridges[Labels.LENGTH_LABEL][i])
                 if span is None:
                     # If the length is unknown, assume 25 m.
                     span = 25
-        staticCalculationFactor = RiskBridges.getStaticCalculationFactor(span)
+        staticCalculationFactor = BridgeRisks.getStaticCalculationFactor(span)
 
         # K_8
-        bridgeTypeFactor = RiskBridges.getBridgeTypeFactor(typeCode)
+        bridgeTypeFactor = BridgeRisks.getBridgeTypeFactor(typeCode)
 
         # K_9
-        materialCode = RiskBridges.getMaterialCode(
+        materialCode = BridgeRisks.getMaterialCode(
             self.bridges[Labels.MATERIAL_CODE_LABEL][i])
         materialText = self.bridges[Labels.MATERIAL_TEXT_LABEL][i]
-        materialFactor = RiskBridges.getMaterialFactor(materialCode)
+        materialFactor = BridgeRisks.getMaterialFactor(materialCode)
         buildingMaterialString = (
             _('unknown') if not isinstance(materialText, str)
             else materialText)
 
         # K_11
-        robustnessFactor = RiskBridges.getRobustnessFactor(yearOfConstruction)
+        robustnessFactor = BridgeRisks.getRobustnessFactor(yearOfConstruction)
 
         # K_13
         if self.new_earthquake_zones_dict:
@@ -700,7 +700,7 @@ class KUBA:
         else:
             skewValue = skewEntry[Labels.SKEW_LABEL].iloc[0]
 
-        earthQuakeZoneFactor = RiskBridges.getEarthQuakeZoneFactor(
+        earthQuakeZoneFactor = BridgeRisks.getEarthQuakeZoneFactor(
             earthQuakeCheckValue, typeCode, bridgeName, skewValue,
             zoneName, yearOfConstruction)
 
@@ -825,13 +825,13 @@ class KUBA:
         if ((width is None) or (width == 0) or (math.isnan(width))):
             # if the width is unknown, assume 30 m
             width = 30
-        replacement_costs = DamageParameters.get_replacement_costs(
+        replacement_costs = BridgeDamageParameters.get_replacement_costs(
             length, width)
-        victim_costs = DamageParameters.get_victim_costs(
+        victim_costs = BridgeDamageParameters.get_victim_costs(
             typeText, functionText)
-        vehicle_lost_costs = DamageParameters.get_vehicle_loss_costs(
+        vehicle_lost_costs = BridgeDamageParameters.get_vehicle_loss_costs(
             length, aadt, percentage_of_cars)
-        downtime_costs = DamageParameters.get_downtime_costs(
+        downtime_costs = BridgeDamageParameters.get_downtime_costs(
             aadt, percentage_of_cars)
         damage_costs = (replacement_costs + victim_costs +
                         vehicle_lost_costs + downtime_costs)
