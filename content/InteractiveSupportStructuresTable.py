@@ -38,7 +38,17 @@ class InteractiveSupportStructuresTable:
                   height_factor: float,
                   precipitation_zone: int,
                   precipitation_zone_factor: float,
-                  probability_of_collapse: float) -> None:
+                  probability_of_collapse: float,
+                  length: int,
+                  width: int,
+                  replacement_costs: int,
+                  victim_costs: int,
+                  axis: str,
+                  aadt: int,
+                  vehicle_lost_costs: int,
+                  downtime_costs: int,
+                  damage_costs: int,
+                  risk: float) -> None:
         """Adds an entry to the table.
 
         Parameters
@@ -73,6 +83,28 @@ class InteractiveSupportStructuresTable:
             The precipitation zone factor of the support structure
         probability_of_collapse : float
             The probability of collapse of the support structure
+        length: int,
+            The length of the bridge
+        width: int,
+            The width of the bridge
+        replacement_costs: int
+            The costs that will be incurred if the bridge has to be rebuilt
+            (construction costs)
+        victim_costs: int
+            The costs of fatalities and injuries
+        axis: str
+            The traffic axis on which the bridge is located
+        aadt: int
+            The average annual daily traffic
+        vehicle_lost_costs: int
+            The loss costs from vehicles etc.
+        downtime_costs: int
+            The costs from business interruption
+        damage_costs: int
+            The sum of replacement, victim, vehicle and downtime costs
+        risk: float
+            The risk value of this bridge
+            (probability_of_collapse * damage_costs)
         """
 
         if (precipitation_zone is None) or (math.isnan(precipitation_zone)):
@@ -96,8 +128,17 @@ class InteractiveSupportStructuresTable:
             _('Height factor'): [height_factor],
             _('Precipitation zone'): [precipitation_zone_string],
             _('Precipitation zone factor'): [precipitation_zone_factor],
-            _('Probability of collapse'): [probability_of_collapse]
-            })
+            _('Probability of collapse'): [probability_of_collapse],
+            _('Length'): [length],
+            _('Width'): [width],
+            _('Replacement costs'): [replacement_costs],
+            _('Victim costs'): [victim_costs],
+            _('Axis'): [axis],
+            _('Average annual daily traffic'): [aadt],
+            _('Vehicle lost costs'): [vehicle_lost_costs],
+            _('Downtime costs'): [downtime_costs],
+            _('Damage costs'): [damage_costs],
+            _('Risk'): [risk]})
         if self.data_frame is None:
             self.data_frame = new_data_frame
         else:

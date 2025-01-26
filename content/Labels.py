@@ -33,6 +33,7 @@ SUPPORT_AREA_LABEL = 'Infrastrukturobjekt\xa0Fläche\xa0[m²]'
 SUPPORT_MAX_HEIGHT_LABEL = (
     'Infrastrukturobjekt\xa0Max.\xa0Infrastrukturobjekthöhe\xa0[m]')
 SUPPORT_LENGTH_LABEL = 'Infrastrukturobjekt\xa0Länge\xa0[m]'
+SUPPORT_WIDTH_LABEL = 'Infrastrukturobjekt\xa0Breite\xa0[m]'
 SUPPORT_AVERAGE_HEIGHT_LABEL = (
     'Infrastrukturobjekt\xa0Durchschnittliche\xa0Höhe\xa0[m]')
 SUPPORT_CONSEQUENCE_OF_COLLAPSE = (

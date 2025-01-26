@@ -1,11 +1,11 @@
 import geopandas as gpd
 import gettext
+import ipywidgets as widgets
 import json
 import math
 import os.path
-import time
 import pandas as pd
-import ipywidgets as widgets
+import time
 import traceback
 from babel.dates import format_date
 from datetime import datetime
@@ -15,12 +15,13 @@ from json import JSONDecodeError
 from shapely.geometry import Point
 import Labels
 from BridgeDamageParameters import BridgeDamageParameters
-from InteractiveMap import InteractiveMap
+from BridgeRisks import BridgeRisks
 from InteractiveBridgesTable import InteractiveBridgesTable
+from InteractiveMap import InteractiveMap
 from InteractiveSupportStructuresTable import InteractiveSupportStructuresTable
 from Plots import Plots
 from ProgressBar import ProgressBar
-from BridgeRisks import BridgeRisks
+from SupportStructureDamageParameters import SupportStructureDamageParameters
 from SupportStructureRisks import SupportStructureRisks
 
 
@@ -268,6 +269,10 @@ class KUBA:
             precipitation_zones_choropleth, _('Probability of collapse'),
             False)
 
+        self.support_structures_risk_map = InteractiveMap(
+            self.progress_bar, earthquake_zones_choropleth,
+            precipitation_zones_choropleth, _('Risk'), False)
+
         initialWidthStyle = {'description_width': 'initial'}
 
         self.bridgesIntText = widgets.BoundedIntText(
@@ -398,18 +403,24 @@ class KUBA:
                 with open(precipitation_zones_dict_file_name, 'w') as file:
                     json.dump(self.precipitation_zones_dict, file, indent=4)
 
-            self.progress_bar.reset(2)
+            self.progress_bar.reset(3)
             description = (
                 _('Loading the map of support structure collapse probabilities'))
             self.progress_bar.update_progress(step=0, description=description)
             self.support_structures_poc_map.add_marker_layer(
                 self.support_structures_table.data_frame)
 
+            description = (_('Loading the map of support structure risks'))
+            self.progress_bar.update_progress(step=1, description=description)
+            self.support_structures_risk_map.add_marker_layer(
+                self.support_structures_table.data_frame)
+
             with self.output:
                 self.support_structures_poc_map.display()
+                self.support_structures_risk_map.display()
                 description = _('Loading the table of support structures')
                 self.progress_bar.update_progress(
-                    step=1, description=description)
+                    step=2, description=description)
                 self.support_structures_table.display()
 
         except Exception:
@@ -533,6 +544,38 @@ class KUBA:
                 else precipitation_zone_factor)
             )
 
+        width = self.support_structures[Labels.SUPPORT_WIDTH_LABEL][i]
+
+        kuba_axis = self.support_structures[Labels.AXIS_LABEL][i]
+        traffic_axis, aadt, percentage_of_cars = (
+            self.__get_traffic_data(kuba_axis))
+
+        # TODO: definition of P_EL?
+        p_el = aadt / (24 * 12) * 1.74
+
+        consequence_of_collapse = self.support_structures[
+            Labels.SUPPORT_CONSEQUENCE_OF_COLLAPSE][i]
+        # TODO: where and how to use?
+        dampening_factor = (
+            SupportStructureDamageParameters.get_dampening_factor(
+                consequence_of_collapse))
+
+        replacement_costs = (
+            SupportStructureDamageParameters.get_replacement_costs(
+                length, width))
+        victim_costs = SupportStructureDamageParameters.get_victim_costs()
+        vehicle_lost_costs = (
+            SupportStructureDamageParameters.get_vehicle_loss_costs(
+                length, aadt, percentage_of_cars))
+        downtime_costs = SupportStructureDamageParameters.get_downtime_costs(
+            aadt, percentage_of_cars)
+        damage_costs = SupportStructureDamageParameters.get_damage_costs(
+            replacement_costs, victim_costs,
+            vehicle_lost_costs, downtime_costs)
+        risk = probability_of_collapse * damage_costs
+
+        axis_string = str(kuba_axis) + " → " + str(traffic_axis)
+
         try:
             # add marker to interactive map
             popup = InteractiveMap.create_support_structure_popup(
@@ -541,8 +584,11 @@ class KUBA:
                 type_factor, wall_type, material_factor, visible_area,
                 visible_area_factor, max_height, height_factor,
                 precipitation_zone_value, precipitation_zone_factor,
-                probability_of_collapse)
+                probability_of_collapse, length, width, replacement_costs,
+                victim_costs, axis_string, aadt, vehicle_lost_costs,
+                downtime_costs, damage_costs, risk)
             self.support_structures_poc_map.add_marker(point, popup)
+            self.support_structures_risk_map.add_marker(point, popup)
 
             # add dataframe to interactive table
             self.support_structures_table.add_entry(
@@ -551,7 +597,9 @@ class KUBA:
                 type_factor, wall_type, material_factor, visible_area,
                 visible_area_factor, max_height, height_factor,
                 precipitation_zone_value, precipitation_zone_factor,
-                probability_of_collapse)
+                probability_of_collapse, length, width, replacement_costs,
+                victim_costs, axis_string, aadt, vehicle_lost_costs,
+                downtime_costs, damage_costs, risk)
 
         except Exception:
             print(traceback.format_exc())
@@ -704,7 +752,7 @@ class KUBA:
             earthQuakeCheckValue, typeCode, bridgeName, skewValue,
             zoneName, yearOfConstruction)
 
-        probabilityOfCollapse = (
+        probability_of_collapse = (
             (1 if humanErrorFactor is None
                 else humanErrorFactor) *
             (1 if staticalDeterminacyFactor is None
@@ -766,6 +814,106 @@ class KUBA:
 
         # get AADT (average annual daily traffic) and percentages
         kuba_axis = self.bridges[Labels.AXIS_LABEL][i]
+        traffic_axis, aadt, percentage_of_cars = (
+            self.__get_traffic_data(kuba_axis))
+
+        length = self.bridges[Labels.LENGTH_LABEL][i]
+        if ((length is None) or (length == 0) or (math.isnan(length))):
+            # if the length is unknown, assume 200 m
+            length = 200
+        width = self.bridges[Labels.WIDTH_LABEL][i]
+        if ((width is None) or (width == 0) or (math.isnan(width))):
+            # if the width is unknown, assume 30 m
+            width = 30
+        replacement_costs = BridgeDamageParameters.get_replacement_costs(
+            length, width)
+        victim_costs = BridgeDamageParameters.get_victim_costs(
+            typeText, functionText)
+        vehicle_lost_costs = BridgeDamageParameters.get_vehicle_loss_costs(
+            length, aadt, percentage_of_cars)
+        downtime_costs = BridgeDamageParameters.get_downtime_costs(
+            aadt, percentage_of_cars)
+        damage_costs = (replacement_costs + victim_costs +
+                        vehicle_lost_costs + downtime_costs)
+
+        risk = probability_of_collapse * damage_costs
+
+        axis_string = str(kuba_axis) + " → " + str(traffic_axis)
+
+        # add new marker to interactive maps
+        bridge_popup = InteractiveMap.create_bridge_popup(
+            bridgeName, normYearString, yearOfConstructionString,
+            humanErrorFactor, typeText, staticalDeterminacyFactor, ageText,
+            conditionFactor, span, functionText, overpassFactor,
+            staticCalculationFactor, bridgeTypeFactor, buildingMaterialString,
+            materialFactor, robustnessFactor, zoneName, earthQuakeZoneFactor,
+            maintenanceAcceptanceDateString, probability_of_collapse, length,
+            width, replacement_costs, victim_costs, axis_string, aadt,
+            vehicle_lost_costs, downtime_costs, damage_costs, risk)
+        self.bridges_poc_map.add_marker(point, bridge_popup)
+        self.bridges_risk_map.add_marker(point, bridge_popup)
+
+        # add dataframe to interactive table
+        self.bridges_table.add_entry(
+            bridgeName, normYearString, yearOfConstructionString,
+            humanErrorFactor, typeText, staticalDeterminacyFactor,
+            conditionClass, ageText, conditionFactor, functionText, span,
+            overpassFactor, staticCalculationFactor, bridgeTypeFactor,
+            buildingMaterialString, materialFactor, robustnessFactor, zoneName,
+            earthQuakeZoneFactor, maintenanceAcceptanceDateString,
+            probability_of_collapse, length, width, replacement_costs,
+            victim_costs, axis_string, aadt, vehicle_lost_costs,
+            downtime_costs, damage_costs, risk)
+
+        # add data to plots
+        self.plots.fillData(i, conditionClass, probability_of_collapse, age,
+                            span, buildingMaterialString, yearOfConstruction,
+                            maintenanceAcceptanceDate, aadt, risk,
+                            damage_costs, vehicle_lost_costs,
+                            replacement_costs, downtime_costs, victim_costs)
+
+        self.__update_bridges_progress_bar_after_timeout()
+
+    def __update_bridges_progress_bar_after_timeout(self):
+        # updating the progressbar is a very time consuming operation
+        # therefore we only update it after some time elapsed
+        # and not at every iteration
+        now = time.time()
+        elapsedTime = now - self.last_bridges_progress_bar_update
+        if elapsedTime > 1:
+            self.__update_bridges_progress_bar()
+            self.last_bridges_progress_bar_update = now
+
+    def __update_bridges_progress_bar(self):
+        description = (
+            _('Bridges are being loaded') + ': ' +
+            str(self.progress_bar_value) + '/' +
+            str(self.bridgesSlider.value))
+        if self.bridgesWithoutCoordinates > 0:
+            description += (' (' + str(self.bridgesWithoutCoordinates) +
+                            ' ' + _("without coordinates") + ')')
+        self.progress_bar.update_progress(
+            step=self.progress_bar_value, description=description)
+
+    def __update_support_structures_progress_bar_after_timeout(self):
+        # updating the progressbar is a very time consuming operation
+        # therefore we only update it after some time elapsed
+        # and not at every iteration
+        now = time.time()
+        elapsedTime = now - self.last_support_structures_progress_bar_update
+        if elapsedTime > 1:
+            self.__update_support_structures_progress_bar()
+            self.last_support_structures_progress_bar_update = now
+
+    def __update_support_structures_progress_bar(self):
+        description = (
+            _('Support structures are being loaded') + ': ' +
+            str(self.progress_bar_value) + '/' +
+            str(len(self.support_structures)))
+        self.progress_bar.update_progress(
+            step=self.progress_bar_value, description=description)
+
+    def __get_traffic_data(self, kuba_axis: str):
         traffic_axis = self.traffic_mapping.get(kuba_axis, "")
 
         if traffic_axis:
@@ -817,98 +965,4 @@ class KUBA:
             aadt = 5000
             percentage_of_cars = 0.95
 
-        length = self.bridges[Labels.LENGTH_LABEL][i]
-        if ((length is None) or (length == 0) or (math.isnan(length))):
-            # if the length is unknown, assume 200 m
-            length = 200
-        width = self.bridges[Labels.WIDTH_LABEL][i]
-        if ((width is None) or (width == 0) or (math.isnan(width))):
-            # if the width is unknown, assume 30 m
-            width = 30
-        replacement_costs = BridgeDamageParameters.get_replacement_costs(
-            length, width)
-        victim_costs = BridgeDamageParameters.get_victim_costs(
-            typeText, functionText)
-        vehicle_lost_costs = BridgeDamageParameters.get_vehicle_loss_costs(
-            length, aadt, percentage_of_cars)
-        downtime_costs = BridgeDamageParameters.get_downtime_costs(
-            aadt, percentage_of_cars)
-        damage_costs = (replacement_costs + victim_costs +
-                        vehicle_lost_costs + downtime_costs)
-
-        risk = probabilityOfCollapse * damage_costs
-
-        axis_string = str(kuba_axis) + " → " + str(traffic_axis)
-
-        # add new marker to interactive maps
-        bridge_popup = InteractiveMap.create_bridge_popup(
-            bridgeName, normYearString, yearOfConstructionString,
-            humanErrorFactor, typeText, staticalDeterminacyFactor, ageText,
-            conditionFactor, span, functionText, overpassFactor,
-            staticCalculationFactor, bridgeTypeFactor, buildingMaterialString,
-            materialFactor, robustnessFactor, zoneName, earthQuakeZoneFactor,
-            maintenanceAcceptanceDateString, probabilityOfCollapse, length,
-            width, replacement_costs, victim_costs, axis_string, aadt,
-            vehicle_lost_costs, downtime_costs, damage_costs, risk)
-        self.bridges_poc_map.add_marker(point, bridge_popup)
-        self.bridges_risk_map.add_marker(point, bridge_popup)
-
-        # add dataframe to interactive table
-        self.bridges_table.add_entry(
-            bridgeName, normYearString, yearOfConstructionString,
-            humanErrorFactor, typeText, staticalDeterminacyFactor,
-            conditionClass, ageText, conditionFactor, functionText, span,
-            overpassFactor, staticCalculationFactor, bridgeTypeFactor,
-            buildingMaterialString, materialFactor, robustnessFactor, zoneName,
-            earthQuakeZoneFactor, maintenanceAcceptanceDateString,
-            probabilityOfCollapse, length, width, replacement_costs,
-            victim_costs, axis_string, aadt, vehicle_lost_costs,
-            downtime_costs, damage_costs, risk)
-
-        # add data to plots
-        self.plots.fillData(i, conditionClass, probabilityOfCollapse, age,
-                            span, buildingMaterialString, yearOfConstruction,
-                            maintenanceAcceptanceDate, aadt, risk,
-                            damage_costs, vehicle_lost_costs,
-                            replacement_costs, downtime_costs, victim_costs)
-
-        self.__update_bridges_progress_bar_after_timeout()
-
-    def __update_bridges_progress_bar_after_timeout(self):
-        # updating the progressbar is a very time consuming operation
-        # therefore we only update it after some time elapsed
-        # and not at every iteration
-        now = time.time()
-        elapsedTime = now - self.last_bridges_progress_bar_update
-        if elapsedTime > 1:
-            self.__update_bridges_progress_bar()
-            self.last_bridges_progress_bar_update = now
-
-    def __update_bridges_progress_bar(self):
-        description = (
-            _('Bridges are being loaded') + ': ' +
-            str(self.progress_bar_value) + '/' +
-            str(self.bridgesSlider.value))
-        if self.bridgesWithoutCoordinates > 0:
-            description += (' (' + str(self.bridgesWithoutCoordinates) +
-                            ' ' + _("without coordinates") + ')')
-        self.progress_bar.update_progress(
-            step=self.progress_bar_value, description=description)
-
-    def __update_support_structures_progress_bar_after_timeout(self):
-        # updating the progressbar is a very time consuming operation
-        # therefore we only update it after some time elapsed
-        # and not at every iteration
-        now = time.time()
-        elapsedTime = now - self.last_support_structures_progress_bar_update
-        if elapsedTime > 1:
-            self.__update_support_structures_progress_bar()
-            self.last_support_structures_progress_bar_update = now
-
-    def __update_support_structures_progress_bar(self):
-        description = (
-            _('Support structures are being loaded') + ': ' +
-            str(self.progress_bar_value) + '/' +
-            str(len(self.support_structures)))
-        self.progress_bar.update_progress(
-            step=self.progress_bar_value, description=description)
+        return traffic_axis, aadt, percentage_of_cars

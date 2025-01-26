@@ -260,7 +260,17 @@ class InteractiveMap:
             height_factor: float,
             precipitation_zone: int,
             precipitation_zone_factor: float,
-            probability_of_collapse: float) -> HTML:
+            probability_of_collapse: float,
+            length: int,
+            width: int,
+            replacement_costs: int,
+            victim_costs: int,
+            axis: str,
+            aadt: int,
+            vehicle_lost_costs: int,
+            downtime_costs: int,
+            damage_costs: int,
+            risk: float) -> HTML:
         """Creates a popup for a support structure marker (an HTML widget)
 
         Parameters
@@ -295,6 +305,28 @@ class InteractiveMap:
             The precipitation zone factor of the support structure
         probability_of_collapse : float
             The probability of collapse of the support structure
+        length: int,
+            The length of the bridge
+        width: int,
+            The width of the bridge
+        replacement_costs: int
+            The costs that will be incurred if the bridge has to be rebuilt
+            (construction costs)
+        victim_costs: int
+            The costs of fatalities and injuries
+        axis: str
+            The traffic axis on which the bridge is located
+        aadt: int
+            The average annual daily traffic
+        vehicle_lost_costs: int
+            The loss costs from vehicles etc.
+        downtime_costs: int
+            The costs from business interruption
+        damage_costs: int
+            The sum of replacement, victim, vehicle and downtime costs
+        risk: float
+            The risk value of this bridge
+            (probability_of_collapse * damage_costs)
         """
         widget = widgets.HTML()
 
@@ -333,7 +365,22 @@ class InteractiveMap:
             '<br><b>' + _('Precipitation zone factor') + '</b>: ' +
             str(precipitation_zone_factor) + '<br><b>' +
             _('Probability of collapse') + '</b>: ' +
-            str(probability_of_collapse))
+            str(probability_of_collapse) + '<br><b>' + _('Length') + '</b>: ' +
+            InteractiveMap.__get_dimension_string(length) + '<br><b>' +
+            _('Width') + '</b>: ' +
+            InteractiveMap.__get_dimension_string(width) + '<br><b>' +
+            _('Replacement costs') + '</b>: ' +
+            format_currency(replacement_costs, 'CHF') + '<br><b>' +
+            _('Victim costs') + '</b>: ' +
+            format_currency(victim_costs, 'CHF') + '<br><b>' + _('Axis') +
+            '</b>: ' + axis + '<br><b>' + _('Average annual daily traffic') +
+            '</b>: ' + str(aadt) + '<br><b>' + _('Vehicle lost costs') +
+            '</b>: ' + format_currency(vehicle_lost_costs, 'CHF') + '<br><b>' +
+            _('Downtime costs') + '</b>: ' +
+            format_currency(downtime_costs, 'CHF') + '<br><b>' +
+            _('Damage costs') + '</b>: ' +
+            format_currency(damage_costs, 'CHF') + '<br><b>' + _('Risk') +
+            '</b>: ' + str(risk))
 
         return widget
 
