@@ -481,6 +481,8 @@ class KUBA:
         length = self.support_structures[Labels.SUPPORT_LENGTH_LABEL][i]
         average_height = self.support_structures[
             Labels.SUPPORT_AVERAGE_HEIGHT_LABEL][i]
+        # we handle empty values for length and average_height only later in
+        # the risk calculation!
         visible_area = SupportStructureRisks.get_visible_area(
             length, average_height)
         visible_area_factor = (
@@ -544,6 +546,17 @@ class KUBA:
                 else precipitation_zone_factor)
             )
 
+        if ((length is None) or (length == 0) or (math.isnan(length))):
+            # if the length is unknown, assume 80 m
+            length = 80
+
+        if (
+                (average_height is None) or
+                (average_height == 0) or
+                (math.isnan(average_height))):
+            # if the average_height is unknown, assume 20 m
+            average_height = 20
+
         width = self.support_structures[Labels.SUPPORT_WIDTH_LABEL][i]
 
         kuba_axis = self.support_structures[Labels.AXIS_LABEL][i]
@@ -562,7 +575,7 @@ class KUBA:
 
         replacement_costs = (
             SupportStructureDamageParameters.get_replacement_costs(
-                length, width))
+                length, average_height))
         victim_costs = SupportStructureDamageParameters.get_victim_costs()
         vehicle_lost_costs = (
             SupportStructureDamageParameters.get_vehicle_loss_costs(

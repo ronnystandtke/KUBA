@@ -21,12 +21,9 @@ class SupportStructureDamageParameters:
         return damage_costs
 
     @staticmethod
-    def get_replacement_costs(length, width):
-
-        # TODO: what to do when lengt and/or width is empty?
-
+    def get_replacement_costs(length, average_height):
         cost_per_square_meter = 2500  # CHF
-        return length * width * cost_per_square_meter
+        return length * average_height * cost_per_square_meter
 
     @staticmethod
     def get_dampening_factor(consequence_of_collapse):
