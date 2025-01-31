@@ -1,4 +1,7 @@
 from enum import Enum
+import math
+from datetime import datetime
+CURRENT_YEAR = datetime.now().year
 
 
 class SupportStructureRisks:
@@ -7,6 +10,13 @@ class SupportStructureRisks:
         'SupportWall',
         ['GRAVITY_WALL', 'CANTILEVER_WALL', 'CLADDING_WALL', 'OTHER_WALL'],
         start=0)
+
+    @staticmethod
+    def getAge(year_of_construction):
+        if (math.isnan(year_of_construction) or year_of_construction == -1):
+            return None
+        else:
+            return CURRENT_YEAR - int(year_of_construction)
 
     @staticmethod
     def get_human_error_factor(year_of_construction: int) -> int:

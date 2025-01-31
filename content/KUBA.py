@@ -15,13 +15,14 @@ from json import JSONDecodeError
 from shapely.geometry import Point
 import Labels
 from BridgeDamageParameters import BridgeDamageParameters
+from BridgePlots import BridgePlots
 from BridgeRisks import BridgeRisks
 from InteractiveBridgesTable import InteractiveBridgesTable
 from InteractiveMap import InteractiveMap
 from InteractiveSupportStructuresTable import InteractiveSupportStructuresTable
-from BridgePlots import BridgePlots
 from ProgressBar import ProgressBar
 from SupportStructureDamageParameters import SupportStructureDamageParameters
+from SupportStructurePlots import SupportStructurePlots
 from SupportStructureRisks import SupportStructureRisks
 
 
@@ -262,8 +263,6 @@ class KUBA:
 
         self.bridge_plots = BridgePlots()
 
-        self.support_structures_table = InteractiveSupportStructuresTable()
-
         self.support_structures_poc_map = InteractiveMap(
             self.progress_bar, earthquake_zones_choropleth,
             precipitation_zones_choropleth, _('Probability of collapse'),
@@ -272,6 +271,10 @@ class KUBA:
         self.support_structures_risk_map = InteractiveMap(
             self.progress_bar, earthquake_zones_choropleth,
             precipitation_zones_choropleth, _('Risk'), False)
+
+        self.support_structures_table = InteractiveSupportStructuresTable()
+
+        self.support_structures_plots = SupportStructurePlots()
 
         initialWidthStyle = {'description_width': 'initial'}
 
@@ -422,6 +425,7 @@ class KUBA:
                 self.progress_bar.update_progress(
                     step=2, description=description)
                 self.support_structures_table.display()
+                self.support_structures_plots.display(self.progress_bar)
 
         except Exception:
             print(traceback.format_exc())
@@ -452,6 +456,8 @@ class KUBA:
         # K_1
         year_of_construction = self.support_structures[
             Labels.YEAR_OF_CONSTRUCTION_LABEL][i]
+        if not math.isnan(year_of_construction):
+            year_of_construction = int(year_of_construction)
         human_error_factor = SupportStructureRisks.get_human_error_factor(
             year_of_construction)
 
@@ -586,6 +592,13 @@ class KUBA:
 
         axis_string = str(kuba_axis) + " → " + str(traffic_axis)
 
+        age = SupportStructureRisks.getAge(year_of_construction)
+
+        material_text = self.support_structures[Labels.MATERIAL_TEXT_LABEL][i]
+        building_material_string = (
+            _('unknown') if not isinstance(material_text, str)
+            else material_text)
+
         try:
             # add marker to interactive map
             popup = InteractiveMap.create_support_structure_popup(
@@ -611,6 +624,14 @@ class KUBA:
                 victim_costs, axis_string, aadt, vehicle_lost_costs,
                 downtime_costs, damage_costs, risk)
 
+            # add data to plots
+            # TODO: average height or max height?
+            self.support_structures_plots.fillData(
+                i, condition_class, probability_of_collapse, age,
+                length, max_height, building_material_string, aadt, risk,
+                damage_costs, vehicle_lost_costs, replacement_costs,
+                downtime_costs, victim_costs)
+
         except Exception:
             print(traceback.format_exc())
             with self.output:
@@ -627,6 +648,8 @@ class KUBA:
                 print('visible_area_factor:', visible_area_factor)
                 print('max_height:', max_height)
                 print('height_factor:', height_factor)
+                print('age:', age)
+                print('risk:', risk)
 
     def __load_bridge(self, i):
         point = self.bridges['geometry'][i]
@@ -643,11 +666,12 @@ class KUBA:
         # K_1
         normYear = BridgeRisks.getNormYear(
             self.bridges[Labels.NORM_YEAR_LABEL][i])
-        yearOfConstruction = self.bridges[Labels.YEAR_OF_CONSTRUCTION_LABEL][i]
-        if not math.isnan(yearOfConstruction):
-            yearOfConstruction = int(yearOfConstruction)
+        year_of_construction = self.bridges[
+            Labels.YEAR_OF_CONSTRUCTION_LABEL][i]
+        if not math.isnan(year_of_construction):
+            year_of_construction = int(year_of_construction)
         humanErrorFactor = BridgeRisks.getHumanErrorFactor(
-            normYear, yearOfConstruction)
+            normYear, year_of_construction)
 
         # K_3
         typeCode = self.bridges[Labels.TYPE_CODE_LABEL][i]
@@ -657,7 +681,7 @@ class KUBA:
 
         # P_f * K_4
         conditionClass = self.bridges[Labels.CONDITION_CLASS_LABEL][i]
-        age = BridgeRisks.getAge(yearOfConstruction)
+        age = BridgeRisks.getAge(year_of_construction)
         conditionFactor = BridgeRisks.getConditionFactor(conditionClass, age)
 
         # K_6
@@ -700,14 +724,15 @@ class KUBA:
         # K_9
         materialCode = BridgeRisks.getMaterialCode(
             self.bridges[Labels.MATERIAL_CODE_LABEL][i])
-        materialText = self.bridges[Labels.MATERIAL_TEXT_LABEL][i]
+        material_text = self.bridges[Labels.MATERIAL_TEXT_LABEL][i]
         materialFactor = BridgeRisks.getMaterialFactor(materialCode)
-        buildingMaterialString = (
-            _('unknown') if not isinstance(materialText, str)
-            else materialText)
+        building_material_string = (
+            _('unknown') if not isinstance(material_text, str)
+            else material_text)
 
         # K_11
-        robustnessFactor = BridgeRisks.getRobustnessFactor(yearOfConstruction)
+        robustness_factor = BridgeRisks.getRobustnessFactor(
+            year_of_construction)
 
         # K_13
         if self.new_earthquake_zones_dict:
@@ -760,7 +785,7 @@ class KUBA:
 
         earthQuakeZoneFactor = BridgeRisks.getEarthQuakeZoneFactor(
             earthQuakeCheckValue, typeCode, bridgeName, skewValue,
-            zoneName, yearOfConstruction)
+            zoneName, year_of_construction)
 
         probability_of_collapse = (
             (1 if humanErrorFactor is None
@@ -777,8 +802,8 @@ class KUBA:
                 else bridgeTypeFactor) *
             (1 if materialFactor is None
                 else materialFactor) *
-            (1 if robustnessFactor is None
-                else robustnessFactor) *
+            (1 if robustness_factor is None
+                else robustness_factor) *
             (1 if earthQuakeZoneFactor is None
                 else earthQuakeZoneFactor)
             )
@@ -792,9 +817,9 @@ class KUBA:
         normYearString = (
             _('unknown') if normYear is None
             else str(normYear))
-        yearOfConstructionString = (
-            _('unknown') if yearOfConstruction is None
-            else str(yearOfConstruction))
+        year_of_constructionString = (
+            _('unknown') if year_of_construction is None
+            else str(year_of_construction))
 
         # TODO: There are obvious errors like the support wall
         # 52.303.13, SM Oben Nordportal Tunnel Ried FBNO where the
@@ -852,25 +877,26 @@ class KUBA:
 
         # add new marker to interactive maps
         bridge_popup = InteractiveMap.create_bridge_popup(
-            bridgeName, normYearString, yearOfConstructionString,
+            bridgeName, normYearString, year_of_constructionString,
             humanErrorFactor, typeText, staticalDeterminacyFactor, ageText,
             conditionFactor, span, functionText, overpassFactor,
-            staticCalculationFactor, bridgeTypeFactor, buildingMaterialString,
-            materialFactor, robustnessFactor, zoneName, earthQuakeZoneFactor,
-            maintenanceAcceptanceDateString, probability_of_collapse, length,
-            width, replacement_costs, victim_costs, axis_string, aadt,
-            vehicle_lost_costs, downtime_costs, damage_costs, risk)
+            staticCalculationFactor, bridgeTypeFactor,
+            building_material_string, materialFactor, robustness_factor,
+            zoneName, earthQuakeZoneFactor, maintenanceAcceptanceDateString,
+            probability_of_collapse, length, width, replacement_costs,
+            victim_costs, axis_string, aadt, vehicle_lost_costs,
+            downtime_costs, damage_costs, risk)
         self.bridges_poc_map.add_marker(point, bridge_popup)
         self.bridges_risk_map.add_marker(point, bridge_popup)
 
         # add dataframe to interactive table
         self.bridges_table.add_entry(
-            bridgeName, normYearString, yearOfConstructionString,
+            bridgeName, normYearString, year_of_constructionString,
             humanErrorFactor, typeText, staticalDeterminacyFactor,
             conditionClass, ageText, conditionFactor, functionText, span,
             overpassFactor, staticCalculationFactor, bridgeTypeFactor,
-            buildingMaterialString, materialFactor, robustnessFactor, zoneName,
-            earthQuakeZoneFactor, maintenanceAcceptanceDateString,
+            building_material_string, materialFactor, robustness_factor,
+            zoneName, earthQuakeZoneFactor, maintenanceAcceptanceDateString,
             probability_of_collapse, length, width, replacement_costs,
             victim_costs, axis_string, aadt, vehicle_lost_costs,
             downtime_costs, damage_costs, risk)
@@ -878,7 +904,7 @@ class KUBA:
         # add data to plots
         self.bridge_plots.fillData(
             i, conditionClass, probability_of_collapse, age, span,
-            buildingMaterialString, yearOfConstruction,
+            building_material_string, year_of_construction,
             maintenanceAcceptanceDate, aadt, risk, damage_costs,
             vehicle_lost_costs, replacement_costs, downtime_costs,
             victim_costs)

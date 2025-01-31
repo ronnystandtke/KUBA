@@ -44,7 +44,7 @@ class SupportStructureDamageParameters:
         value_of_statistical_life = 7_000_000  # in CHF
         number_of_deaths = (
             SupportStructureDamageParameters.get_number_of_deaths(
-                dampening_factor))
+                length, dampening_factor))
         number_of_injuries = number_of_deaths
 
         return value_of_statistical_life * (
