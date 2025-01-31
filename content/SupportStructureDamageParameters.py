@@ -40,28 +40,20 @@ class SupportStructureDamageParameters:
             return 1
 
     @staticmethod
-    def get_number_of_deaths():
-        # TODO: definition of V_EL?
-        v_el = 1
-
-        # TODO: definition of F_Abstand?
-        f_distance = 1
-
-        # TODO: shouldn't we include the length?
-
-        # TODO: what do we have to do with "pro Ereignis"
-        # TODO: combined simplified factor of 0.003?
-        return f_distance * 0.3 * v_el * 0.01
-
-    @staticmethod
-    def get_victim_costs():
+    def get_victim_costs(length, dampening_factor):
         value_of_statistical_life = 7_000_000  # in CHF
         number_of_deaths = (
-            SupportStructureDamageParameters.get_number_of_deaths())
+            SupportStructureDamageParameters.get_number_of_deaths(
+                dampening_factor))
         number_of_injuries = number_of_deaths
 
         return value_of_statistical_life * (
             number_of_deaths + 0.01 * number_of_injuries)
+
+    @staticmethod
+    def get_number_of_deaths(length, dampening_factor):
+        # put division at the end for reasons of calculation accuracy
+        return 0.3 * 1.74 * dampening_factor * length / 30
 
     @staticmethod
     def get_vehicle_loss_costs(length, aadt, percentage_of_cars):
@@ -96,8 +88,5 @@ class SupportStructureDamageParameters:
         # difference of detour to standard tour
         l_diff = 20
 
-        # TODO: why a different formula than for bridges? (1-V_SA instead of n
-        #       and m, which are mentioned on the previous lines)
-        # TODO: example of "20 km Umleitung" seems incomplete
         return (aadt * l_diff * road_type_factor * (
             percentage_of_cars * car_cost + percentage_of_trucks * truck_cost))

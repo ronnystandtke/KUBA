@@ -18,7 +18,7 @@ def cached_gettext(message):
 _ = cached_gettext
 
 
-class Plots:
+class BridgePlots:
 
     def __init__(self):
         self.acpScatterColumns = [

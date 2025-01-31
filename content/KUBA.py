@@ -19,7 +19,7 @@ from BridgeRisks import BridgeRisks
 from InteractiveBridgesTable import InteractiveBridgesTable
 from InteractiveMap import InteractiveMap
 from InteractiveSupportStructuresTable import InteractiveSupportStructuresTable
-from Plots import Plots
+from BridgePlots import BridgePlots
 from ProgressBar import ProgressBar
 from SupportStructureDamageParameters import SupportStructureDamageParameters
 from SupportStructureRisks import SupportStructureRisks
@@ -260,7 +260,7 @@ class KUBA:
 
         self.bridges_table = InteractiveBridgesTable()
 
-        self.plots = Plots()
+        self.bridge_plots = BridgePlots()
 
         self.support_structures_table = InteractiveSupportStructuresTable()
 
@@ -371,7 +371,7 @@ class KUBA:
                 self.progress_bar.update_progress(
                     step=2, description=description)
                 self.bridges_table.display()
-                self.plots.display(self.progress_bar)
+                self.bridge_plots.display(self.progress_bar)
 
             self.bridgesSlider.disabled = False
             self.bridgesIntText.disabled = False
@@ -563,12 +563,8 @@ class KUBA:
         traffic_axis, aadt, percentage_of_cars = (
             self.__get_traffic_data(kuba_axis))
 
-        # TODO: definition of P_EL?
-        p_el = aadt / (24 * 12) * 1.74
-
         consequence_of_collapse = self.support_structures[
             Labels.SUPPORT_CONSEQUENCE_OF_COLLAPSE][i]
-        # TODO: where and how to use?
         dampening_factor = (
             SupportStructureDamageParameters.get_dampening_factor(
                 consequence_of_collapse))
@@ -576,7 +572,8 @@ class KUBA:
         replacement_costs = (
             SupportStructureDamageParameters.get_replacement_costs(
                 length, average_height))
-        victim_costs = SupportStructureDamageParameters.get_victim_costs()
+        victim_costs = SupportStructureDamageParameters.get_victim_costs(
+            length, dampening_factor)
         vehicle_lost_costs = (
             SupportStructureDamageParameters.get_vehicle_loss_costs(
                 length, aadt, percentage_of_cars))
@@ -879,11 +876,12 @@ class KUBA:
             downtime_costs, damage_costs, risk)
 
         # add data to plots
-        self.plots.fillData(i, conditionClass, probability_of_collapse, age,
-                            span, buildingMaterialString, yearOfConstruction,
-                            maintenanceAcceptanceDate, aadt, risk,
-                            damage_costs, vehicle_lost_costs,
-                            replacement_costs, downtime_costs, victim_costs)
+        self.bridge_plots.fillData(
+            i, conditionClass, probability_of_collapse, age, span,
+            buildingMaterialString, yearOfConstruction,
+            maintenanceAcceptanceDate, aadt, risk, damage_costs,
+            vehicle_lost_costs, replacement_costs, downtime_costs,
+            victim_costs)
 
         self.__update_bridges_progress_bar_after_timeout()
 
