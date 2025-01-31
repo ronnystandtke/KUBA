@@ -625,7 +625,6 @@ class KUBA:
                 downtime_costs, damage_costs, risk)
 
             # add data to plots
-            # TODO: average height or max height?
             self.support_structures_plots.fillData(
                 i, condition_class, probability_of_collapse, age,
                 length, max_height, building_material_string, aadt, risk,

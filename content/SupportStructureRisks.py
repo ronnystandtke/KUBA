@@ -14,8 +14,9 @@ class SupportStructureRisks:
     @staticmethod
     def getAge(year_of_construction):
 
-        # TODO: How to deal with values 0 and -1?
-        if (math.isnan(year_of_construction) or year_of_construction == -1):
+        if (math.isnan(year_of_construction) or
+                year_of_construction == -1 or
+                year_of_construction == 0):
             return None
         else:
             return CURRENT_YEAR - int(year_of_construction)
