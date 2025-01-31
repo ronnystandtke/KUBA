@@ -75,6 +75,12 @@ class SupportStructurePlots:
         self.material_risk_box = pd.DataFrame(
             columns=self.material_risk_box_columns)
 
+        self.standardized_damage_columns = [
+            _('Vehicle lost costs'), _('Replacement costs'),
+            _('Downtime costs'), _('Victim costs')]
+        self.standardized_damage_dataframe = pd.DataFrame(
+            columns=self.standardized_damage_columns)
+
     def fillData(self, index, condition_class, probability_of_collapse, age,
                  length, height, building_material_string, aadt, risk,
                  damage_costs, vehicle_lost_costs, replacement_costs,
@@ -149,6 +155,12 @@ class SupportStructurePlots:
             columns=self.material_risk_box_columns)
         self.material_risk_box = self.__concat_dataframe(
             self.material_risk_box, new_data_frame)
+
+        newDataFrame = pd.DataFrame(
+            [[vehicle_lost_costs, replacement_costs, downtime_costs,
+              victim_costs]], columns=self.standardized_damage_columns)
+        self.standardized_damage_dataframe = self.__concat_dataframe(
+            self.standardized_damage_dataframe, newDataFrame)
 
     def display(self, progress_bar: ProgressBar) -> None:
 
@@ -271,6 +283,22 @@ class SupportStructurePlots:
         self.__update_progress_bar()
         self.__add_material_box_plot(self.material_risk_box,
                                      self.material_risk_box_columns)
+
+        # standardized damage
+        self.__update_progress_bar()
+        df = self.standardized_damage_dataframe
+        replacement_sum = df[_('Replacement costs')].sum()
+        standardized_damages = [
+            df[_('Vehicle lost costs')].sum() / replacement_sum,
+            1,  # this is always "1" (Replacement costs / Replacement costs)
+            df[_('Downtime costs')].sum() / replacement_sum,
+            df[_('Victim costs')].sum() / replacement_sum]
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.bar(self.standardized_damage_columns,
+               standardized_damages, width=0.5)
+        ax.set_ylabel(_('Ratio of damage costs to replacement costs'))
+        plt.show()
+
 
     def __concat_dataframe(self, data_frame, new_data_frame):
         return pd.concat(
