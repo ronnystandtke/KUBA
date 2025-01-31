@@ -1,10 +1,11 @@
+from IPython.display import display, HTML
+from ProgressBar import ProgressBar
+from functools import cache
+from matplotlib.ticker import MaxNLocator
 import gettext
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
 import pandas as pd
-from functools import cache
-from IPython.display import display, HTML
-from ProgressBar import ProgressBar
 
 
 @cache
@@ -239,6 +240,7 @@ class SupportStructurePlots:
         ax.set_xlabel(self.age_material_stack_columns[0])
         ax.set_ylabel(self.age_material_stack_columns[1])
         ax.legend(loc='upper left')
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True, prune='both'))
         plt.show()
 
         # aadt vs. risk
