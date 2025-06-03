@@ -53,3 +53,4 @@ mapclassify
 matplotlib
 openpyxl
 pandas
+typing_extensions
